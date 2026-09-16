@@ -1,0 +1,230 @@
+// ============================================================================
+// BELGRAVIA — Recensement & qualification terrain — Schéma Prisma (PostgreSQL)
+// Principes : rien n'est codé en dur (référentiels en base), idempotence
+// (uuidClient sur les écritures terrain), pagination systématique côté admin.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------------------------------------------------------------------------
+// RÉFÉRENTIELS (modifiables depuis l'admin, jamais codés en dur dans le code)
+// ---------------------------------------------------------------------------
+
+model Ville {
+  id        String       @id @default(uuid())
+  nom       String       @unique
+  actif     Boolean      @default(true)
+  createdAt DateTime     @default(now()) @map("created_at")
+  pointsVente PointVente[]
+
+  @@map("villes")
+}
+
+model TypeEtablissement {
+  id          String       @id @default(uuid())
+  nom         String       @unique
+  actif       Boolean      @default(true)
+  ordre       Int          @default(0)
+  pointsVente PointVente[]
+
+  @@map("types_etablissement")
+}
+
+model Marque {
+  id          String               @id @default(uuid())
+  nom         String               @unique
+  actif       Boolean              @default(true)
+  ordre       Int                  @default(0)
+  presences   MarquePresente[]
+
+  @@map("marques")
+}
+
+// ---------------------------------------------------------------------------
+// UTILISATEURS
+// ---------------------------------------------------------------------------
+
+enum Role {
+  ADMIN
+  COMMERCIAL
+}
+
+model User {
+  id           String    @id @default(uuid())
+  // Admin : email + mot de passe. Commercial : identifiant + code personnel.
+  identifiant  String    @unique
+  passwordHash String    @map("password_hash")
+  role         Role
+  nom          String
+  prenom       String
+  telephone    String?
+  villeId      String?   @map("ville_id")
+  actif        Boolean   @default(true)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  pointsVenteCrees PointVente[]
+  visites          Visite[]
+  sessions         Session[]
+
+  @@index([role])
+  @@map("users")
+}
+
+model Session {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id])
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+  expiresAt  DateTime @map("expires_at")
+  revoked    Boolean  @default(false)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// ---------------------------------------------------------------------------
+// TERRAIN — POINTS DE VENTE + FORMULAIRE DE RECENSEMENT (Visite)
+// ---------------------------------------------------------------------------
+
+enum StatutPointVente {
+  OUVERT
+  FERME_TEMPORAIREMENT
+  EN_TRAVAUX
+}
+
+enum ReponseCocktails {
+  OUI
+  NON
+  INTERESSE
+}
+
+enum CapaciteEstimee {
+  MOINS_20
+  DE_20_A_50
+  DE_50_A_100
+  PLUS_100
+}
+
+enum PotentielEstime {
+  FORT
+  MOYEN
+  FAIBLE
+}
+
+enum Repondant {
+  GERANT_PATRON
+  EMPLOYE
+  AUTRE
+}
+
+model PointVente {
+  id                String             @id @default(uuid())
+  // Section 2
+  nomEtablissement  String             @map("nom_etablissement")
+  nomVendeur        String?            @map("nom_vendeur")
+  telVendeur        String?            @map("tel_vendeur")
+  telPatron         String?            @map("tel_patron")
+  villeId           String?            @map("ville_id")
+  ville             Ville?             @relation(fields: [villeId], references: [id])
+  quartier          String?
+  repereQuartier    String?            @map("repere_quartier")
+  typeId            String?            @map("type_id")
+  type              TypeEtablissement? @relation(fields: [typeId], references: [id])
+  typeAutrePrecision String?           @map("type_autre_precision")
+  latitude          Decimal?           @db.Decimal(10, 7)
+  longitude         Decimal?           @db.Decimal(10, 7)
+  precisionGps      Decimal?           @map("precision_gps") @db.Decimal(6, 2)
+  statut            StatutPointVente   @default(OUVERT)
+
+  createdById String   @map("created_by")
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  visites Visite[]
+  photos  Photo[]
+
+  @@index([villeId])
+  @@index([typeId])
+  @@index([createdAt])
+  @@map("points_vente")
+}
+
+/// Une "visite" = un remplissage complet du formulaire terrain (sections 3 et 4
+/// + horodatage/agent de la section 1). uuidClient garantit l'idempotence si le
+/// formulaire est renvoyé après une coupure réseau (PWA offline-first).
+model Visite {
+  id           String   @id @default(uuid())
+  uuidClient   String   @unique @map("uuid_client")
+  pointVenteId String   @map("point_vente_id")
+  pointVente   PointVente @relation(fields: [pointVenteId], references: [id])
+  commercialId String   @map("commercial_id")
+  commercial   User     @relation(fields: [commercialId], references: [id])
+  dateVisite   DateTime @map("date_visite")
+
+  // Section 3 — Offre et potentiel
+  vendSpiritueux      Boolean?          @map("vend_spiritueux")
+  proposeCocktails    ReponseCocktails? @map("propose_cocktails")
+  capaciteEstimee     CapaciteEstimee?  @map("capacite_estimee")
+  affluence           Json?             // [{ jour: "LUNDI", creneaux: ["MATIN","SOIR"] }, ...]
+  fournisseurGrossiste Boolean          @default(false) @map("fournisseur_grossiste")
+  fournisseurMarche    Boolean          @default(false) @map("fournisseur_marche")
+  fournisseurLivraison Boolean          @default(false) @map("fournisseur_livraison")
+  fournisseurNeSaitPas Boolean          @default(false) @map("fournisseur_ne_sait_pas")
+
+  // Section 4 — Qualification commerciale
+  potentielEstime      PotentielEstime?  @map("potentiel_estime")
+  interesseVisiteCommerciale Boolean?    @map("interesse_visite_commerciale")
+  observations         String?
+  repondant             Repondant?
+  repondantAutrePrecision String?        @map("repondant_autre_precision")
+  veutCommander         Boolean?         @map("veut_commander")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  marquesPresentes MarquePresente[]
+  photos           Photo[]
+
+  @@index([pointVenteId])
+  @@index([commercialId])
+  @@index([dateVisite])
+  @@map("visites")
+}
+
+/// Table de liaison : marques présentes cochées pour une visite, + jusqu'à 3
+/// marques libres saisies par l'agent ("Autre 1/2/3") stockées avec marqueId
+/// nul et libelleLibre renseigné.
+model MarquePresente {
+  id           String   @id @default(uuid())
+  visiteId     String   @map("visite_id")
+  visite       Visite   @relation(fields: [visiteId], references: [id], onDelete: Cascade)
+  marqueId     String?  @map("marque_id")
+  marque       Marque?  @relation(fields: [marqueId], references: [id])
+  libelleLibre String?  @map("libelle_libre")
+
+  @@index([visiteId])
+  @@map("marques_presentes")
+}
+
+model Photo {
+  id           String      @id @default(uuid())
+  uuidClient   String      @unique @map("uuid_client")
+  pointVenteId String      @map("point_vente_id")
+  pointVente   PointVente  @relation(fields: [pointVenteId], references: [id])
+  visiteId     String?     @map("visite_id")
+  visite       Visite?     @relation(fields: [visiteId], references: [id])
+  url          String
+  createdAt    DateTime    @default(now()) @map("created_at")
+
+  @@index([pointVenteId])
+  @@map("photos")
+}

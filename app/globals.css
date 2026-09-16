@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Mode clair — par défaut. Ivoire + or, esprit maison de spiritueux haut de gamme. */
+  --color-bg: 250 246 239;          /* #FAF6EF */
+  --color-bg-elevated: 255 255 255; /* #FFFFFF */
+  --color-bg-card: 255 253 249;     /* #FFFDF9 */
+  --color-line: 229 220 200;        /* #E5DCC8 */
+  --color-ink: 28 27 23;            /* #1C1B17 */
+  --color-ink-muted: 122 115 100;   /* #7A7364 */
+  --color-brass: 166 121 30;        /* #A6791E — or */
+  --color-brass-soft: 140 106 31;   /* #8C6A1F */
+  --color-brass-dim: 212 175 106;   /* #D4AF6A */
+  --color-ok: 76 122 79;            /* #4C7A4F */
+  --color-warn: 185 121 30;         /* #B9791E */
+  --color-danger: 163 59 46;        /* #A33B2E */
+}
+
+[data-theme="dark"] {
+  /* Mode sombre — noir chaud profond + or clair. */
+  --color-bg: 20 18 14;             /* #14120E */
+  --color-bg-elevated: 30 27 21;    /* #1E1B15 */
+  --color-bg-card: 36 33 26;        /* #24211A */
+  --color-line: 58 52 40;           /* #3A3428 */
+  --color-ink: 245 239 223;         /* #F5EFDF */
+  --color-ink-muted: 183 172 147;   /* #B7AC93 */
+  --color-brass: 212 175 106;       /* #D4AF6A — or clair */
+  --color-brass-soft: 212 175 106;  /* #D4AF6A */
+  --color-brass-dim: 140 106 31;    /* #8C6A1F */
+  --color-ok: 127 163 122;          /* #7FA37A */
+  --color-warn: 217 164 65;         /* #D9A441 */
+  --color-danger: 208 120 98;       /* #D07862 */
+}
+
+@layer base {
+  * {
+    @apply border-line;
+  }
+  ::selection {
+    @apply bg-brass/25 text-ink;
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-brass));
+    outline-offset: 2px;
+  }
+  body {
+    /* Texture très discrète — fin grain diagonal, esprit papier de luxe. */
+    background-image:
+      repeating-linear-gradient(135deg, rgb(var(--color-ink) / 0.012) 0px, rgb(var(--color-ink) / 0.012) 1px, transparent 1px, transparent 6px);
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply relative inline-flex items-center justify-center gap-2 rounded-md bg-brass px-5 py-3 text-sm font-semibold text-bg shadow-[0_2px_10px_-2px_rgb(var(--color-brass)/0.55)] transition-all hover:-translate-y-px hover:shadow-[0_6px_18px_-4px_rgb(var(--color-brass)/0.65)] active:translate-y-0 disabled:opacity-40 disabled:pointer-events-none disabled:shadow-none disabled:translate-y-0;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-line bg-transparent px-5 py-3 text-sm font-medium text-ink transition-colors hover:border-brass/60 hover:text-brass disabled:opacity-40;
+  }
+  .field-label {
+    @apply block text-sm font-medium text-ink-muted mb-1.5 tracking-wide;
+  }
+  .field-input {
+    @apply w-full rounded-md border border-line bg-bg-elevated px-3.5 py-3 text-base text-ink placeholder:text-ink-muted/60 focus:border-brass focus:outline-none focus:ring-1 focus:ring-brass/30 transition-all;
+  }
+  .field-card {
+    @apply rounded-lg border border-line bg-bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0_/_0.03)];
+  }
+  .choice-pill {
+    @apply cursor-pointer select-none rounded-md border border-line bg-bg-elevated px-4 py-3 text-sm text-ink transition-all hover:border-brass/50;
+  }
+  .choice-pill-active {
+    @apply border-brass bg-brass/10 text-brass shadow-[0_0_0_1px_rgb(var(--color-brass)/0.35)];
+  }
+  .section-eyebrow {
+    @apply flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-brass;
+  }
+}
