@@ -15,14 +15,15 @@ type Utilisateur = {
 };
 type Ville = { id: string; nom: string };
 
-const CHAMPS_VIDES = { identifiant: "", motDePasse: "", nom: "", prenom: "", telephone: "", role: "COMMERCIAL" as const, villeId: "" };
+type ChampsCreation = { identifiant: string; motDePasse: string; nom: string; prenom: string; telephone: string; role: "ADMIN" | "COMMERCIAL"; villeId: string };
+const CHAMPS_VIDES: ChampsCreation = { identifiant: "", motDePasse: "", nom: "", prenom: "", telephone: "", role: "COMMERCIAL", villeId: "" };
 
 export default function UtilisateursPage() {
   const [users, setUsers] = useState<Utilisateur[]>([]);
   const [villes, setVilles] = useState<Ville[]>([]);
   const [filtreRole, setFiltreRole] = useState<"" | "ADMIN" | "COMMERCIAL">("");
   const [formulaireOuvert, setFormulaireOuvert] = useState(false);
-  const [champs, setChamps] = useState(CHAMPS_VIDES);
+  const [champs, setChamps] = useState<ChampsCreation>(CHAMPS_VIDES);
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
 
