@@ -55,7 +55,50 @@ Comptes créés par le seed :
 **À changer en production** : ces mots de passe de démonstration, et
 `SESSION_SECRET` (chaîne aléatoire longue).
 
-## Fonctionnalités en place
+## Déploiement (Vercel)
+
+Le projet est un Next.js standard, prêt à déployer sur Vercel.
+
+1. **Créer un dépôt GitHub** et y pousser le code (un dépôt Git local est déjà
+   initialisé dans ce dossier avec un premier commit) :
+   ```bash
+   git remote add origin https://github.com/<ton-compte>/<ton-repo>.git
+   git push -u origin main
+   ```
+2. Sur [vercel.com](https://vercel.com), clique **Add New > Project**, choisis
+   ce dépôt GitHub. Vercel détecte automatiquement Next.js.
+3. Avant de cliquer "Deploy", renseigne les **variables d'environnement**
+   (Settings > Environment Variables), avec exactement les mêmes valeurs que
+   dans ton `.env` local :
+   - `DATABASE_URL`, `DIRECT_URL` (Supabase)
+   - `SESSION_SECRET`
+   - `STORAGE_DRIVER=sftp` + `SFTP_HOST`, `SFTP_USER`, `SFTP_PASSWORD`,
+     `SFTP_REMOTE_DIR`, `SFTP_PUBLIC_URL_BASE`
+4. Déploie. Le `postinstall` du projet lance automatiquement
+   `prisma generate` — aucune action supplémentaire requise pour ça.
+5. **Les tables ne sont pas créées automatiquement par Vercel.** Si ce n'est
+   pas déjà fait sur ta base Supabase, lance une fois depuis ton poste (avec
+   le même `.env`) :
+   ```bash
+   npx prisma migrate deploy
+   npx prisma db seed
+   ```
+
+### À savoir une fois en ligne
+
+- **Domaine** : Vercel fournit une URL `*.vercel.app` par défaut ; un nom de
+  domaine personnalisé peut être ajouté ensuite dans Settings > Domains.
+- **Flux temps réel (SSE)** : les fonctions serverless Vercel ont une durée
+  maximale d'exécution (limitée sur le plan Hobby). Le projet demande déjà la
+  durée maximale disponible (`maxDuration`), et le navigateur reconnecte
+  automatiquement le flux si la connexion est coupée — donc aucune action
+  requise, mais c'est pour ça qu'un badge "nouvelle visite" peut mettre
+  quelques secondes à réapparaître après une reconnexion.
+- **Chaque `git push` sur `main`** déclenche un nouveau déploiement
+  automatique — c'est ce qui permet de continuer le développement au fur et
+  à mesure, comme prévu.
+
+
 
 - Authentification par rôle (Admin / Commercial), sessions révocables en base.
 - Formulaire terrain complet (sections 1 à 4 du cahier des charges) : date/heure/agent
