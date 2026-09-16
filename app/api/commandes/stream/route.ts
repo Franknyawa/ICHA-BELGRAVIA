@@ -18,20 +18,42 @@ export async function GET(req: NextRequest) {
     start(controller) {
       controller.enqueue(encoder.encode(`event: ping\ndata: connecte\n\n`));
 
+      let ferme = false;
+      const fermer = () => {
+        if (ferme) return;
+        ferme = true;
+        clearInterval(keepAlive);
+        clearTimeout(fermetureProgrammee);
+        visiteEvents.off(NOUVELLE_COMMANDE, onNouvelleCommande);
+        try {
+          controller.close();
+        } catch {
+          /* déjà fermé côté client */
+        }
+      };
+
       onNouvelleCommande = (data: unknown) => {
-        controller.enqueue(encoder.encode(`event: nouvelle-commande\ndata: ${JSON.stringify(data)}\n\n`));
+        try {
+          controller.enqueue(encoder.encode(`event: nouvelle-commande\ndata: ${JSON.stringify(data)}\n\n`));
+        } catch {
+          fermer();
+        }
       };
       visiteEvents.on(NOUVELLE_COMMANDE, onNouvelleCommande);
 
       const keepAlive = setInterval(() => {
-        controller.enqueue(encoder.encode(`event: ping\ndata: keepalive\n\n`));
+        try {
+          controller.enqueue(encoder.encode(`event: ping\ndata: keepalive\n\n`));
+        } catch {
+          fermer();
+        }
       }, 25000);
 
-      req.signal.addEventListener("abort", () => {
-        clearInterval(keepAlive);
-        visiteEvents.off(NOUVELLE_COMMANDE, onNouvelleCommande);
-        controller.close();
-      });
+      // Fermeture volontaire avant la limite Vercel — voir explication dans
+      // app/api/visites/stream/route.ts.
+      const fermetureProgrammee = setTimeout(fermer, 50000);
+
+      req.signal.addEventListener("abort", fermer);
     },
   });
 

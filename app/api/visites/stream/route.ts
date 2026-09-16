@@ -22,22 +22,45 @@ export async function GET(req: NextRequest) {
     start(controller) {
       controller.enqueue(encoder.encode(`event: ping\ndata: connecte\n\n`));
 
+      let ferme = false;
+      const fermer = () => {
+        if (ferme) return;
+        ferme = true;
+        clearInterval(keepAlive);
+        clearTimeout(fermetureProgrammee);
+        visiteEvents.off(NOUVELLE_VISITE, onNouvelleVisite);
+        try {
+          controller.close();
+        } catch {
+          /* déjà fermé côté client */
+        }
+      };
+
       onNouvelleVisite = (data: unknown) => {
-        controller.enqueue(
-          encoder.encode(`event: nouvelle-visite\ndata: ${JSON.stringify(data)}\n\n`)
-        );
+        try {
+          controller.enqueue(encoder.encode(`event: nouvelle-visite\ndata: ${JSON.stringify(data)}\n\n`));
+        } catch {
+          fermer();
+        }
       };
       visiteEvents.on(NOUVELLE_VISITE, onNouvelleVisite);
 
       const keepAlive = setInterval(() => {
-        controller.enqueue(encoder.encode(`event: ping\ndata: keepalive\n\n`));
+        try {
+          controller.enqueue(encoder.encode(`event: ping\ndata: keepalive\n\n`));
+        } catch {
+          fermer();
+        }
       }, 25000);
 
-      req.signal.addEventListener("abort", () => {
-        clearInterval(keepAlive);
-        visiteEvents.off(NOUVELLE_VISITE, onNouvelleVisite);
-        controller.close();
-      });
+      // Ferme la connexion nous-mêmes avant la limite d'exécution Vercel
+      // (maxDuration ci-dessus), pour que ce soit une fin normale plutôt
+      // qu'un arrêt forcé — le navigateur reconnecte automatiquement
+      // (comportement natif d'EventSource), sans que ça remonte comme une
+      // erreur dans les logs Vercel.
+      const fermetureProgrammee = setTimeout(fermer, 50000);
+
+      req.signal.addEventListener("abort", fermer);
     },
   });
 
