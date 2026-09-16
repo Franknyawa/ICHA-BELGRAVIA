@@ -17,7 +17,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (nom !== undefined) data.nom = nom;
   if (prenom !== undefined) data.prenom = prenom;
   if (telephone !== undefined) data.telephone = telephone || null;
-  if (villeId !== undefined) data.ville = villeId ? { connect: { id: villeId } } : { disconnect: true };
+  if (villeId !== undefined) data.villeId = villeId || null;
   if (role !== undefined) data.role = role;
   if (nouveauMotDePasse) data.passwordHash = await bcrypt.hash(nouveauMotDePasse, 10);
 
