@@ -25,7 +25,7 @@ export default function CarteBelgravia({ points }: { points: Point[] }) {
       : [4.05, 9.7]; // Douala par défaut
 
   return (
-    <MapContainer center={centre} zoom={points.length ? 12 : 6} className="h-[480px] w-full rounded-lg">
+    <MapContainer center={centre} zoom={points.length ? 12 : 6} className="h-[300px] w-full rounded-lg sm:h-[400px] lg:h-[480px]">
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

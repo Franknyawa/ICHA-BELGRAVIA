@@ -72,7 +72,7 @@ export default function UtilisateursPage() {
       </div>
 
       {formulaireOuvert && (
-        <form onSubmit={creer} className="field-card mb-6 grid grid-cols-2 gap-3">
+        <form onSubmit={creer} className="field-card mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <input className="field-input" placeholder="Prénom" value={champs.prenom} onChange={(e) => setChamps({ ...champs, prenom: e.target.value })} required />
           <input className="field-input" placeholder="Nom" value={champs.nom} onChange={(e) => setChamps({ ...champs, nom: e.target.value })} required />
           <input className="field-input" placeholder="Identifiant" value={champs.identifiant} onChange={(e) => setChamps({ ...champs, identifiant: e.target.value })} required />

@@ -82,6 +82,16 @@ export default function NouvelleVisite() {
     fetch("/api/me").then((r) => r.json()).then(setAgent);
   }, []);
 
+  // Capture automatique de la position dès l'arrivée sur l'étape "Point de
+  // vente" (section Localisation) : la ville et les coordonnées exactes sont
+  // récupérées sans action de l'agent — seul le quartier reste manuel.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (step === 2 && !gps && !gpsEnCours) {
+      capturerPosition();
+    }
+  }, [step]);
+
   function capturerPosition() {
     if (!navigator.geolocation) {
       setErreur("La géolocalisation n'est pas disponible sur cet appareil.");
@@ -314,7 +324,7 @@ export default function NouvelleVisite() {
             <Champ label="Nom du vendeur">
               <input className="field-input" value={nomVendeur} onChange={(e) => setNomVendeur(e.target.value)} />
             </Champ>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Champ label="Tél. vendeur">
                 <input className="field-input" inputMode="tel" value={telVendeur} onChange={(e) => setTelVendeur(e.target.value)} />
               </Champ>
@@ -325,7 +335,30 @@ export default function NouvelleVisite() {
           </SousSection>
 
           <SousSection titre="Localisation" icon={IconPin}>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-center justify-between gap-3 rounded-md border border-line bg-bg-elevated px-3.5 py-3">
+              <div className="text-sm">
+                {gpsEnCours && <span className="text-ink-muted">Localisation de la boutique en cours…</span>}
+                {!gpsEnCours && gps && (
+                  <span className="text-ink">
+                    Position capturée
+                    <span className="text-ink-muted"> · {gps.lat.toFixed(5)}, {gps.lng.toFixed(5)} (±{Math.round(gps.precision)} m)</span>
+                  </span>
+                )}
+                {!gpsEnCours && !gps && (
+                  <span className="text-ink-muted">Position non capturée — vérifiez l&apos;autorisation de localisation.</span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={capturerPosition}
+                disabled={gpsEnCours}
+                className="shrink-0 text-xs font-medium text-brass hover:underline disabled:opacity-40"
+              >
+                {gps ? "Actualiser" : "Réessayer"}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Champ label="Ville">
                 <select className="field-input" value={villeId} onChange={(e) => setVilleId(e.target.value)}>
                   <option value="">— Sélectionner —</option>
@@ -335,14 +368,15 @@ export default function NouvelleVisite() {
                     </option>
                   ))}
                 </select>
+                {villeResolue && (
+                  <p className="mt-1 text-xs text-ink-muted">Détectée automatiquement : {villeResolue}</p>
+                )}
               </Champ>
               <Champ label="Quartier">
                 <input className="field-input" value={quartier} onChange={(e) => setQuartier(e.target.value)} />
+                <p className="mt-1 text-xs text-ink-muted">À renseigner manuellement</p>
               </Champ>
             </div>
-            {villeResolue && (
-              <p className="-mt-2 text-xs text-ink-muted">Position détectée près de : {villeResolue}</p>
-            )}
             <Champ label="Repère du quartier">
               <input
                 className="field-input"
@@ -350,16 +384,6 @@ export default function NouvelleVisite() {
                 value={repereQuartier}
                 onChange={(e) => setRepereQuartier(e.target.value)}
               />
-            </Champ>
-            <Champ label="Localisation GPS">
-              <button type="button" className="btn-secondary w-full" onClick={capturerPosition} disabled={gpsEnCours}>
-                {gpsEnCours ? "Localisation…" : gps ? "Position capturée — recapturer" : "Capturer la position"}
-              </button>
-              {gps && (
-                <p className="mt-1 text-xs text-ink-muted">
-                  {gps.lat.toFixed(5)}, {gps.lng.toFixed(5)} (±{Math.round(gps.precision)} m)
-                </p>
-              )}
             </Champ>
           </SousSection>
 
@@ -425,7 +449,7 @@ export default function NouvelleVisite() {
                   setMarquesCoches((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
                 }
               />
-              <div className="mt-2 grid grid-cols-3 gap-2">
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {marquesLibres.map((val, i) => (
                   <input
                     key={i}

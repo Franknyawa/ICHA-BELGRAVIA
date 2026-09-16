@@ -154,6 +154,18 @@ export function IconLogout({ className }: Props) {
   );
 }
 
+export function IconInstall({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <rect x="4" y="4" width="16" height="11" rx="1.4" />
+      <path d="M9 19.5h6" />
+      <path d="M12 15v4.5" />
+      <path d="M9.5 9.2 12 11.5l2.5-2.3" />
+      <path d="M12 6v5.5" />
+    </svg>
+  );
+}
+
 export function IconTrend({ className }: Props) {
   return (
     <svg viewBox="0 0 24 24" className={className} {...base}>

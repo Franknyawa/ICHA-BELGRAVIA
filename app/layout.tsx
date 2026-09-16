@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
+import RegisterServiceWorker from "@/components/RegisterServiceWorker";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="bg-bg text-ink font-sans antialiased min-h-screen transition-colors">
+        <RegisterServiceWorker />
         {children}
       </body>
     </html>

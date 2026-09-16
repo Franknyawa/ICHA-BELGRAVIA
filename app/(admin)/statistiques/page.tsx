@@ -64,7 +64,7 @@ export default function StatistiquesPage() {
       </div>
 
       {stats && (
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Repartitions titre="Potentiel estimé" data={stats.parPotentiel} />
           <Repartitions titre="Par type d'établissement" data={stats.parType} />
           <Repartitions titre="Par ville" data={stats.parVille} />

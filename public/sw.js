@@ -1,5 +1,5 @@
-const CACHE_NAME = "belgravia-shell-v1";
-const APP_SHELL = ["/terrain", "/manifest.json"];
+const CACHE_NAME = "belgravia-shell-v2";
+const APP_SHELL = ["/", "/login", "/manifest.json", "/icon-192.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -33,6 +33,6 @@ self.addEventListener("fetch", (event) => {
         caches.open(CACHE_NAME).then((cache) => cache.put(request, copy)).catch(() => {});
         return res;
       })
-      .catch(() => caches.match(request).then((cached) => cached || caches.match("/terrain")))
+      .catch(() => caches.match(request).then((cached) => cached || caches.match("/")))
   );
 });

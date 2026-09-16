@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle";
 import CoupeIllustration from "@/components/CoupeIllustration";
 import GoldRule from "@/components/GoldRule";
+import InstallButton from "@/components/InstallButton";
 import { IconUser, IconLock } from "@/components/icons";
 
 export default function LoginPage() {
@@ -76,7 +77,8 @@ export default function LoginPage() {
 
       {/* Volet formulaire */}
       <div className="relative flex min-h-screen flex-col items-center justify-center px-6 py-12">
-        <div className="absolute right-4 top-4">
+        <div className="absolute right-4 top-4 flex items-center gap-2">
+          <InstallButton />
           <ThemeToggle />
         </div>
 
