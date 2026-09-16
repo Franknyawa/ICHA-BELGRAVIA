@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { v4 as uuid } from "uuid";
 import StepIndicator from "@/components/form/StepIndicator";
 import { ChoiceGroup, MultiChoiceGroup } from "@/components/form/ChoiceGroup";
-import { resolveVilleDepuisCoordonnees } from "@/lib/reverseGeocode";
+import { resolveVilleDepuisCoordonnees, matchVille } from "@/lib/reverseGeocode";
 import { enqueuerVisite } from "@/lib/offlineQueue";
 import { envoyerVisite } from "@/lib/envoyerVisite";
 import { IconStorefront, IconPhone, IconPin, IconCamera, IconGlass, IconClock, IconCheckCircle, IconClipboard } from "@/components/icons";
@@ -43,6 +43,7 @@ export default function NouvelleVisite() {
   const [telPatron, setTelPatron] = useState("");
   const [villeId, setVilleId] = useState("");
   const [villeResolue, setVilleResolue] = useState<string | null>(null);
+  const [villeCandidats, setVilleCandidats] = useState<string[]>([]);
   const [quartier, setQuartier] = useState("");
   const [repereQuartier, setRepereQuartier] = useState("");
   const [typeId, setTypeId] = useState("");
@@ -82,6 +83,17 @@ export default function NouvelleVisite() {
     fetch("/api/me").then((r) => r.json()).then(setAgent);
   }, []);
 
+  // Filet de sécurité : si la position a été capturée avant que les villes
+  // du référentiel ne soient chargées (course au chargement), on retente le
+  // rapprochement dès qu'elles arrivent, sans redemander le GPS.
+  useEffect(() => {
+    if (ref && !villeId && villeCandidats.length > 0) {
+      const match = matchVille(villeCandidats, ref.villes);
+      if (match) setVilleId(match.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ref]);
+
   // Capture automatique de la position dès l'arrivée sur l'étape "Point de
   // vente" (section Localisation) : la ville et les coordonnées exactes sont
   // récupérées sans action de l'agent — seul le quartier reste manuel.
@@ -102,10 +114,11 @@ export default function NouvelleVisite() {
       async (pos) => {
         const { latitude, longitude, accuracy } = pos.coords;
         setGps({ lat: latitude, lng: longitude, precision: accuracy });
-        const ville = await resolveVilleDepuisCoordonnees(latitude, longitude);
-        setVilleResolue(ville);
-        if (ville && ref) {
-          const match = ref.villes.find((v) => v.nom.toLowerCase() === ville.toLowerCase());
+        const { affichage, candidats } = await resolveVilleDepuisCoordonnees(latitude, longitude);
+        setVilleResolue(affichage);
+        setVilleCandidats(candidats);
+        if (ref) {
+          const match = matchVille(candidats, ref.villes);
           if (match) setVilleId(match.id);
         }
         setGpsEnCours(false);
