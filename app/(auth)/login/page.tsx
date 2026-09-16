@@ -32,7 +32,7 @@ export default function LoginPage() {
       return;
     }
     const { role } = await res.json();
-    router.push(role === "ADMIN" ? "/dashboard" : "/terrain");
+    router.push(role === "ADMIN" ? "/tableau-de-bord" : "/terrain");
     router.refresh();
   }
 

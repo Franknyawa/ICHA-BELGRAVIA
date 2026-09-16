@@ -166,6 +166,60 @@ export function IconInstall({ className }: Props) {
   );
 }
 
+export function IconMap({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M9 4 4 6v14l5-2 6 2 5-2V4l-5 2-6-2Z" />
+      <path d="M9 4v14M15 6v14" />
+    </svg>
+  );
+}
+
+export function IconGear({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <circle cx="12" cy="12" r="3.2" />
+      <path d="M12 3.5v2.2M12 18.3v2.2M20.5 12h-2.2M5.7 12H3.5M17.7 6.3l-1.55 1.55M7.85 16.15 6.3 17.7M17.7 17.7l-1.55-1.55M7.85 7.85 6.3 6.3" />
+    </svg>
+  );
+}
+
+export function IconArrowRight({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M4 12h16M14 6l6 6-6 6" />
+    </svg>
+  );
+}
+
+export function IconKey({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <circle cx="8" cy="15" r="3.3" />
+      <path d="M10.3 12.7 18 5" />
+      <path d="M15.5 7.5 18 10M18.5 6.5 21 9" />
+    </svg>
+  );
+}
+
+export function IconPencil({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M4 20l.9-4L16.5 4.4a1.5 1.5 0 0 1 2.1 0l1 1a1.5 1.5 0 0 1 0 2.1L8 19.1z" />
+      <path d="M14.5 6.5l3 3" />
+    </svg>
+  );
+}
+
+export function IconShield({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M12 3.5 19 6v5.5c0 4.2-2.9 7.3-7 9-4.1-1.7-7-4.8-7-9V6Z" />
+      <path d="M9 12l2 2 4-4.3" />
+    </svg>
+  );
+}
+
 export function IconTrash({ className }: Props) {
   return (
     <svg viewBox="0 0 24 24" className={className} {...base}>

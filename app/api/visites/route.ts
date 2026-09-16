@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { visiteEvents, NOUVELLE_VISITE } from "@/lib/events";
+import { construireFiltreVisites } from "@/lib/visiteFiltres";
 
 /**
  * Création d'un point de vente + de sa visite de recensement en une seule
@@ -123,21 +124,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
   const pageSize = 20;
-  const villeId = searchParams.get("villeId") || undefined;
-  const typeId = searchParams.get("typeId") || undefined;
-  const potentiel = searchParams.get("potentiel") || undefined;
-  const commercialId = searchParams.get("commercialId") || undefined;
-  const q = searchParams.get("q") || undefined;
-
-  const where = {
-    ...(potentiel ? { potentielEstime: potentiel as any } : {}),
-    ...(commercialId ? { commercialId } : {}),
-    pointVente: {
-      ...(villeId ? { villeId } : {}),
-      ...(typeId ? { typeId } : {}),
-      ...(q ? { nomEtablissement: { contains: q, mode: "insensitive" as const } } : {}),
-    },
-  };
+  const where = construireFiltreVisites(searchParams);
 
   const [total, items] = await Promise.all([
     prisma.visite.count({ where }),

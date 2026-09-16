@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IconGlass, IconPlus } from "@/components/icons";
+import { IconGlass, IconPlus, IconTrash } from "@/components/icons";
 
 type Produit = { id: string; nom: string; prixUnitaire: string; actif: boolean };
 
@@ -44,11 +44,12 @@ export default function ProduitsPage() {
     charger();
   }
 
-  async function modifierPrix(p: Produit, nouveauPrix: string) {
+  async function modifierChamp(p: Produit, champ: "nom" | "prixUnitaire", valeur: string) {
+    const body = champ === "prixUnitaire" ? { prixUnitaire: parseFloat(valeur) || 0 } : { nom: valeur };
     await fetch(`/api/produits/${p.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prixUnitaire: parseFloat(nouveauPrix) || 0 }),
+      body: JSON.stringify(body),
     });
     charger();
   }
@@ -59,6 +60,17 @@ export default function ProduitsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ actif: !p.actif }),
     });
+    charger();
+  }
+
+  async function supprimer(p: Produit) {
+    if (!confirm(`Supprimer "${p.nom}" ?`)) return;
+    const res = await fetch(`/api/produits/${p.id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || "Échec de la suppression.");
+      return;
+    }
     charger();
   }
 
@@ -86,7 +98,7 @@ export default function ProduitsPage() {
         </form>
       )}
 
-      <div className="overflow-hidden rounded-lg border border-line">
+      <div className="overflow-x-auto rounded-lg border border-line">
         <table className="w-full text-sm">
           <thead className="bg-bg-elevated text-left text-ink-muted">
             <tr>
@@ -99,13 +111,19 @@ export default function ProduitsPage() {
           <tbody>
             {produits.map((p) => (
               <tr key={p.id} className="border-t border-line">
-                <td className="px-4 py-3 text-ink">{p.nom}</td>
+                <td className="px-4 py-3">
+                  <input
+                    defaultValue={p.nom}
+                    onBlur={(e) => e.target.value !== p.nom && modifierChamp(p, "nom", e.target.value)}
+                    className="w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-ink hover:border-line focus:border-brass focus:outline-none"
+                  />
+                </td>
                 <td className="px-4 py-3">
                   <input
                     type="number"
                     step="0.01"
                     defaultValue={p.prixUnitaire}
-                    onBlur={(e) => e.target.value !== p.prixUnitaire && modifierPrix(p, e.target.value)}
+                    onBlur={(e) => e.target.value !== p.prixUnitaire && modifierChamp(p, "prixUnitaire", e.target.value)}
                     className="w-28 rounded-md border border-line bg-bg-elevated px-2 py-1 text-ink"
                   />
                 </td>
@@ -113,9 +131,14 @@ export default function ProduitsPage() {
                   <span className={p.actif ? "text-ok" : "text-ink-muted"}>{p.actif ? "Actif" : "Désactivé"}</span>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <button className="text-xs text-brass hover:underline" onClick={() => toggleActif(p)}>
-                    {p.actif ? "Désactiver" : "Réactiver"}
-                  </button>
+                  <div className="flex justify-end gap-2">
+                    <button className="text-xs text-brass hover:underline" onClick={() => toggleActif(p)}>
+                      {p.actif ? "Désactiver" : "Réactiver"}
+                    </button>
+                    <button className="rounded p-1 text-ink-muted hover:text-danger" onClick={() => supprimer(p)} title="Supprimer">
+                      <IconTrash className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

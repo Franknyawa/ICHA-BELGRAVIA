@@ -6,29 +6,24 @@ import { getSession } from "@/lib/auth";
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
-
-  const { nom, prixUnitaire, actif } = await req.json();
-  const produit = await prisma.produit.update({
+  const { nom, actif } = await req.json();
+  const marque = await prisma.marque.update({
     where: { id: params.id },
-    data: {
-      ...(nom !== undefined ? { nom } : {}),
-      ...(prixUnitaire !== undefined ? { prixUnitaire } : {}),
-      ...(actif !== undefined ? { actif } : {}),
-    },
+    data: { ...(nom !== undefined ? { nom } : {}), ...(actif !== undefined ? { actif } : {}) },
   });
-  return NextResponse.json({ id: produit.id });
+  return NextResponse.json({ id: marque.id });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
   try {
-    await prisma.produit.delete({ where: { id: params.id } });
+    await prisma.marque.delete({ where: { id: params.id } });
     return NextResponse.json({ ok: true });
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2003") {
       return NextResponse.json(
-        { error: "Impossible de supprimer : ce produit figure dans des commandes. Désactivez-le plutôt." },
+        { error: "Impossible de supprimer : cette marque est référencée dans des visites. Désactivez-la plutôt." },
         { status: 409 }
       );
     }

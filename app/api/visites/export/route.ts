@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { construireFiltreVisites } from "@/lib/visiteFiltres";
 
 function csvEscape(value: unknown): string {
   if (value === null || value === undefined) return "";
@@ -8,11 +9,14 @@ function csvEscape(value: unknown): string {
   return /[",\n;]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
+  const where = construireFiltreVisites(new URL(req.url).searchParams);
+
   const visites = await prisma.visite.findMany({
+    where,
     orderBy: { createdAt: "desc" },
     include: {
       pointVente: { include: { ville: true, type: true, createdBy: true } },
@@ -22,7 +26,7 @@ export async function GET() {
 
   const colonnes = [
     "Date visite", "Agent", "Établissement", "Vendeur", "Tél. vendeur", "Ville", "Quartier",
-    "Type", "Statut", "Vend spiritueux", "Marques présentes", "Propose cocktails",
+    "Type", "Statut", "Latitude", "Longitude", "Vend spiritueux", "Marques présentes", "Propose cocktails",
     "Capacité estimée", "Fournisseur", "Potentiel estimé", "Intéressé visite",
     "Répondant", "Veut commander", "Observations",
   ];
@@ -47,6 +51,8 @@ export async function GET() {
       pv.quartier,
       pv.type?.nom || pv.typeAutrePrecision,
       pv.statut,
+      pv.latitude,
+      pv.longitude,
       v.vendSpiritueux === null ? "" : v.vendSpiritueux ? "Oui" : "Non",
       marques,
       v.proposeCocktails,

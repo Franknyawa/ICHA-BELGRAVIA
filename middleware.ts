@@ -16,7 +16,9 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/utilisateurs") ||
     pathname.startsWith("/statistiques") ||
     pathname.startsWith("/commandes") ||
-    pathname.startsWith("/produits");
+    pathname.startsWith("/produits") ||
+    pathname.startsWith("/tableau-de-bord") ||
+    pathname.startsWith("/parametres");
 
   if (!isCommercialArea && !isAdminArea) return NextResponse.next();
 
@@ -46,5 +48,7 @@ export const config = {
     "/statistiques/:path*",
     "/commandes/:path*",
     "/produits/:path*",
+    "/tableau-de-bord/:path*",
+    "/parametres/:path*",
   ],
 };

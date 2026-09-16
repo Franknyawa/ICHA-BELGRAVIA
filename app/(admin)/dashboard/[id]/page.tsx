@@ -58,10 +58,21 @@ export default async function DetailVisite({ params }: { params: { id: string } 
           <Champ label="Repère" valeur={pv.repereQuartier} />
           <Champ label="Type" valeur={pv.type?.nom || pv.typeAutrePrecision} />
           <Champ label="Statut" valeur={pv.statut} />
-          <Champ
-            label="Position GPS"
-            valeur={pv.latitude && pv.longitude ? `${pv.latitude}, ${pv.longitude}` : undefined}
-          />
+          <div>
+            <p className="text-xs text-ink-muted">Position GPS</p>
+            {pv.latitude && pv.longitude ? (
+              <a
+                href={`https://www.google.com/maps?q=${pv.latitude},${pv.longitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-brass hover:underline"
+              >
+                {String(pv.latitude)}, {String(pv.longitude)} — voir sur la carte
+              </a>
+            ) : (
+              <p className="text-sm text-ink">—</p>
+            )}
+          </div>
         </Grid>
       </Section>
 
