@@ -11,7 +11,12 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const isCommercialArea = pathname.startsWith("/terrain");
-  const isAdminArea = pathname.startsWith("/dashboard") || pathname.startsWith("/utilisateurs");
+  const isAdminArea =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/utilisateurs") ||
+    pathname.startsWith("/statistiques") ||
+    pathname.startsWith("/commandes") ||
+    pathname.startsWith("/produits");
 
   if (!isCommercialArea && !isAdminArea) return NextResponse.next();
 
@@ -34,5 +39,12 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/terrain/:path*", "/dashboard/:path*", "/utilisateurs/:path*"],
+  matcher: [
+    "/terrain/:path*",
+    "/dashboard/:path*",
+    "/utilisateurs/:path*",
+    "/statistiques/:path*",
+    "/commandes/:path*",
+    "/produits/:path*",
+  ],
 };

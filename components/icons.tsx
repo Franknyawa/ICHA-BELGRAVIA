@@ -166,6 +166,26 @@ export function IconInstall({ className }: Props) {
   );
 }
 
+export function IconTrash({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M5 7h14" />
+      <path d="M9.5 7V5.2A1.2 1.2 0 0 1 10.7 4h2.6a1.2 1.2 0 0 1 1.2 1.2V7" />
+      <path d="M7 7l.7 12A1.5 1.5 0 0 0 9.2 20.5h5.6a1.5 1.5 0 0 0 1.5-1.5L17 7" />
+      <path d="M10.3 11v6M13.7 11v6" />
+    </svg>
+  );
+}
+
+export function IconReceipt({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M6 3.5h12v17l-2.2-1.5-2.1 1.5-1.7-1.5-1.7 1.5-2.1-1.5L6 20.5Z" />
+      <path d="M9 8h6M9 11.5h6M9 15h4" />
+    </svg>
+  );
+}
+
 export function IconAlert({ className }: Props) {
   return (
     <svg viewBox="0 0 24 24" className={className} {...base}>

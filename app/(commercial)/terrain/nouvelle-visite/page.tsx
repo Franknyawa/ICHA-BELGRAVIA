@@ -243,16 +243,24 @@ export default function NouvelleVisite() {
     })).filter((p) => p.dataUrl);
 
     try {
-      await envoyerVisite(payload, photosPayload);
-      router.push("/terrain");
+      const resultat = await envoyerVisite(payload, photosPayload);
+      if (veutCommander) {
+        router.push(`/terrain/nouvelle-commande?pointVenteId=${resultat.pointVenteId}`);
+      } else {
+        router.push("/terrain");
+      }
     } catch {
       // Réseau indisponible (ou instable) : la visite n'est pas perdue —
       // elle est conservée localement et sera synchronisée automatiquement
       // dès que la connexion revient (voir components/SyncBanner.tsx).
       try {
         await enqueuerVisite({ id: uuidVisite, payload, photos: photosPayload, createdAt: Date.now() });
-        setMessageInfo("Pas de connexion : la visite a été enregistrée sur l'appareil et sera envoyée automatiquement dès le retour du réseau.");
-        setTimeout(() => router.push("/terrain"), 1800);
+        setMessageInfo(
+          veutCommander
+            ? "Pas de connexion : la visite a été enregistrée sur l'appareil et sera envoyée automatiquement dès le retour du réseau. Pense à saisir la commande manuellement (bouton \"Nouvelle commande\") une fois la visite synchronisée."
+            : "Pas de connexion : la visite a été enregistrée sur l'appareil et sera envoyée automatiquement dès le retour du réseau."
+        );
+        setTimeout(() => router.push("/terrain"), veutCommander ? 3200 : 1800);
       } catch {
         setErreur("Échec de l'enregistrement, y compris en local. Réessayez.");
       }

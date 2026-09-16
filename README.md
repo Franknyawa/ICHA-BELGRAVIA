@@ -18,18 +18,23 @@ Deux espaces :
    - la chaîne **directe** (port `5432`) → `DIRECT_URL`
 3. Colle-les dans `.env` (voir `.env.example` pour le format exact avec `?pgbouncer=true`).
 
-### 2. Stockage des photos — hébergement LWS (FTP/SFTP)
+### 2. Stockage des photos — hébergement LWS (FTP le plus souvent)
 
-1. Dans ton panneau LWS, récupère les identifiants FTP/SFTP (hôte, utilisateur,
+1. Dans ton panneau LWS, récupère les identifiants FTP (hôte, utilisateur,
    mot de passe) — section "FTP" ou "Comptes FTP" de l'espace client.
 2. Repère le **dossier public** de ton hébergement (celui servi par ton nom de
    domaine) — généralement `www/` sur un mutualisé LWS classique. Crée-y (ou
    laisse l'app créer automatiquement) un sous-dossier `uploads/`.
 3. Renseigne dans `.env` :
-   - `SFTP_HOST`, `SFTP_USER`, `SFTP_PASSWORD` (identifiants FTP/SFTP LWS)
+   - `SFTP_HOST`, `SFTP_USER`, `SFTP_PASSWORD` (identifiants FTP LWS)
    - `SFTP_REMOTE_DIR="www/uploads"` (adapte si ton dossier public a un autre nom)
    - `SFTP_PUBLIC_URL_BASE="https://tondomaine.fr/uploads"`
-4. Laisse `STORAGE_DRIVER="sftp"`.
+4. Laisse `STORAGE_DRIVER="ftp"` — c'est le protocole que fournit la grande
+   majorité des hébergements mutualisés, LWS compris. `STORAGE_DRIVER="sftp"`
+   n'existe que pour les hébergements offrant un vrai accès SSH (typiquement
+   un VPS) : si tu n'es pas sûr, teste avec un client comme FileZilla — si
+   c'est "FTP" qui se connecte (et pas "SFTP - SSH File Transfer Protocol"),
+   c'est `ftp` qu'il faut utiliser ici.
 
 > Vérifie bien le nom exact du dossier public dans la doc LWS de ton offre
 > (mutualisé vs VPS) : certaines offres utilisent `www/`, d'autres la racine
@@ -72,7 +77,7 @@ Le projet est un Next.js standard, prêt à déployer sur Vercel.
    dans ton `.env` local :
    - `DATABASE_URL`, `DIRECT_URL` (Supabase)
    - `SESSION_SECRET`
-   - `STORAGE_DRIVER=sftp` + `SFTP_HOST`, `SFTP_USER`, `SFTP_PASSWORD`,
+   - `STORAGE_DRIVER=ftp` + `SFTP_HOST`, `SFTP_USER`, `SFTP_PASSWORD`,
      `SFTP_REMOTE_DIR`, `SFTP_PUBLIC_URL_BASE`
 4. Déploie. Le `postinstall` du projet lance automatiquement
    `prisma generate` — aucune action supplémentaire requise pour ça.
@@ -118,12 +123,21 @@ Le projet est un Next.js standard, prêt à déployer sur Vercel.
   (potentiel, type, ville, agent), carte des points de vente (Leaflet/OpenStreetMap).
 - **Export CSV** de toutes les visites (bouton sur le dashboard et sur les statistiques).
 - Gestion des comptes commerciaux (création, activation/désactivation).
-- Référentiels (villes, types d'établissement, marques) en base, gérables
-  sans redéploiement — aucune valeur codée en dur dans le code.
+- **Prise de commande** : depuis "Suite à donner" (visite) si le client veut
+  commander, ouverture automatique du formulaire de commande avec le client
+  préempli ; ou de façon autonome via le bouton "Nouvelle commande" sur
+  l'accueil terrain (recherche du point de vente). Lignes produit/quantité/prix
+  dynamiques, total calculé, idempotence et file d'attente hors-ligne comme
+  pour les visites. Côté admin : réception temps réel (`/commandes`) et gestion
+  du référentiel produits/prix (`/produits`).
+- Référentiels (villes, types d'établissement, marques, produits) en base,
+  gérables sans redéploiement — aucune valeur codée en dur dans le code.
 - **Stockage photo** piloté par variable d'environnement `STORAGE_DRIVER` :
-  `local` (disque du serveur, dev), `sftp` (dossier public d'un hébergement
-  LWS — voir ci-dessus) ou `s3` (bucket S3-compatible : AWS S3, Cloudflare R2,
-  MinIO...). Voir `.env.example` pour les variables requises par driver.
+  `local` (disque du serveur, dev), `ftp` (dossier public d'un hébergement
+  mutualisé comme LWS — driver à utiliser dans la grande majorité des cas),
+  `sftp` (uniquement si accès SSH réel, ex. VPS) ou `s3` (bucket S3-compatible :
+  AWS S3, Cloudflare R2, MinIO...). Voir `.env.example` pour les variables
+  requises par driver.
 
 ## Points d'attention avant une mise en production à grande échelle
 
@@ -131,10 +145,10 @@ Le projet est un Next.js standard, prêt à déployer sur Vercel.
    mémoire (`lib/events.ts`), qui fonctionne pour une seule instance de serveur.
    Pour un déploiement avec plusieurs instances (scaling horizontal), prévoir un
    pub/sub partagé (Redis, Postgres LISTEN/NOTIFY).
-2. **Driver SFTP (LWS)** : chaque photo ouvre et referme une connexion SFTP
+2. **Driver FTP/SFTP (LWS)** : chaque photo ouvre et referme une connexion
    (`lib/storage.ts`), ce qui est simple et fiable pour un volume terrain
    normal, mais plus lent qu'un vrai stockage objet et dépendant des limites
-   de connexions FTP simultanées de l'offre LWS. Si le volume de photos monte
+   de connexions simultanées de l'offre LWS. Si le volume de photos monte
    fortement, basculer vers `STORAGE_DRIVER=s3` (Cloudflare R2 par exemple)
    sans changer le reste du code applicatif.
 2. **Tuiles de carte** : `components/CarteBelgravia.tsx` utilise les tuiles

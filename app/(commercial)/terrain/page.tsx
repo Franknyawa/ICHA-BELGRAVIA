@@ -9,6 +9,7 @@ import {
   IconCheckCircle,
   IconClipboard,
   IconClock,
+  IconReceipt,
 } from "@/components/icons";
 
 type VisiteJour = {
@@ -50,6 +51,11 @@ export default function TerrainHome() {
       <Link href="/terrain/nouvelle-visite" className="btn-primary flex w-full py-4 text-base">
         <IconPlus className="h-4 w-4" />
         Nouvelle visite
+      </Link>
+
+      <Link href="/terrain/nouvelle-commande" className="btn-secondary flex w-full py-3.5 text-sm">
+        <IconReceipt className="h-4 w-4" />
+        Nouvelle commande
       </Link>
 
       {/* Mes performances */}

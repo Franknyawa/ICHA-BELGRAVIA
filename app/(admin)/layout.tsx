@@ -5,7 +5,7 @@ import LogoutButton from "@/components/LogoutButton";
 import ThemeToggle from "@/components/ThemeToggle";
 import InstallButton from "@/components/InstallButton";
 import GoldRule from "@/components/GoldRule";
-import { IconStorefront, IconChart, IconUsers } from "@/components/icons";
+import { IconStorefront, IconChart, IconUsers, IconReceipt, IconGlass } from "@/components/icons";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -22,9 +22,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <IconStorefront className="h-4 w-4" />
             Visites terrain
           </Link>
+          <Link href="/commandes" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
+            <IconReceipt className="h-4 w-4" />
+            Commandes
+          </Link>
           <Link href="/statistiques" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
             <IconChart className="h-4 w-4" />
             Statistiques &amp; carte
+          </Link>
+          <Link href="/produits" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
+            <IconGlass className="h-4 w-4" />
+            Produits
           </Link>
           <Link href="/utilisateurs" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
             <IconUsers className="h-4 w-4" />

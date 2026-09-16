@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   const existante = await prisma.visite.findUnique({ where: { uuidClient } });
   if (existante) {
-    return NextResponse.json({ id: existante.id, dejaEnregistree: true });
+    return NextResponse.json({ id: existante.id, dejaEnregistree: true, pointVenteId: existante.pointVenteId });
   }
 
   const visite = await prisma.$transaction(async (tx) => {
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
   // Diffusion temps réel vers le dashboard admin (§4.2 CDC).
   visiteEvents.emit(NOUVELLE_VISITE, complet);
 
-  return NextResponse.json({ id: visite.id, dejaEnregistree: false });
+  return NextResponse.json({ id: visite.id, dejaEnregistree: false, pointVenteId: visite.pointVenteId });
 }
 
 /** Listing paginé + filtré pour le dashboard admin (§4.3 CDC). */

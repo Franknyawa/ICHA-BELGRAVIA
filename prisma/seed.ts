@@ -32,6 +32,18 @@ async function main() {
     skipDuplicates: true,
   });
 
+  // Prix placeholders — à ajuster depuis l'admin (page Produits) selon les
+  // tarifs réels BELGRAVIA.
+  await prisma.produit.createMany({
+    data: [
+      { nom: "Belgravia Mojito 275ml", prixUnitaire: 1500, ordre: 1 },
+      { nom: "Belgravia Cosmopolitan 275ml", prixUnitaire: 1500, ordre: 2 },
+      { nom: "Belgravia Piña Colada 275ml", prixUnitaire: 1500, ordre: 3 },
+      { nom: "Belgravia Spritz 275ml", prixUnitaire: 1500, ordre: 4 },
+    ],
+    skipDuplicates: true,
+  });
+
   const adminHash = await bcrypt.hash("belgravia-admin", 10);
   await prisma.user.upsert({
     where: { identifiant: "admin@belgravia.local" },
