@@ -166,6 +166,16 @@ export function IconInstall({ className }: Props) {
   );
 }
 
+export function IconAlert({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M12 4 21.5 20h-19Z" />
+      <path d="M12 10v4.2" />
+      <circle cx="12" cy="17.3" r="0.15" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function IconTrend({ className }: Props) {
   return (
     <svg viewBox="0 0 24 24" className={className} {...base}>

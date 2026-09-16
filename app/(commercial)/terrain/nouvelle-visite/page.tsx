@@ -335,28 +335,31 @@ export default function NouvelleVisite() {
           </SousSection>
 
           <SousSection titre="Localisation" icon={IconPin}>
-            <div className="flex items-center justify-between gap-3 rounded-md border border-line bg-bg-elevated px-3.5 py-3">
-              <div className="text-sm">
-                {gpsEnCours && <span className="text-ink-muted">Localisation de la boutique en cours…</span>}
-                {!gpsEnCours && gps && (
-                  <span className="text-ink">
-                    Position capturée
-                    <span className="text-ink-muted"> · {gps.lat.toFixed(5)}, {gps.lng.toFixed(5)} (±{Math.round(gps.precision)} m)</span>
-                  </span>
-                )}
-                {!gpsEnCours && !gps && (
-                  <span className="text-ink-muted">Position non capturée — vérifiez l&apos;autorisation de localisation.</span>
-                )}
-              </div>
+            <Champ label="Localisation GPS de la boutique">
               <button
                 type="button"
                 onClick={capturerPosition}
                 disabled={gpsEnCours}
-                className="shrink-0 text-xs font-medium text-brass hover:underline disabled:opacity-40"
+                className="btn-secondary w-full"
               >
-                {gps ? "Actualiser" : "Réessayer"}
+                <IconPin className="h-4 w-4" />
+                {gpsEnCours ? "Localisation en cours…" : gps ? "Recapturer la position" : "Capturer la position GPS"}
               </button>
-            </div>
+              <div className="field-input mt-2 flex min-h-[52px] items-center text-sm">
+                {gpsEnCours && <span className="text-ink-muted">Récupération de la position…</span>}
+                {!gpsEnCours && gps && (
+                  <span className="text-ink">
+                    {gps.lat.toFixed(5)}, {gps.lng.toFixed(5)}
+                    <span className="text-ink-muted"> (précision ±{Math.round(gps.precision)} m)</span>
+                  </span>
+                )}
+                {!gpsEnCours && !gps && (
+                  <span className="text-ink-muted">
+                    Position non capturée — appuyez sur le bouton ci-dessus.
+                  </span>
+                )}
+              </div>
+            </Champ>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Champ label="Ville">
