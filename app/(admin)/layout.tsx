@@ -5,7 +5,7 @@ import LogoutButton from "@/components/LogoutButton";
 import ThemeToggle from "@/components/ThemeToggle";
 import InstallButton from "@/components/InstallButton";
 import GoldRule from "@/components/GoldRule";
-import { IconStorefront, IconChart, IconUsers, IconReceipt, IconGlass, IconMap, IconGear } from "@/components/icons";
+import { IconStorefront, IconChart, IconUsers, IconReceipt, IconGlass, IconMap, IconGear, IconPin } from "@/components/icons";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -33,6 +33,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/statistiques" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
             <IconMap className="h-4 w-4" />
             Carte
+          </Link>
+          <Link href="/tracking" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
+            <IconPin className="h-4 w-4" />
+            Tracking
           </Link>
           <div className="my-2 hidden h-px bg-line lg:block" />
           <Link href="/utilisateurs" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">

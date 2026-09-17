@@ -71,15 +71,6 @@ model User {
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
-  // Position "en direct" — alimentée par un battement envoyé depuis la PWA
-  // terrain tant que l'application reste ouverte (voir
-  // components/LocationHeartbeat.tsx). Ce n'est pas un suivi permanent en
-  // arrière-plan : sans l'app ouverte récemment, la position affichée côté
-  // admin est la dernière connue, avec son horodatage.
-  dernierePositionLat Decimal?  @db.Decimal(10, 7) @map("derniere_position_lat")
-  dernierePositionLng Decimal?  @db.Decimal(10, 7) @map("derniere_position_lng")
-  dernierePositionAt  DateTime? @map("derniere_position_at")
-
   pointsVenteCrees PointVente[]
   visites          Visite[]
   commandes        Commande[]

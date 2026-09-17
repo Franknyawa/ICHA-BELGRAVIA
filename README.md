@@ -138,6 +138,20 @@ Le projet est un Next.js standard, prêt à déployer sur Vercel.
   `sftp` (uniquement si accès SSH réel, ex. VPS) ou `s3` (bucket S3-compatible :
   AWS S3, Cloudflare R2, MinIO...). Voir `.env.example` pour les variables
   requises par driver.
+- **Tracking terrain** (`/tracking`) : deux modes — "Itinéraire du jour"
+  (les points de vente recensés par un agent, dans l'ordre chronologique,
+  reliés par un tracé) et "Position en direct" (dernière position connue de
+  chaque commercial, envoyée par la PWA tant qu'elle reste ouverte). Le
+  suivi en direct n'est pas un vrai suivi permanent en arrière-plan — c'est
+  une limitation assumée des navigateurs mobiles (particulièrement iOS),
+  la position affichée est la dernière reçue, avec son horodatage.
+- **Tableau de bord** (`/tableau-de-bord`) : KPIs et graphiques (recharts) —
+  visites/commandes du jour, CA, taux de conversion, répartitions par
+  potentiel/type/ville/agent, CA par produit.
+- **Paramètres** (`/parametres`) et **Utilisateurs** (`/utilisateurs`) :
+  gestion complète (créer/renommer/désactiver/supprimer) des référentiels
+  et des comptes admin/commercial — suppression refusée avec message clair
+  si l'élément est déjà utilisé (désactivation proposée à la place).
 
 ## Points d'attention avant une mise en production à grande échelle
 
