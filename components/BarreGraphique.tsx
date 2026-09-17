@@ -34,7 +34,7 @@ export default function BarreGraphique({
             />
             <YAxis tick={{ fontSize: 11, fill: "rgb(var(--color-ink-muted))" }} allowDecimals={false} />
             <Tooltip
-              formatter={(value: number) => [format(value), ""]}
+              formatter={(value) => [format(Number(value)), ""]}
               contentStyle={{
                 borderRadius: 8,
                 border: "1px solid rgb(var(--color-line))",
