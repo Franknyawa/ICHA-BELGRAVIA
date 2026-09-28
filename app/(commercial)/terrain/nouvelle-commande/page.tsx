@@ -6,6 +6,7 @@ import { v4 as uuid } from "uuid";
 import { IconStorefront, IconGlass, IconPlus, IconTrash, IconClipboard } from "@/components/icons";
 import { enqueuerCommande } from "@/lib/offlineQueue";
 import { envoyerCommande } from "@/lib/envoyerCommande";
+import { ErreurEnvoi } from "@/lib/erreurEnvoi";
 
 type Produit = { id: string; nom: string; prixUnitaire: string };
 type Client = {
@@ -131,13 +132,27 @@ function NouvelleCommandeInner() {
     try {
       await envoyerCommande(payload);
       router.push("/terrain");
-    } catch {
+    } catch (e) {
+      // Voir le même correctif dans app/(commercial)/terrain/nouvelle-visite/page.tsx :
+      // on distingue une vraie coupure réseau d'une erreur serveur, pour ne
+      // plus afficher "pas de connexion" quand ce n'est pas le problème.
+      const erreurServeur = e instanceof ErreurEnvoi && !e.estErreurReseau;
+      if (erreurServeur) console.error("[nouvelle-commande] échec serveur :", e);
+
       try {
         await enqueuerCommande({ id: uuidCommande, payload, createdAt: Date.now() });
-        setMessageInfo(
-          "Pas de connexion : la commande a été enregistrée sur l'appareil et sera envoyée automatiquement dès le retour du réseau."
-        );
-        setTimeout(() => router.push("/terrain"), 1800);
+        if (erreurServeur) {
+          setErreur(
+            `L'enregistrement a échoué côté serveur (${(e as ErreurEnvoi).message}). La commande est conservée sur l'appareil et sera réessayée automatiquement, mais tant que cette erreur persiste elle ne partira pas — signale ce message à l'administrateur.`
+          );
+          setMessageInfo(null);
+        } else {
+          setErreur(null);
+          setMessageInfo(
+            "Pas de connexion : la commande a été enregistrée sur l'appareil et sera envoyée automatiquement dès le retour du réseau."
+          );
+          setTimeout(() => router.push("/terrain"), 1800);
+        }
       } catch {
         setErreur("Échec de l'enregistrement, y compris en local. Réessayez.");
       }

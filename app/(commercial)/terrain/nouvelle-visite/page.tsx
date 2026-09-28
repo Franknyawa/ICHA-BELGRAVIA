@@ -8,6 +8,7 @@ import { ChoiceGroup, MultiChoiceGroup } from "@/components/form/ChoiceGroup";
 import { resolveVilleDepuisCoordonnees, matchVille } from "@/lib/reverseGeocode";
 import { enqueuerVisite } from "@/lib/offlineQueue";
 import { envoyerVisite } from "@/lib/envoyerVisite";
+import { ErreurEnvoi } from "@/lib/erreurEnvoi";
 import { IconStorefront, IconPhone, IconPin, IconCamera, IconGlass, IconClock, IconCheckCircle, IconClipboard } from "@/components/icons";
 
 type Referentiels = {
@@ -249,18 +250,34 @@ export default function NouvelleVisite() {
       } else {
         router.push("/terrain");
       }
-    } catch {
-      // Réseau indisponible (ou instable) : la visite n'est pas perdue —
-      // elle est conservée localement et sera synchronisée automatiquement
-      // dès que la connexion revient (voir components/SyncBanner.tsx).
+    } catch (e) {
+      // Deux cas bien distincts (voir lib/erreurEnvoi.ts) :
+      // - vraie coupure réseau : comportement normal, message rassurant.
+      // - erreur serveur (session expirée, FTP, base de données…) : ce
+      //   n'est PAS un problème de connexion — on le dit clairement, sinon
+      //   la visite reste indéfiniment "en attente" sans que personne ne
+      //   sache pourquoi, en la resynchronisant en boucle vers un échec
+      //   identique. Dans les deux cas la visite n'est jamais perdue :
+      //   elle est conservée localement et retentée automatiquement.
+      const erreurServeur = e instanceof ErreurEnvoi && !e.estErreurReseau;
+      if (erreurServeur) console.error("[nouvelle-visite] échec serveur :", e);
+
       try {
         await enqueuerVisite({ id: uuidVisite, payload, photos: photosPayload, createdAt: Date.now() });
-        setMessageInfo(
-          veutCommander
-            ? "Pas de connexion : la visite a été enregistrée sur l'appareil et sera envoyée automatiquement dès le retour du réseau. Pense à saisir la commande manuellement (bouton \"Nouvelle commande\") une fois la visite synchronisée."
-            : "Pas de connexion : la visite a été enregistrée sur l'appareil et sera envoyée automatiquement dès le retour du réseau."
-        );
-        setTimeout(() => router.push("/terrain"), veutCommander ? 3200 : 1800);
+        if (erreurServeur) {
+          setErreur(
+            `L'enregistrement a échoué côté serveur (${(e as ErreurEnvoi).message}). La visite est conservée sur l'appareil et sera réessayée automatiquement, mais tant que cette erreur persiste elle ne partira pas — signale ce message à l'administrateur.`
+          );
+          setMessageInfo(null);
+        } else {
+          setErreur(null);
+          setMessageInfo(
+            veutCommander
+              ? "Pas de connexion : la visite a été enregistrée sur l'appareil et sera envoyée automatiquement dès le retour du réseau. Pense à saisir la commande manuellement (bouton \"Nouvelle commande\") une fois la visite synchronisée."
+              : "Pas de connexion : la visite a été enregistrée sur l'appareil et sera envoyée automatiquement dès le retour du réseau."
+          );
+          setTimeout(() => router.push("/terrain"), veutCommander ? 3200 : 1800);
+        }
       } catch {
         setErreur("Échec de l'enregistrement, y compris en local. Réessayez.");
       }
