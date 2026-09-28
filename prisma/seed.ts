@@ -32,17 +32,72 @@ async function main() {
     skipDuplicates: true,
   });
 
-  // Prix placeholders — à ajuster depuis l'admin (page Produits) selon les
-  // tarifs réels BELGRAVIA.
-  await prisma.produit.createMany({
-    data: [
-      { nom: "Belgravia Mojito 275ml", prixUnitaire: 1500, ordre: 1 },
-      { nom: "Belgravia Cosmopolitan 275ml", prixUnitaire: 1500, ordre: 2 },
-      { nom: "Belgravia Piña Colada 275ml", prixUnitaire: 1500, ordre: 3 },
-      { nom: "Belgravia Spritz 275ml", prixUnitaire: 1500, ordre: 4 },
-    ],
-    skipDuplicates: true,
+  // Anciens produits placeholders (test) : désactivés plutôt que supprimés,
+  // pour ne pas casser l'historique des commandes déjà créées avec eux.
+  await prisma.produit.updateMany({
+    where: {
+      nom: {
+        in: [
+          "Belgravia Mojito 275ml",
+          "Belgravia Cosmopolitan 275ml",
+          "Belgravia Piña Colada 275ml",
+          "Belgravia Spritz 275ml",
+        ],
+      },
+    },
+    data: { actif: false },
   });
+
+  // Catalogue produits réel BELGRAVIA — 275ml, vente au carton uniquement.
+  // prixUnitaire ici = prix de référence affiché en admin (palier 0-9
+  // cartons) ; le prix réellement appliqué à une commande vient du barème
+  // PalierPrixCarton, recalculé côté serveur selon le volume total commandé.
+  const produitsReels = [
+    "Gin & Dry Lemon",
+    "Gin & Tonic",
+    "Gin & Pink Tonic",
+    "Gin & Dark Cherry",
+    "Red Square Energising",
+    "Red Square Red Ice",
+  ];
+  for (const [i, nom] of produitsReels.entries()) {
+    await prisma.produit.upsert({
+      where: { nom },
+      update: { actif: true, volumeMl: 275 },
+      create: { nom, volumeMl: 275, prixUnitaire: 21500, ordre: i + 1 },
+    });
+  }
+
+  // Barème de prix par palier de cartons (commande entière, tous produits
+  // confondus) — modifiable ensuite depuis l'admin (Paramètres).
+  const paliers: { min: number; max: number | null; prix: number }[] = [
+    { min: 0, max: 9, prix: 21500 },
+    { min: 10, max: 49, prix: 21000 },
+    { min: 50, max: 99, prix: 20000 },
+    { min: 100, max: 499, prix: 19500 },
+    { min: 500, max: null, prix: 19000 },
+  ];
+  const paliersExistants = await prisma.palierPrixCarton.count();
+  if (paliersExistants === 0) {
+    await prisma.palierPrixCarton.createMany({
+      data: paliers.map((p, i) => ({
+        cartonsMin: p.min,
+        cartonsMax: p.max,
+        prixCarton: p.prix,
+        ordre: i + 1,
+      })),
+    });
+  }
+
+  // Une ligne de stock par produit réel, à ajuster ensuite depuis l'admin.
+  const produitsCrees = await prisma.produit.findMany({ where: { nom: { in: produitsReels } } });
+  for (const p of produitsCrees) {
+    await prisma.stock.upsert({
+      where: { produitId: p.id },
+      update: {},
+      create: { produitId: p.id, quantiteCartons: 0, seuilAlerte: 20 },
+    });
+  }
 
   const adminHash = await bcrypt.hash("belgravia-admin", 10);
   await prisma.user.upsert({

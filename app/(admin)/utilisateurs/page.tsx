@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { IconUsers, IconPlus, IconPencil, IconKey, IconTrash, IconShield, IconUser } from "@/components/icons";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 type Utilisateur = {
   id: string;
@@ -32,6 +33,9 @@ export default function UtilisateursPage() {
   const [resetId, setResetId] = useState<string | null>(null);
   const [nouveauMdp, setNouveauMdp] = useState("");
   const [erreurLigne, setErreurLigne] = useState<string | null>(null);
+  const [utilisateurASupprimer, setUtilisateurASupprimer] = useState<Utilisateur | null>(null);
+  const [suppressionEnCours, setSuppressionEnCours] = useState(false);
+  const [erreurSuppression, setErreurSuppression] = useState<string | null>(null);
 
   async function charger() {
     const params = filtreRole ? `?role=${filtreRole}` : "";
@@ -115,15 +119,22 @@ export default function UtilisateursPage() {
     setNouveauMdp("");
   }
 
-  async function supprimer(u: Utilisateur) {
-    if (!confirm(`Supprimer définitivement ${u.prenom} ${u.nom} ?`)) return;
-    const res = await fetch(`/api/utilisateurs/${u.id}`, { method: "DELETE" });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      alert(data.error || "Échec de la suppression.");
-      return;
+  async function confirmerSuppression() {
+    if (!utilisateurASupprimer) return;
+    setSuppressionEnCours(true);
+    setErreurSuppression(null);
+    try {
+      const res = await fetch(`/api/utilisateurs/${utilisateurASupprimer.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setErreurSuppression(data.error || "Échec de la suppression.");
+        return;
+      }
+      setUtilisateurASupprimer(null);
+      charger();
+    } finally {
+      setSuppressionEnCours(false);
     }
-    charger();
   }
 
   return (
@@ -202,7 +213,7 @@ export default function UtilisateursPage() {
                 <button onClick={() => toggleActif(u)} className="text-xs font-medium text-brass hover:underline">
                   {u.actif ? "Désactiver" : "Réactiver"}
                 </button>
-                <button onClick={() => supprimer(u)} title="Supprimer" className="rounded-md p-2 text-ink-muted hover:bg-danger/10 hover:text-danger">
+                <button onClick={() => setUtilisateurASupprimer(u)} title="Supprimer" className="rounded-md p-2 text-ink-muted hover:bg-danger/10 hover:text-danger">
                   <IconTrash className="h-4 w-4" />
                 </button>
               </div>
@@ -240,6 +251,22 @@ export default function UtilisateursPage() {
         ))}
         {users.length === 0 && <p className="field-card text-center text-sm text-ink-muted">Aucun utilisateur.</p>}
       </div>
+
+      <ConfirmDialog
+        open={!!utilisateurASupprimer}
+        title="Supprimer cet utilisateur ?"
+        message={
+          erreurSuppression ||
+          `Supprimer définitivement ${utilisateurASupprimer?.prenom} ${utilisateurASupprimer?.nom} ? Cette action est irréversible.`
+        }
+        danger
+        pending={suppressionEnCours}
+        onConfirm={confirmerSuppression}
+        onCancel={() => {
+          setUtilisateurASupprimer(null);
+          setErreurSuppression(null);
+        }}
+      />
     </div>
   );
 }

@@ -2,16 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { IconGlass, IconPlus, IconTrash } from "@/components/icons";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
-type Produit = { id: string; nom: string; prixUnitaire: string; actif: boolean };
+type Produit = { id: string; nom: string; volumeMl: number; prixUnitaire: string; actif: boolean };
 
 export default function ProduitsPage() {
   const [produits, setProduits] = useState<Produit[]>([]);
   const [formulaireOuvert, setFormulaireOuvert] = useState(false);
   const [nom, setNom] = useState("");
+  const [volumeMl, setVolumeMl] = useState("275");
   const [prix, setPrix] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
   const [enCours, setEnCours] = useState(false);
+  const [produitASupprimer, setProduitASupprimer] = useState<Produit | null>(null);
+  const [suppressionEnCours, setSuppressionEnCours] = useState(false);
+  const [erreurSuppression, setErreurSuppression] = useState<string | null>(null);
 
   async function charger() {
     const res = await fetch("/api/produits");
@@ -30,7 +35,7 @@ export default function ProduitsPage() {
     const res = await fetch("/api/produits", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nom, prixUnitaire: parseFloat(prix) || 0 }),
+      body: JSON.stringify({ nom, volumeMl: parseInt(volumeMl, 10) || 275, prixUnitaire: parseFloat(prix) || 0 }),
     });
     setEnCours(false);
     if (!res.ok) {
@@ -39,13 +44,19 @@ export default function ProduitsPage() {
       return;
     }
     setNom("");
+    setVolumeMl("275");
     setPrix("");
     setFormulaireOuvert(false);
     charger();
   }
 
-  async function modifierChamp(p: Produit, champ: "nom" | "prixUnitaire", valeur: string) {
-    const body = champ === "prixUnitaire" ? { prixUnitaire: parseFloat(valeur) || 0 } : { nom: valeur };
+  async function modifierChamp(p: Produit, champ: "nom" | "prixUnitaire" | "volumeMl", valeur: string) {
+    const body =
+      champ === "nom"
+        ? { nom: valeur }
+        : champ === "volumeMl"
+        ? { volumeMl: parseInt(valeur, 10) || p.volumeMl }
+        : { prixUnitaire: parseFloat(valeur) || 0 };
     await fetch(`/api/produits/${p.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -63,20 +74,27 @@ export default function ProduitsPage() {
     charger();
   }
 
-  async function supprimer(p: Produit) {
-    if (!confirm(`Supprimer "${p.nom}" ?`)) return;
-    const res = await fetch(`/api/produits/${p.id}`, { method: "DELETE" });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      alert(data.error || "Échec de la suppression.");
-      return;
+  async function confirmerSuppression() {
+    if (!produitASupprimer) return;
+    setSuppressionEnCours(true);
+    setErreurSuppression(null);
+    try {
+      const res = await fetch(`/api/produits/${produitASupprimer.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setErreurSuppression(data.error || "Échec de la suppression.");
+        return;
+      }
+      setProduitASupprimer(null);
+      charger();
+    } finally {
+      setSuppressionEnCours(false);
     }
-    charger();
   }
 
   return (
     <div className="max-w-2xl">
-      <div className="mb-5 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between">
         <h1 className="flex items-center gap-2 font-display text-2xl text-ink">
           <IconGlass className="h-5 w-5 text-brass" />
           Produits
@@ -86,11 +104,17 @@ export default function ProduitsPage() {
           {formulaireOuvert ? "Annuler" : "Nouveau produit"}
         </button>
       </div>
+      <p className="mb-5 text-sm text-ink-muted">
+        Catalogue vendu au terrain — le commercial choisit uniquement parmi les produits actifs ici, il ne peut pas
+        en créer. Le prix indiqué est une référence d'affichage ; le prix réellement facturé dépend du barème par
+        palier de cartons (onglet Paramètres).
+      </p>
 
       {formulaireOuvert && (
-        <form onSubmit={creer} className="field-card mb-6 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_140px]">
+        <form onSubmit={creer} className="field-card mb-6 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_100px_120px]">
           <input className="field-input" placeholder="Nom du produit" value={nom} onChange={(e) => setNom(e.target.value)} required />
-          <input className="field-input" type="number" step="0.01" placeholder="Prix" value={prix} onChange={(e) => setPrix(e.target.value)} required />
+          <input className="field-input" type="number" placeholder="Volume (ml)" value={volumeMl} onChange={(e) => setVolumeMl(e.target.value)} required />
+          <input className="field-input" type="number" step="0.01" placeholder="Prix de référence" value={prix} onChange={(e) => setPrix(e.target.value)} required />
           {erreur && <p className="col-span-full text-sm text-danger">{erreur}</p>}
           <button className="btn-primary col-span-full" disabled={enCours}>
             {enCours ? "Création…" : "Créer le produit"}
@@ -103,7 +127,8 @@ export default function ProduitsPage() {
           <thead className="bg-bg-elevated text-left text-ink-muted">
             <tr>
               <th className="px-4 py-3 font-medium">Produit</th>
-              <th className="px-4 py-3 font-medium">Prix unitaire</th>
+              <th className="px-4 py-3 font-medium">Volume</th>
+              <th className="px-4 py-3 font-medium">Prix de référence</th>
               <th className="px-4 py-3 font-medium">Statut</th>
               <th className="px-4 py-3" />
             </tr>
@@ -117,6 +142,17 @@ export default function ProduitsPage() {
                     onBlur={(e) => e.target.value !== p.nom && modifierChamp(p, "nom", e.target.value)}
                     className="w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-ink hover:border-line focus:border-brass focus:outline-none"
                   />
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      defaultValue={p.volumeMl}
+                      onBlur={(e) => e.target.value !== String(p.volumeMl) && modifierChamp(p, "volumeMl", e.target.value)}
+                      className="w-16 rounded-md border border-line bg-bg-elevated px-2 py-1 text-ink"
+                    />
+                    <span className="text-ink-muted">ml</span>
+                  </div>
                 </td>
                 <td className="px-4 py-3">
                   <input
@@ -135,7 +171,11 @@ export default function ProduitsPage() {
                     <button className="text-xs text-brass hover:underline" onClick={() => toggleActif(p)}>
                       {p.actif ? "Désactiver" : "Réactiver"}
                     </button>
-                    <button className="rounded p-1 text-ink-muted hover:text-danger" onClick={() => supprimer(p)} title="Supprimer">
+                    <button
+                      className="rounded p-1 text-ink-muted hover:text-danger"
+                      onClick={() => setProduitASupprimer(p)}
+                      title="Supprimer"
+                    >
                       <IconTrash className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -145,6 +185,23 @@ export default function ProduitsPage() {
           </tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={!!produitASupprimer}
+        title="Supprimer ce produit ?"
+        message={
+          erreurSuppression ||
+          `Supprimer "${produitASupprimer?.nom}" ? Si ce produit figure déjà dans des commandes, désactive-le plutôt.`
+        }
+        danger
+        pending={suppressionEnCours}
+        confirmLabel="Supprimer"
+        onConfirm={confirmerSuppression}
+        onCancel={() => {
+          setProduitASupprimer(null);
+          setErreurSuppression(null);
+        }}
+      />
     </div>
   );
 }

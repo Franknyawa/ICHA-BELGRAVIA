@@ -5,7 +5,19 @@ import LogoutButton from "@/components/LogoutButton";
 import ThemeToggle from "@/components/ThemeToggle";
 import InstallButton from "@/components/InstallButton";
 import GoldRule from "@/components/GoldRule";
-import { IconStorefront, IconChart, IconUsers, IconReceipt, IconGlass, IconMap, IconGear, IconPin } from "@/components/icons";
+import {
+  IconStorefront,
+  IconChart,
+  IconUsers,
+  IconReceipt,
+  IconGlass,
+  IconMap,
+  IconGear,
+  IconPin,
+  IconDownload,
+  IconTrend,
+  IconList,
+} from "@/components/icons";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -30,6 +42,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <IconReceipt className="h-4 w-4" />
             Commandes
           </Link>
+          <Link href="/factures" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
+            <IconDownload className="h-4 w-4" />
+            Factures
+          </Link>
+          <Link href="/points-de-vente" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
+            <IconStorefront className="h-4 w-4" />
+            Points de vente
+          </Link>
+          <Link href="/rapports" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
+            <IconTrend className="h-4 w-4" />
+            Rapports
+          </Link>
           <Link href="/statistiques" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
             <IconMap className="h-4 w-4" />
             Carte
@@ -39,6 +63,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             Tracking
           </Link>
           <div className="my-2 hidden h-px bg-line lg:block" />
+          <Link href="/stock" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
+            <IconList className="h-4 w-4" />
+            Stock
+          </Link>
           <Link href="/utilisateurs" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
             <IconUsers className="h-4 w-4" />
             Utilisateurs

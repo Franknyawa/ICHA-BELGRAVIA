@@ -245,29 +245,68 @@ model Photo {
 // ---------------------------------------------------------------------------
 
 /// Référentiel produits BELGRAVIA (modifiable depuis l'admin, jamais codé en
-/// dur) — prix par défaut proposé à la prise de commande, modifiable ligne
-/// par ligne si le commercial négocie un tarif différent.
+/// dur) — figé côté commercial : l'agent choisit uniquement parmi les
+/// produits actifs ici, il ne peut pas en créer un depuis son interface
+/// (voir app/(commercial)/terrain/nouvelle-commande/page.tsx). `prixUnitaire`
+/// est conservé pour compatibilité/affichage admin, mais le prix réellement
+/// appliqué à une commande vient du barème par palier de cartons
+/// (PalierPrixCarton), recalculé côté serveur à chaque commande — jamais
+/// codé en dur dans le formulaire.
 model Produit {
-  id             String         @id @default(uuid())
-  nom            String         @unique
-  prixUnitaire   Decimal        @db.Decimal(10, 2)
-  actif          Boolean        @default(true)
-  ordre          Int            @default(0)
+  id             String           @id @default(uuid())
+  nom            String           @unique
+  volumeMl       Int              @default(275) @map("volume_ml")
+  prixUnitaire   Decimal          @db.Decimal(10, 2) @map("prix_unitaire")
+  actif          Boolean          @default(true)
+  ordre          Int              @default(0)
   lignesCommande LigneCommande[]
+  stock          Stock?
+  mouvementsStock MouvementStock[]
 
   @@map("produits")
 }
 
+/// Barème de prix au carton selon le volume total de la commande (tous
+/// produits confondus) — modifiable depuis l'admin (onglet Paramètres),
+/// jamais codé en dur dans le formulaire de commande. cartonsMax = null
+/// signifie "et plus" (dernier palier, ouvert).
+model PalierPrixCarton {
+  id          String   @id @default(uuid())
+  cartonsMin  Int      @map("cartons_min")
+  cartonsMax  Int?     @map("cartons_max")
+  prixCarton  Decimal  @db.Decimal(10, 2) @map("prix_carton")
+  ordre       Int      @default(0)
+  actif       Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("paliers_prix_carton")
+}
+
+enum ModePaiement {
+  ESPECES
+  MOBILE_MONEY
+  CREDIT_PARTIEL
+  CREDIT_TOTAL
+}
+
 model Commande {
-  id           String   @id @default(uuid())
-  uuidClient   String   @unique @map("uuid_client")
-  pointVenteId String   @map("point_vente_id")
-  pointVente   PointVente @relation(fields: [pointVenteId], references: [id])
-  commercialId String   @map("commercial_id")
-  commercial   User     @relation(fields: [commercialId], references: [id])
-  dateCommande DateTime @default(now()) @map("date_commande")
-  observations String?
-  montantTotal Decimal  @default(0) @db.Decimal(12, 2) @map("montant_total")
+  id            String       @id @default(uuid())
+  uuidClient    String       @unique @map("uuid_client")
+  pointVenteId  String       @map("point_vente_id")
+  pointVente    PointVente   @relation(fields: [pointVenteId], references: [id])
+  commercialId  String       @map("commercial_id")
+  commercial    User         @relation(fields: [commercialId], references: [id])
+  dateCommande  DateTime     @default(now()) @map("date_commande")
+  observations  String?
+  montantTotal  Decimal      @default(0) @db.Decimal(12, 2) @map("montant_total")
+
+  // Paiement — calculé et validé côté serveur selon modePaiement (voir
+  // app/api/commandes/route.ts) : jamais de confiance dans un montant
+  // envoyé par le client pour ESPECES/MOBILE_MONEY/CREDIT_TOTAL.
+  modePaiement  ModePaiement @default(ESPECES) @map("mode_paiement")
+  montantRecu   Decimal      @default(0) @db.Decimal(12, 2) @map("montant_recu")
+  resteAPayer   Decimal      @default(0) @db.Decimal(12, 2) @map("reste_a_payer")
+
   createdAt    DateTime @default(now()) @map("created_at")
 
   lignes LigneCommande[]
@@ -275,11 +314,14 @@ model Commande {
   @@index([pointVenteId])
   @@index([commercialId])
   @@index([createdAt])
+  @@index([modePaiement])
   @@map("commandes")
 }
 
-/// Une ligne peut référencer un produit du référentiel, ou être saisie
-/// librement (libelleLibre) si le produit n'y figure pas encore.
+/// libelleLibre est conservé en base pour l'historique des commandes créées
+/// avant ce correctif, mais n'est plus utilisable depuis le formulaire
+/// terrain : chaque nouvelle ligne référence obligatoirement un Produit du
+/// référentiel (produitId non nul).
 model LigneCommande {
   id            String    @id @default(uuid())
   commandeId    String    @map("commande_id")
@@ -293,4 +335,41 @@ model LigneCommande {
 
   @@index([commandeId])
   @@map("lignes_commande")
+}
+
+// ---------------------------------------------------------------------------
+// STOCK (entrées/sorties liées aux commandes, ajustements manuels admin)
+// ---------------------------------------------------------------------------
+
+model Stock {
+  id              String   @id @default(uuid())
+  produitId       String   @unique @map("produit_id")
+  produit         Produit  @relation(fields: [produitId], references: [id])
+  quantiteCartons Int      @default(0) @map("quantite_cartons")
+  seuilAlerte     Int      @default(0) @map("seuil_alerte")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("stock")
+}
+
+enum TypeMouvementStock {
+  ENTREE
+  SORTIE
+  AJUSTEMENT
+}
+
+model MouvementStock {
+  id              String             @id @default(uuid())
+  produitId       String             @map("produit_id")
+  produit         Produit            @relation(fields: [produitId], references: [id])
+  type            TypeMouvementStock
+  quantiteCartons Int                @map("quantite_cartons")
+  referenceType   String?            @map("reference_type") // "COMMANDE" | "AJUSTEMENT"
+  referenceId     String?            @map("reference_id")
+  note            String?
+  createdAt       DateTime           @default(now()) @map("created_at")
+
+  @@index([produitId])
+  @@index([createdAt])
+  @@map("mouvements_stock")
 }

@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
-  const { nom, prixUnitaire } = await req.json();
+  const { nom, prixUnitaire, volumeMl } = await req.json();
   if (!nom || prixUnitaire === undefined) {
     return NextResponse.json({ error: "Nom et prix requis." }, { status: 400 });
   }
@@ -22,6 +22,12 @@ export async function POST(req: NextRequest) {
   const existant = await prisma.produit.findUnique({ where: { nom } });
   if (existant) return NextResponse.json({ error: "Ce produit existe déjà." }, { status: 409 });
 
-  const produit = await prisma.produit.create({ data: { nom, prixUnitaire } });
+  const produit = await prisma.produit.create({
+    data: { nom, prixUnitaire, volumeMl: volumeMl || 275 },
+  });
+  // Une ligne de stock vide est créée en même temps, pour que le nouveau
+  // produit apparaisse immédiatement dans l'onglet admin Stock plutôt que
+  // d'y être absent jusqu'au premier mouvement.
+  await prisma.stock.create({ data: { produitId: produit.id, quantiteCartons: 0, seuilAlerte: 20 } });
   return NextResponse.json({ id: produit.id });
 }

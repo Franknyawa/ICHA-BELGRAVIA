@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import ReferentielManager from "@/components/ReferentielManager";
+import PaliersPrixManager from "@/components/PaliersPrixManager";
 import { IconGear, IconPin, IconStorefront, IconGlass, IconArrowRight } from "@/components/icons";
 
 export default function ParametresPage() {
@@ -33,6 +34,8 @@ export default function ParametresPage() {
           </span>
           <IconArrowRight className="h-4 w-4 text-ink-muted" />
         </Link>
+
+        <PaliersPrixManager />
       </div>
     </div>
   );

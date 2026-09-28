@@ -2,9 +2,15 @@
 
 import { fetchOuErreurEnvoi } from "./erreurEnvoi";
 
-export async function envoyerCommande(
-  payload: Record<string, unknown>
-): Promise<{ id: string; dejaEnregistree: boolean }> {
+export async function envoyerCommande(payload: Record<string, unknown>): Promise<{
+  id: string;
+  dejaEnregistree: boolean;
+  montantTotal?: number;
+  prixCarton?: number;
+  montantRecu?: number;
+  resteAPayer?: number;
+  numero?: string;
+}> {
   const res = await fetchOuErreurEnvoi(
     "/api/commandes",
     {

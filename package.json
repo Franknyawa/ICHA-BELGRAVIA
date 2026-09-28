@@ -18,6 +18,8 @@
     "basic-ftp": "^6.2.1",
     "bcryptjs": "^2.4.3",
     "jose": "^5.9.6",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
     "leaflet": "^1.9.4",
     "next": "14.2.15",
     "react": "^18.3.1",

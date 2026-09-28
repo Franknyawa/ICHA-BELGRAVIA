@@ -7,31 +7,28 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const session = await getSession();
   if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
-  const { nom, prixUnitaire, actif, volumeMl } = await req.json();
-  const produit = await prisma.produit.update({
+  const { cartonsMin, cartonsMax, prixCarton, actif } = await req.json();
+  const palier = await prisma.palierPrixCarton.update({
     where: { id: params.id },
     data: {
-      ...(nom !== undefined ? { nom } : {}),
-      ...(prixUnitaire !== undefined ? { prixUnitaire } : {}),
+      ...(cartonsMin !== undefined ? { cartonsMin: parseInt(cartonsMin, 10) } : {}),
+      ...(cartonsMax !== undefined ? { cartonsMax: cartonsMax === null || cartonsMax === "" ? null : parseInt(cartonsMax, 10) } : {}),
+      ...(prixCarton !== undefined ? { prixCarton } : {}),
       ...(actif !== undefined ? { actif } : {}),
-      ...(volumeMl !== undefined ? { volumeMl } : {}),
     },
   });
-  return NextResponse.json({ id: produit.id });
+  return NextResponse.json({ id: palier.id });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
   try {
-    await prisma.produit.delete({ where: { id: params.id } });
+    await prisma.palierPrixCarton.delete({ where: { id: params.id } });
     return NextResponse.json({ ok: true });
   } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2003") {
-      return NextResponse.json(
-        { error: "Impossible de supprimer : ce produit figure dans des commandes. Désactivez-le plutôt." },
-        { status: 409 }
-      );
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      return NextResponse.json({ error: "Impossible de supprimer ce palier." }, { status: 409 });
     }
     throw e;
   }

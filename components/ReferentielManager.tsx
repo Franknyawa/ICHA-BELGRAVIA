@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { IconPlus, IconPencil, IconTrash } from "@/components/icons";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 type Item = { id: string; nom: string; actif: boolean };
 
@@ -20,6 +21,9 @@ export default function ReferentielManager({
   const [editId, setEditId] = useState<string | null>(null);
   const [editNom, setEditNom] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
+  const [itemASupprimer, setItemASupprimer] = useState<Item | null>(null);
+  const [suppressionEnCours, setSuppressionEnCours] = useState(false);
+  const [erreurSuppression, setErreurSuppression] = useState<string | null>(null);
 
   async function charger() {
     const res = await fetch(apiBase);
@@ -72,15 +76,22 @@ export default function ReferentielManager({
     charger();
   }
 
-  async function supprimer(item: Item) {
-    if (!confirm(`Supprimer "${item.nom}" ?`)) return;
-    const res = await fetch(`${apiBase}/${item.id}`, { method: "DELETE" });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      alert(data.error || "Échec de la suppression.");
-      return;
+  async function confirmerSuppression() {
+    if (!itemASupprimer) return;
+    setSuppressionEnCours(true);
+    setErreurSuppression(null);
+    try {
+      const res = await fetch(`${apiBase}/${itemASupprimer.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setErreurSuppression(data.error || "Échec de la suppression.");
+        return;
+      }
+      setItemASupprimer(null);
+      charger();
+    } finally {
+      setSuppressionEnCours(false);
     }
-    charger();
   }
 
   return (
@@ -141,7 +152,7 @@ export default function ReferentielManager({
                   </button>
                   <button
                     className="rounded p-1.5 text-ink-muted hover:text-danger"
-                    onClick={() => supprimer(item)}
+                    onClick={() => setItemASupprimer(item)}
                     title="Supprimer"
                   >
                     <IconTrash className="h-3.5 w-3.5" />
@@ -153,6 +164,19 @@ export default function ReferentielManager({
         ))}
         {items.length === 0 && <p className="text-sm text-ink-muted">Aucun élément.</p>}
       </ul>
+
+      <ConfirmDialog
+        open={!!itemASupprimer}
+        title="Supprimer cet élément ?"
+        message={erreurSuppression || `Supprimer "${itemASupprimer?.nom}" ? Cette action est irréversible.`}
+        danger
+        pending={suppressionEnCours}
+        onConfirm={confirmerSuppression}
+        onCancel={() => {
+          setItemASupprimer(null);
+          setErreurSuppression(null);
+        }}
+      />
     </div>
   );
 }

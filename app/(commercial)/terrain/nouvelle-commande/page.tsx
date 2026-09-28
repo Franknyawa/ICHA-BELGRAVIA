@@ -3,12 +3,14 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { v4 as uuid } from "uuid";
-import { IconStorefront, IconGlass, IconPlus, IconTrash, IconClipboard } from "@/components/icons";
+import { IconStorefront, IconGlass, IconReceipt, IconClipboard, IconDownload } from "@/components/icons";
 import { enqueuerCommande } from "@/lib/offlineQueue";
 import { envoyerCommande } from "@/lib/envoyerCommande";
 import { ErreurEnvoi } from "@/lib/erreurEnvoi";
+import { calculerCommande, calculerPaiement, MODES_PAIEMENT, type ModePaiementValue, type PalierPrix } from "@/lib/pricing";
+import { genererFacturePdf } from "@/lib/facturePdf";
 
-type Produit = { id: string; nom: string; prixUnitaire: string };
+type Produit = { id: string; nom: string; volumeMl: number };
 type Client = {
   id: string;
   nomEtablissement: string;
@@ -17,10 +19,9 @@ type Client = {
   quartier: string | null;
   ville: string | null;
 };
-type Ligne = { id: string; produitId: string; libelleLibre: string; quantite: number; prixUnitaire: number };
 
-function ligneVide(): Ligne {
-  return { id: uuid(), produitId: "", libelleLibre: "", quantite: 1, prixUnitaire: 0 };
+function ligneVide() {
+  return { produitId: "", quantiteCartons: 0 };
 }
 
 export default function NouvelleCommande() {
@@ -38,13 +39,21 @@ function NouvelleCommandeInner() {
 
   const [uuidCommande] = useState(() => uuid());
   const [produits, setProduits] = useState<Produit[]>([]);
+  const [paliersPrix, setPaliersPrix] = useState<PalierPrix[]>([]);
   const [client, setClient] = useState<Client | null>(null);
   const [chargementClient, setChargementClient] = useState(!!pointVenteIdInitial);
   const [recherche, setRecherche] = useState("");
   const [resultats, setResultats] = useState<Client[]>([]);
   const [rechercheEnCours, setRechercheEnCours] = useState(false);
-  const [lignes, setLignes] = useState<Ligne[]>([ligneVide()]);
+
+  // Une ligne par produit du catalogue (fixe) — l'agent ne fait que
+  // renseigner le nombre de cartons souhaité pour chacun, il ne peut pas
+  // ajouter un produit hors catalogue (voir lib/pricing.ts pour le calcul
+  // du prix, qui dépend du volume TOTAL de la commande, pas du produit).
+  const [quantites, setQuantites] = useState<Record<string, number>>({});
   const [observations, setObservations] = useState("");
+  const [modePaiement, setModePaiement] = useState<ModePaiementValue>("ESPECES");
+  const [montantRecuSaisi, setMontantRecuSaisi] = useState(0);
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [messageInfo, setMessageInfo] = useState<string | null>(null);
@@ -52,7 +61,16 @@ function NouvelleCommandeInner() {
   useEffect(() => {
     fetch("/api/referentiels")
       .then((r) => r.json())
-      .then((data) => setProduits(data.produits || []));
+      .then((data) => {
+        setProduits(data.produits || []);
+        setPaliersPrix(
+          (data.paliersPrix || []).map((p: any) => ({
+            cartonsMin: p.cartonsMin,
+            cartonsMax: p.cartonsMax,
+            prixCarton: Number(p.prixCarton),
+          }))
+        );
+      });
   }, []);
 
   useEffect(() => {
@@ -81,33 +99,54 @@ function NouvelleCommandeInner() {
     return () => clearTimeout(t);
   }, [recherche, pointVenteIdInitial]);
 
-  function ajouterLigne() {
-    setLignes((prev) => [...prev, ligneVide()]);
+  function modifierQuantite(produitId: string, quantite: number) {
+    setQuantites((prev) => ({ ...prev, [produitId]: Math.max(0, quantite) }));
   }
 
-  function retirerLigne(id: string) {
-    setLignes((prev) => prev.filter((l) => l.id !== id));
-  }
-
-  function modifierLigne(id: string, changements: Partial<Ligne>) {
-    setLignes((prev) => prev.map((l) => (l.id === id ? { ...l, ...changements } : l)));
-  }
-
-  function choisirProduit(id: string, produitId: string) {
-    const produit = produits.find((p) => p.id === produitId);
-    modifierLigne(id, {
-      produitId,
-      libelleLibre: "",
-      prixUnitaire: produit ? Number(produit.prixUnitaire) : 0,
-    });
-  }
-
-  const total = useMemo(
-    () => lignes.reduce((s, l) => s + (l.quantite || 0) * (l.prixUnitaire || 0), 0),
-    [lignes]
+  const lignesRetenues = useMemo(
+    () =>
+      produits
+        .map((p) => ({ produit: p, quantite: quantites[p.id] || 0 }))
+        .filter((l) => l.quantite > 0),
+    [produits, quantites]
   );
 
-  const peutEnregistrer = !!client && lignes.some((l) => l.quantite > 0 && (l.produitId || l.libelleLibre.trim()));
+  const { totalCartons, prixCarton, montantTotal } = useMemo(
+    () => calculerCommande(lignesRetenues.map((l) => ({ quantite: l.quantite })), paliersPrix),
+    [lignesRetenues, paliersPrix]
+  );
+
+  const { montantRecu, resteAPayer } = useMemo(
+    () => calculerPaiement(modePaiement, montantTotal, montantRecuSaisi),
+    [modePaiement, montantTotal, montantRecuSaisi]
+  );
+
+  const peutEnregistrer =
+    !!client &&
+    lignesRetenues.length > 0 &&
+    (modePaiement !== "CREDIT_PARTIEL" || montantRecuSaisi > 0);
+
+  async function genererFacture(numero: string, date: Date) {
+    if (!client) return;
+    await genererFacturePdf({
+      numero,
+      date,
+      pointVenteNom: client.nomEtablissement,
+      villeNom: client.ville,
+      quartier: client.quartier,
+      commercialNom: "—", // affiché correctement depuis la liste admin ; ici l'agent connaît déjà son nom
+      lignes: lignesRetenues.map((l) => ({
+        produitNom: l.produit.nom,
+        quantiteCartons: l.quantite,
+        prixCarton,
+        sousTotal: l.quantite * prixCarton,
+      })),
+      montantTotal,
+      modePaiement,
+      montantRecu,
+      resteAPayer,
+    });
+  }
 
   async function soumettre() {
     if (!client) return;
@@ -119,18 +158,24 @@ function NouvelleCommandeInner() {
       uuidClient: uuidCommande,
       pointVenteId: client.id,
       observations,
-      lignes: lignes
-        .filter((l) => l.quantite > 0 && (l.produitId || l.libelleLibre.trim()))
-        .map((l) => ({
-          produitId: l.produitId || undefined,
-          libelleLibre: l.produitId ? undefined : l.libelleLibre.trim(),
-          quantite: l.quantite,
-          prixUnitaire: l.prixUnitaire,
-        })),
+      modePaiement,
+      montantRecu: modePaiement === "CREDIT_PARTIEL" ? montantRecuSaisi : undefined,
+      lignes: lignesRetenues.map((l) => ({ produitId: l.produit.id, quantite: l.quantite })),
     };
 
     try {
-      await envoyerCommande(payload);
+      const resultat = await envoyerCommande(payload);
+      // La facture est générée immédiatement après l'enregistrement réussi,
+      // avec le numéro attribué par le serveur (8 premiers caractères de
+      // l'id, en majuscules — cohérent avec la liste admin des factures).
+      try {
+        await genererFacture((resultat as any).numero || uuidCommande.slice(0, 8).toUpperCase(), new Date());
+      } catch {
+        // La commande est déjà enregistrée : un échec de génération du PDF
+        // (rare, ex. navigateur qui bloque le téléchargement) ne doit pas
+        // bloquer le retour à l'accueil — la facture reste régénérable
+        // depuis l'admin (onglet Factures).
+      }
       router.push("/terrain");
     } catch (e) {
       // Voir le même correctif dans app/(commercial)/terrain/nouvelle-visite/page.tsx :
@@ -147,6 +192,15 @@ function NouvelleCommandeInner() {
           );
           setMessageInfo(null);
         } else {
+          // Hors-ligne : le prix affiché ici vient du même barème que le
+          // serveur appliquera à la synchronisation (voir lib/pricing.ts),
+          // donc la facture générée maintenant sera la bonne dans l'immense
+          // majorité des cas — sauf si le barème est modifié entre-temps.
+          try {
+            await genererFacture(uuidCommande.slice(0, 8).toUpperCase(), new Date());
+          } catch {
+            /* voir commentaire équivalent ci-dessus */
+          }
           setErreur(null);
           setMessageInfo(
             "Pas de connexion : la commande a été enregistrée sur l'appareil et sera envoyée automatiquement dès le retour du réseau."
@@ -244,88 +298,118 @@ function NouvelleCommandeInner() {
         )}
       </div>
 
-      {/* Section Produits */}
+      {/* Section Produits — catalogue figé, vente au carton uniquement */}
       <div className="field-card space-y-3">
         <p className="section-eyebrow">
           <IconGlass className="h-4 w-4" />
-          Produits
+          Produits (275ml — vente au carton)
         </p>
 
-        <div className="space-y-3">
-          {lignes.map((ligne) => (
-            <div key={ligne.id} className="rounded-md border border-line bg-bg-elevated p-3">
-              <div className="mb-2 flex items-center gap-2">
-                <select
-                  className="field-input"
-                  value={ligne.produitId}
-                  onChange={(e) => choisirProduit(ligne.id, e.target.value)}
+        <div className="space-y-2">
+          {produits.map((p) => (
+            <div key={p.id} className="flex items-center justify-between gap-3 rounded-md border border-line bg-bg-elevated px-3 py-2.5">
+              <span className="text-sm font-medium text-ink">{p.nom}</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="btn-secondary h-8 w-8 !p-0 text-base leading-none"
+                  onClick={() => modifierQuantite(p.id, (quantites[p.id] || 0) - 1)}
+                  aria-label={`Retirer un carton de ${p.nom}`}
                 >
-                  <option value="">— Produit libre —</option>
-                  {produits.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nom}
-                    </option>
-                  ))}
-                </select>
-                {lignes.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => retirerLigne(ligne.id)}
-                    className="shrink-0 rounded-md p-2.5 text-ink-muted hover:text-danger"
-                    aria-label="Retirer cette ligne"
-                  >
-                    <IconTrash className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-
-              {!ligne.produitId && (
+                  −
+                </button>
                 <input
-                  className="field-input mb-2"
-                  placeholder="Nom du produit"
-                  value={ligne.libelleLibre}
-                  onChange={(e) => modifierLigne(ligne.id, { libelleLibre: e.target.value })}
+                  type="number"
+                  min={0}
+                  inputMode="numeric"
+                  className="field-input w-16 text-center"
+                  value={quantites[p.id] || 0}
+                  onChange={(e) => modifierQuantite(p.id, parseInt(e.target.value, 10) || 0)}
                 />
-              )}
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="field-label">Quantité</label>
-                  <input
-                    type="number"
-                    min={1}
-                    className="field-input"
-                    value={ligne.quantite}
-                    onChange={(e) => modifierLigne(ligne.id, { quantite: parseInt(e.target.value, 10) || 0 })}
-                  />
-                </div>
-                <div>
-                  <label className="field-label">Prix unitaire</label>
-                  <input
-                    type="number"
-                    min={0}
-                    className="field-input"
-                    value={ligne.prixUnitaire}
-                    onChange={(e) => modifierLigne(ligne.id, { prixUnitaire: parseFloat(e.target.value) || 0 })}
-                  />
-                </div>
+                <button
+                  type="button"
+                  className="btn-secondary h-8 w-8 !p-0 text-base leading-none"
+                  onClick={() => modifierQuantite(p.id, (quantites[p.id] || 0) + 1)}
+                  aria-label={`Ajouter un carton de ${p.nom}`}
+                >
+                  +
+                </button>
               </div>
-              <p className="mt-2 text-right text-sm text-ink-muted">
-                Sous-total : <span className="font-medium text-ink">{(ligne.quantite * ligne.prixUnitaire).toLocaleString("fr-FR")}</span>
-              </p>
             </div>
           ))}
+          {produits.length === 0 && (
+            <p className="py-2 text-center text-sm text-ink-muted">Chargement du catalogue…</p>
+          )}
         </div>
 
-        <button type="button" onClick={ajouterLigne} className="btn-secondary w-full">
-          <IconPlus className="h-4 w-4" />
-          Ajouter un produit
-        </button>
+        {totalCartons > 0 && (
+          <div className="space-y-1 border-t border-line pt-3 text-sm">
+            <div className="flex items-center justify-between text-ink-muted">
+              <span>Total cartons</span>
+              <span className="font-medium text-ink">{totalCartons}</span>
+            </div>
+            <div className="flex items-center justify-between text-ink-muted">
+              <span>Prix appliqué / carton</span>
+              <span className="font-medium text-ink">{prixCarton.toLocaleString("fr-FR")} FCFA</span>
+            </div>
+            <div className="flex items-center justify-between border-t border-line pt-2">
+              <span className="font-medium text-ink-muted">Total général</span>
+              <span className="font-display text-2xl text-ink">{montantTotal.toLocaleString("fr-FR")} FCFA</span>
+            </div>
+          </div>
+        )}
+      </div>
 
-        <div className="flex items-center justify-between border-t border-line pt-3">
-          <span className="text-sm font-medium text-ink-muted">Total général</span>
-          <span className="font-display text-2xl text-ink">{total.toLocaleString("fr-FR")}</span>
+      {/* Section Paiement */}
+      <div className="field-card space-y-3">
+        <p className="section-eyebrow">
+          <IconReceipt className="h-4 w-4" />
+          Paiement
+        </p>
+
+        <div>
+          <label className="field-label">Mode de paiement</label>
+          <select
+            className="field-input"
+            value={modePaiement}
+            onChange={(e) => setModePaiement(e.target.value as ModePaiementValue)}
+          >
+            {MODES_PAIEMENT.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
         </div>
+
+        {modePaiement === "CREDIT_PARTIEL" && (
+          <div>
+            <label className="field-label">Montant reçu maintenant</label>
+            <input
+              type="number"
+              min={0}
+              max={montantTotal}
+              className="field-input"
+              value={montantRecuSaisi || ""}
+              onChange={(e) => setMontantRecuSaisi(Math.max(0, parseFloat(e.target.value) || 0))}
+            />
+          </div>
+        )}
+
+        {totalCartons > 0 && (
+          <div className="space-y-1 border-t border-line pt-3 text-sm">
+            <div className="flex items-center justify-between text-ink-muted">
+              <span>Montant reçu</span>
+              <span className="font-medium text-ok">{montantRecu.toLocaleString("fr-FR")} FCFA</span>
+            </div>
+            {resteAPayer > 0 && (
+              <div className="flex items-center justify-between rounded-md bg-danger/10 px-2.5 py-1.5">
+                <span className="font-medium text-danger">Reste à payer</span>
+                <span className="font-bold text-danger">{resteAPayer.toLocaleString("fr-FR")} FCFA</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="field-card">
@@ -341,6 +425,10 @@ function NouvelleCommandeInner() {
         <IconClipboard className="h-4 w-4" />
         {envoi ? "Enregistrement…" : "Enregistrer la commande"}
       </button>
+      <p className="flex items-center justify-center gap-1.5 text-center text-xs text-ink-muted">
+        <IconDownload className="h-3.5 w-3.5" />
+        La facture PDF se télécharge automatiquement une fois la commande enregistrée.
+      </p>
     </div>
   );
 }
