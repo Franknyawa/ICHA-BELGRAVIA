@@ -9,6 +9,7 @@ import { resolveVilleDepuisCoordonnees, matchVille } from "@/lib/reverseGeocode"
 import { enqueuerVisite } from "@/lib/offlineQueue";
 import { envoyerVisite } from "@/lib/envoyerVisite";
 import { ErreurEnvoi } from "@/lib/erreurEnvoi";
+import { compresserImage } from "@/lib/compresserImage";
 import { IconStorefront, IconPhone, IconPin, IconCamera, IconGlass, IconClock, IconCheckCircle, IconClipboard } from "@/components/icons";
 
 type Referentiels = {
@@ -135,7 +136,22 @@ export default function NouvelleVisite() {
   async function handlePhotoChange(index: 0 | 1, file: File) {
     const reader = new FileReader();
     reader.onload = async () => {
-      const dataUrl = reader.result as string;
+      const dataUrlOriginal = reader.result as string;
+
+      // Redimensionne/recompresse AVANT tout envoi ou stockage : une photo
+      // brute d'iPhone dépasse souvent la limite de 4,5 Mo par requête que
+      // Vercel impose à ses fonctions serverless (erreur plateforme
+      // "FUNCTION_PAYLOAD_TOO_LARGE", 413) — c'était la vraie cause de
+      // l'échec systématique de l'envoi des visites avec photo, pas un
+      // problème de connexion ni d'hébergement (voir lib/compresserImage.ts).
+      let dataUrl = dataUrlOriginal;
+      try {
+        dataUrl = await compresserImage(dataUrlOriginal);
+      } catch {
+        // Si la compression échoue pour une raison quelconque, on retente
+        // l'envoi avec l'original plutôt que de bloquer la capture.
+      }
+
       setPhotos((prev) => {
         const next = [...prev] as [PhotoSlot, PhotoSlot];
         next[index] = { ...next[index], preview: dataUrl, enCours: true };
