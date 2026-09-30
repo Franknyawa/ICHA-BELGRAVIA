@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle";
 import CoupeIllustration from "@/components/CoupeIllustration";
 import GoldRule from "@/components/GoldRule";
@@ -10,10 +10,13 @@ import { IconUser, IconLock } from "@/components/icons";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [identifiant, setIdentifiant] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [motDePasseVisible, setMotDePasseVisible] = useState(false);
-  const [erreur, setErreur] = useState<string | null>(null);
+  const [erreur, setErreur] = useState<string | null>(
+    searchParams.get("motif") === "inactivite" ? "Session déconnectée après une période d'inactivité." : null
+  );
   const [enCours, setEnCours] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {

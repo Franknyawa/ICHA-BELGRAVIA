@@ -132,6 +132,16 @@ enum TypeAlerte {
   CREDIT_RETARD
 }
 
+/// Paramètres système simples, clé/valeur — évite de créer un modèle dédié
+/// pour chaque petit réglage global (ex: durée d'inactivité avant
+/// déconnexion automatique, en minutes — voir lib/auth.ts).
+model ParametreSysteme {
+  cle    String @id
+  valeur String
+
+  @@map("parametres_systeme")
+}
+
 /// Alerte générée automatiquement — affichée dans l'onglet Alertes de
 /// l'admin, marquée résolue manuellement (ou en se corrigeant d'elle-même,
 /// une prochaine génération ne recrée pas de doublon pour une même entité

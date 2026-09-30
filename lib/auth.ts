@@ -5,12 +5,43 @@ import { prisma } from "./prisma";
 import type { Role } from "@prisma/client";
 
 const COOKIE_NAME = "belgravia_session";
+// Borne absolue du cookie/JWT — indépendante du réglage d'inactivité
+// ci-dessous. On ne peut pas rafraîchir ce cookie à chaque requête (les
+// Server Components ne peuvent pas écrire de cookie), donc il reste large
+// et c'est la vérification d'inactivité qui fait le vrai travail de
+// déconnexion automatique.
 const SESSION_DURATION_HOURS = 12;
+
+const CLE_DUREE_INACTIVITE = "duree_inactivite_minutes";
+const DUREE_INACTIVITE_DEFAUT_MINUTES = 30;
 
 function getSecret() {
   const secret = process.env.SESSION_SECRET;
   if (!secret) throw new Error("SESSION_SECRET manquant dans les variables d'environnement");
   return new TextEncoder().encode(secret);
+}
+
+/**
+ * Durée d'inactivité (en minutes) avant déconnexion automatique —
+ * réglable depuis l'admin (Paramètres). C'est cette valeur, et non la
+ * durée de vie du cookie, qui gouverne la déconnexion réelle : elle est
+ * appliquée côté client (composant InactivityLogout, sur vrais événements
+ * souris/clavier/tactile) et vérifiée ici en filet de sécurité via
+ * `lastSeenAt`, pour qu'une session laissée inactive reste invalide même
+ * si le JavaScript client n'a pas pu s'exécuter (onglet fermé, etc.).
+ */
+export async function getDureeInactiviteMinutes(): Promise<number> {
+  const param = await prisma.parametreSysteme.findUnique({ where: { cle: CLE_DUREE_INACTIVITE } });
+  const minutes = param ? Number(param.valeur) : NaN;
+  return Number.isFinite(minutes) && minutes > 0 ? minutes : DUREE_INACTIVITE_DEFAUT_MINUTES;
+}
+
+export async function definirDureeInactiviteMinutes(minutes: number): Promise<void> {
+  await prisma.parametreSysteme.upsert({
+    where: { cle: CLE_DUREE_INACTIVITE },
+    update: { valeur: String(minutes) },
+    create: { cle: CLE_DUREE_INACTIVITE, valeur: String(minutes) },
+  });
 }
 
 export type SessionPayload = {
@@ -58,6 +89,18 @@ export async function getSession(): Promise<SessionPayload | null> {
     const sessionId = payload.jti as string;
     const session = await prisma.session.findUnique({ where: { id: sessionId } });
     if (!session || session.revoked || session.expiresAt < new Date()) return null;
+
+    // Déconnexion automatique après N minutes d'inactivité (réglable —
+    // Paramètres) : filet de sécurité serveur, en plus de la déconnexion
+    // active côté client (InactivityLogout, sur vrais événements
+    // utilisateur). Une session jamais revue depuis plus longtemps que la
+    // durée configurée est traitée comme expirée et révoquée.
+    const dureeMinutes = await getDureeInactiviteMinutes();
+    const inactifDepuis = Date.now() - session.lastSeenAt.getTime();
+    if (inactifDepuis > dureeMinutes * 60 * 1000) {
+      await prisma.session.update({ where: { id: sessionId }, data: { revoked: true } }).catch(() => {});
+      return null;
+    }
 
     // Alimente "dernière activité" affichée dans le back office (voir
     // "Sessions actives" — app/(admin)/utilisateurs/page.tsx). Best-effort,

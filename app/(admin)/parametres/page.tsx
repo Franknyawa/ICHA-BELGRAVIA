@@ -3,7 +3,8 @@
 import Link from "next/link";
 import ReferentielManager from "@/components/ReferentielManager";
 import PaliersPrixManager from "@/components/PaliersPrixManager";
-import { IconGear, IconPin, IconStorefront, IconGlass, IconArrowRight } from "@/components/icons";
+import DureeSessionManager from "@/components/DureeSessionManager";
+import { IconGear, IconPin, IconStorefront, IconGlass, IconArrowRight, IconUsers } from "@/components/icons";
 
 export default function ParametresPage() {
   return (
@@ -20,6 +21,21 @@ export default function ParametresPage() {
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2">
+        <DureeSessionManager />
+
+        <Link href="/utilisateurs" className="field-card flex items-center justify-between transition-colors hover:border-brass/50">
+          <span>
+            <span className="section-eyebrow mb-1 flex">
+              <IconUsers className="h-4 w-4" />
+              Sessions actives
+            </span>
+            <span className="block text-sm text-ink-muted">
+              Voir et déconnecter les appareils connectés, par utilisateur (onglet Utilisateurs)
+            </span>
+          </span>
+          <IconArrowRight className="h-4 w-4 text-ink-muted" />
+        </Link>
+
         <ReferentielManager titre="Villes" icon={IconPin} apiBase="/api/villes" />
         <ReferentielManager titre="Types d'établissement" icon={IconStorefront} apiBase="/api/types-etablissement" />
         <ReferentielManager titre="Marques" icon={IconGlass} apiBase="/api/marques" />
