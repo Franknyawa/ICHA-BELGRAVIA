@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { IconStorefront, IconArrowRight } from "@/components/icons";
+import { IconStorefront, IconArrowRight, IconCheckCircle, IconAlert, IconGear } from "@/components/icons";
 
 type PointVente = {
   id: string;
@@ -21,10 +21,10 @@ type PointVente = {
 
 type Referentiels = { villes: { id: string; nom: string }[]; types: { id: string; nom: string }[] };
 
-const STATUT_STYLE: Record<string, string> = {
-  OUVERT: "text-ok",
-  FERME_TEMPORAIREMENT: "text-warn",
-  EN_TRAVAUX: "text-ink-muted",
+const STATUT_BADGE: Record<string, string> = {
+  OUVERT: "bg-ok/10 text-ok",
+  FERME_TEMPORAIREMENT: "bg-warn/10 text-warn",
+  EN_TRAVAUX: "bg-ink-muted/10 text-ink-muted",
 };
 const STATUT_LABEL: Record<string, string> = {
   OUVERT: "Ouvert",
@@ -69,6 +69,12 @@ export default function PointsDeVentePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtres]);
 
+  const debutPage = total === 0 ? 0 : (page - 1) * 20 + 1;
+  const finPage = Math.min(page * 20, total);
+  const ouverts = items.filter((p) => p.statut === "OUVERT").length;
+  const fermes = items.filter((p) => p.statut !== "OUVERT").length;
+  const filtresActifs = JSON.stringify(filtres) !== JSON.stringify(FILTRES_VIDES);
+
   return (
     <div>
       <div className="mb-5">
@@ -77,12 +83,41 @@ export default function PointsDeVentePage() {
           Points de vente
         </h1>
         <p className="text-sm text-ink-muted">
-          {total} point(s) de vente — fiche complète (coordonnées, historique de visites et de
-          commandes) pour chacun.
+          Fiche complète (coordonnées, historique de visites et de commandes) pour chaque point de vente.
         </p>
       </div>
 
-      <div className="mb-5 flex flex-wrap gap-2">
+      <div className="mb-6 grid grid-cols-3 gap-3">
+        <div className="field-card flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brass/10 text-brass">
+            <IconStorefront className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="font-display text-2xl text-ink">{total}</p>
+            <p className="text-xs text-ink-muted">Recensés au total</p>
+          </div>
+        </div>
+        <div className="field-card flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ok/10 text-ok">
+            <IconCheckCircle className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="font-display text-2xl text-ink">{ouverts}</p>
+            <p className="text-xs text-ink-muted">Ouverts (page courante)</p>
+          </div>
+        </div>
+        <div className="field-card flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-warn/10 text-warn">
+            <IconAlert className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="font-display text-2xl text-ink">{fermes}</p>
+            <p className="text-xs text-ink-muted">Fermés / en travaux (page)</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="field-card mb-6 flex flex-wrap items-center gap-2">
         <input
           className="field-input max-w-[240px]"
           placeholder="Rechercher établissement, vendeur, tél…"
@@ -97,8 +132,14 @@ export default function PointsDeVentePage() {
           <option value="">Tous les types</option>
           {ref?.types.map((t) => <option key={t.id} value={t.id}>{t.nom}</option>)}
         </select>
-        {JSON.stringify(filtres) !== JSON.stringify(FILTRES_VIDES) && (
+        {filtresActifs && (
           <button className="btn-secondary" onClick={() => setFiltres(FILTRES_VIDES)}>Réinitialiser</button>
+        )}
+        {filtresActifs && (
+          <span className="ml-auto flex items-center gap-1.5 text-xs font-medium text-brass">
+            <IconGear className="h-3.5 w-3.5" />
+            Filtres actifs
+          </span>
         )}
       </div>
 
@@ -117,38 +158,56 @@ export default function PointsDeVentePage() {
             </tr>
           </thead>
           <tbody>
-            {items.map((p) => (
-              <tr key={p.id} className="border-t border-line hover:bg-bg-card">
-                <td className="px-4 py-3">
-                  <Link href={`/points-de-vente/${p.id}`} className="font-medium text-ink hover:text-brass">
-                    {p.nomEtablissement}
-                  </Link>
-                  <p className="text-xs text-ink-muted">{p.nomVendeur || "—"}</p>
-                </td>
-                <td className="px-4 py-3 text-ink-muted">
-                  {p.ville?.nom || "—"}{p.quartier ? ` · ${p.quartier}` : ""}
-                </td>
-                <td className="px-4 py-3 text-ink-muted">
-                  {p.telVendeur && <div>Vendeur : {p.telVendeur}</div>}
-                  {p.telPatron && <div>Patron : {p.telPatron}</div>}
-                  {!p.telVendeur && !p.telPatron && "—"}
-                </td>
-                <td className="px-4 py-3 text-ink-muted">{p.type?.nom || "—"}</td>
-                <td className={`px-4 py-3 font-medium ${STATUT_STYLE[p.statut] || "text-ink-muted"}`}>
-                  {STATUT_LABEL[p.statut] || p.statut}
-                </td>
-                <td className="px-4 py-3 text-ink-muted">{p._count.visites}</td>
-                <td className="px-4 py-3 text-ink-muted">{p._count.commandes}</td>
-                <td className="px-4 py-3 text-right">
-                  <Link href={`/points-de-vente/${p.id}`} className="inline-flex rounded-md p-1.5 text-ink-muted hover:text-brass">
-                    <IconArrowRight className="h-4 w-4" />
-                  </Link>
-                </td>
-              </tr>
-            ))}
+            {chargement &&
+              [0, 1, 2, 3, 4].map((i) => (
+                <tr key={i} className="border-t border-line">
+                  <td colSpan={8} className="px-4 py-3">
+                    <div className="h-5 animate-pulse rounded bg-bg-elevated" />
+                  </td>
+                </tr>
+              ))}
+            {!chargement &&
+              items.map((p) => (
+                <tr key={p.id} className="border-t border-line transition-colors hover:bg-bg-elevated">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2.5">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brass/10 text-brass">
+                        <IconStorefront className="h-3.5 w-3.5" />
+                      </span>
+                      <div>
+                        <Link href={`/points-de-vente/${p.id}`} className="font-medium text-ink hover:text-brass">
+                          {p.nomEtablissement}
+                        </Link>
+                        <p className="text-xs text-ink-muted">{p.nomVendeur || "—"}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-ink-muted">
+                    {p.ville?.nom || "—"}{p.quartier ? ` · ${p.quartier}` : ""}
+                  </td>
+                  <td className="px-4 py-3 text-ink-muted">
+                    {p.telVendeur && <div>Vendeur : {p.telVendeur}</div>}
+                    {p.telPatron && <div>Patron : {p.telPatron}</div>}
+                    {!p.telVendeur && !p.telPatron && "—"}
+                  </td>
+                  <td className="px-4 py-3 text-ink-muted">{p.type?.nom || "—"}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${STATUT_BADGE[p.statut] || "bg-ink-muted/10 text-ink-muted"}`}>
+                      {STATUT_LABEL[p.statut] || p.statut}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-ink-muted">{p._count.visites}</td>
+                  <td className="px-4 py-3 text-ink-muted">{p._count.commandes}</td>
+                  <td className="px-4 py-3 text-right">
+                    <Link href={`/points-de-vente/${p.id}`} className="inline-flex rounded-md p-1.5 text-ink-muted hover:bg-brass/10 hover:text-brass">
+                      <IconArrowRight className="h-4 w-4" />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
             {!chargement && items.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-ink-muted">
+                <td colSpan={8} className="px-4 py-10 text-center text-ink-muted">
                   Aucun point de vente ne correspond à ces filtres.
                 </td>
               </tr>
@@ -158,14 +217,18 @@ export default function PointsDeVentePage() {
       </div>
 
       {total > 20 && (
-        <div className="mt-4 flex justify-center gap-2">
-          <button className="btn-secondary" disabled={page <= 1} onClick={() => { const p = page - 1; setPage(p); charger(p); }}>
-            Précédent
-          </button>
-          <span className="flex items-center px-2 text-sm text-ink-muted">Page {page}</span>
-          <button className="btn-secondary" disabled={page * 20 >= total} onClick={() => { const p = page + 1; setPage(p); charger(p); }}>
-            Suivant
-          </button>
+        <div className="mt-4 flex items-center justify-between gap-2">
+          <span className="text-sm text-ink-muted">
+            {debutPage}–{finPage} sur {total}
+          </span>
+          <div className="flex gap-2">
+            <button className="btn-secondary" disabled={page <= 1} onClick={() => { const p = page - 1; setPage(p); charger(p); }}>
+              Précédent
+            </button>
+            <button className="btn-secondary" disabled={page * 20 >= total} onClick={() => { const p = page + 1; setPage(p); charger(p); }}>
+              Suivant
+            </button>
+          </div>
         </div>
       )}
     </div>

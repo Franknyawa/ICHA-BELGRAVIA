@@ -39,33 +39,74 @@ export default function TableauDeBordPage() {
 
   return (
     <div>
-      <h1 className="mb-5 flex items-center gap-2 font-display text-2xl text-ink">
+      <h1 className="mb-6 flex items-center gap-2 font-display text-2xl text-ink">
         <IconChart className="h-5 w-5 text-brass" />
         Tableau de bord
       </h1>
 
-      {data && (
-        <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <Kpi icon={IconStorefront} label="Visites aujourd'hui" valeur={data.visitesAujourdhui} />
-          <Kpi icon={IconStorefront} label="Points de vente recensés" valeur={data.pointVenteTotal} />
-          <Kpi icon={IconReceipt} label="Commandes aujourd'hui" valeur={data.commandesAujourdhui} />
-          <Kpi icon={IconReceipt} label="CA du jour" valeur={formatMontant(data.caDuJour)} />
-          <Kpi icon={IconReceipt} label="CA total" valeur={formatMontant(data.caTotal)} />
-          <Kpi icon={IconCheckCircle} label="Intéressés (visite commerciale)" valeur={data.interessesTotal} />
-          <Kpi icon={IconTrend} label="Taux de conversion" valeur={`${data.tauxConversion}%`} />
-          <Kpi icon={IconStorefront} label="Visites au total" valeur={data.visitesTotal} />
+      {!data && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="field-card h-24 animate-pulse bg-bg-elevated/60" />
+          ))}
         </div>
       )}
 
       {data && (
-        <div className="grid gap-4 md:grid-cols-2">
-          <BarreGraphique titre="Potentiel estimé" data={data.parPotentiel} />
-          <BarreGraphique titre="Par type d'établissement" data={data.parType} />
-          <BarreGraphique titre="Par ville" data={data.parVille} />
-          <BarreGraphique titre="Visites par agent" data={data.parAgent} />
-          <BarreGraphique titre="Chiffre d'affaires par produit" data={data.caParProduit} formatValeur={formatMontant} />
-        </div>
+        <>
+          {/* Activité du jour — les 3 chiffres qui comptent le plus au quotidien,
+              mis en avant avant le reste des indicateurs. */}
+          <p className="section-eyebrow mb-3">Aujourd'hui</p>
+          <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <KpiHero icon={IconReceipt} label="Chiffre d'affaires du jour" valeur={formatMontant(data.caDuJour)} accent="brass" />
+            <KpiHero icon={IconReceipt} label="Commandes aujourd'hui" valeur={data.commandesAujourdhui} accent="ok" />
+            <KpiHero icon={IconStorefront} label="Visites aujourd'hui" valeur={data.visitesAujourdhui} accent="warn" />
+          </div>
+
+          <p className="section-eyebrow mb-3">Vue d'ensemble</p>
+          <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+            <Kpi icon={IconStorefront} label="Points de vente recensés" valeur={data.pointVenteTotal} />
+            <Kpi icon={IconReceipt} label="CA total" valeur={formatMontant(data.caTotal)} />
+            <Kpi icon={IconCheckCircle} label="Intéressés (visite commerciale)" valeur={data.interessesTotal} />
+            <Kpi icon={IconTrend} label="Taux de conversion" valeur={`${data.tauxConversion}%`} />
+            <Kpi icon={IconStorefront} label="Visites au total" valeur={data.visitesTotal} />
+          </div>
+
+          <p className="section-eyebrow mb-3">Répartitions</p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <BarreGraphique titre="Potentiel estimé" data={data.parPotentiel} />
+            <BarreGraphique titre="Par type d'établissement" data={data.parType} />
+            <BarreGraphique titre="Par ville" data={data.parVille} />
+            <BarreGraphique titre="Visites par agent" data={data.parAgent} />
+            <BarreGraphique titre="Chiffre d'affaires par produit" data={data.caParProduit} formatValeur={formatMontant} />
+          </div>
+        </>
       )}
+    </div>
+  );
+}
+
+function KpiHero({
+  icon: Icon,
+  label,
+  valeur,
+  accent,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  valeur: string | number;
+  accent: "brass" | "ok" | "warn";
+}) {
+  const classe = { brass: "bg-brass/10 text-brass", ok: "bg-ok/10 text-ok", warn: "bg-warn/10 text-warn" }[accent];
+  return (
+    <div className="field-card flex items-center gap-4 border-brass/20 bg-gradient-to-br from-bg-card to-bg-elevated">
+      <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${classe}`}>
+        <Icon className="h-5 w-5" />
+      </span>
+      <div>
+        <p className="text-xs text-ink-muted">{label}</p>
+        <p className="font-display text-3xl text-ink">{valeur}</p>
+      </div>
     </div>
   );
 }
@@ -80,7 +121,7 @@ function Kpi({
   valeur: string | number;
 }) {
   return (
-    <div className="field-card">
+    <div className="field-card transition-shadow hover:shadow-md">
       <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-brass/10 text-brass">
         <Icon className="h-4 w-4" />
       </span>

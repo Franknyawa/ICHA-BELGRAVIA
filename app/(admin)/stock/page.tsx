@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IconList, IconAlert, IconPlus } from "@/components/icons";
+import { IconList, IconAlert, IconPlus, IconCheckCircle, IconGlass } from "@/components/icons";
 
 type StockItem = {
   produitId: string;
@@ -82,6 +82,7 @@ export default function StockPage() {
   }
 
   const enAlerte = items.filter((i) => i.enAlerte);
+  const totalCartons = items.reduce((s, i) => s + i.quantiteCartons, 0);
 
   return (
     <div>
@@ -95,16 +96,47 @@ export default function StockPage() {
         </p>
       </div>
 
+      <div className="mb-6 grid grid-cols-3 gap-3">
+        <div className="field-card flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brass/10 text-brass">
+            <IconGlass className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="font-display text-2xl text-ink">{items.length}</p>
+            <p className="text-xs text-ink-muted">Produits actifs</p>
+          </div>
+        </div>
+        <div className="field-card flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ok/10 text-ok">
+            <IconCheckCircle className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="font-display text-2xl text-ink">{totalCartons}</p>
+            <p className="text-xs text-ink-muted">Cartons en stock</p>
+          </div>
+        </div>
+        <div className="field-card flex items-center gap-3">
+          <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${enAlerte.length > 0 ? "bg-danger/10 text-danger" : "bg-ink-muted/10 text-ink-muted"}`}>
+            <IconAlert className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="font-display text-2xl text-ink">{enAlerte.length}</p>
+            <p className="text-xs text-ink-muted">En alerte</p>
+          </div>
+        </div>
+      </div>
+
       {enAlerte.length > 0 && (
-        <div className="mb-5 flex items-start gap-2 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
+        <div className="mb-6 flex items-start gap-2 rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
           <IconAlert className="mt-0.5 h-4 w-4 flex-shrink-0" />
           <span>
-            Stock bas pour : {enAlerte.map((i) => i.nom).join(", ")}. Pensez à réapprovisionner.
+            Stock bas pour : <strong>{enAlerte.map((i) => i.nom).join(", ")}</strong>. Pensez à réapprovisionner.
           </span>
         </div>
       )}
 
-      <div className="mb-6 overflow-x-auto rounded-lg border border-line">
+      <p className="section-eyebrow mb-3">Stock par produit</p>
+      <div className="mb-8 overflow-x-auto rounded-lg border border-line">
         <table className="w-full text-sm">
           <thead className="bg-bg-elevated text-left text-ink-muted">
             <tr>
@@ -117,7 +149,7 @@ export default function StockPage() {
           </thead>
           <tbody>
             {items.map((i) => (
-              <tr key={i.produitId} className="border-t border-line">
+              <tr key={i.produitId} className={`border-t border-line transition-colors hover:bg-bg-elevated ${i.enAlerte ? "bg-danger/[0.03]" : ""}`}>
                 <td className="px-4 py-3 font-medium text-ink">{i.nom}</td>
                 <td className="px-4 py-3 text-ink-muted">{i.volumeMl} ml</td>
                 <td className={`px-4 py-3 font-semibold ${i.enAlerte ? "text-danger" : "text-ink"}`}>
@@ -126,11 +158,13 @@ export default function StockPage() {
                 <td className="px-4 py-3 text-ink-muted">{i.seuilAlerte}</td>
                 <td className="px-4 py-3">
                   {i.enAlerte ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-danger">
-                      <IconAlert className="h-3.5 w-3.5" /> Stock bas
+                    <span className="inline-flex items-center gap-1 rounded-full bg-danger/10 px-2.5 py-0.5 text-[11px] font-semibold text-danger">
+                      <IconAlert className="h-3 w-3" /> Stock bas
                     </span>
                   ) : (
-                    <span className="text-xs font-medium text-ok">Suffisant</span>
+                    <span className="inline-flex items-center rounded-full bg-ok/10 px-2.5 py-0.5 text-[11px] font-semibold text-ok">
+                      Suffisant
+                    </span>
                   )}
                 </td>
               </tr>
@@ -146,7 +180,7 @@ export default function StockPage() {
         </table>
       </div>
 
-      <div className="field-card mb-6 max-w-2xl">
+      <div className="field-card mb-8 max-w-2xl">
         <p className="section-eyebrow mb-3">
           <IconPlus className="h-4 w-4" />
           Enregistrer un mouvement manuel
@@ -181,7 +215,7 @@ export default function StockPage() {
       </div>
 
       <div>
-        <h2 className="mb-2 font-display text-lg text-ink">Historique des mouvements</h2>
+        <p className="section-eyebrow mb-3">Historique des mouvements</p>
         <div className="overflow-x-auto rounded-lg border border-line">
           <table className="w-full text-sm">
             <thead className="bg-bg-elevated text-left text-ink-muted">
@@ -195,7 +229,7 @@ export default function StockPage() {
             </thead>
             <tbody>
               {mouvements.map((m) => (
-                <tr key={m.id} className="border-t border-line">
+                <tr key={m.id} className="border-t border-line transition-colors hover:bg-bg-elevated">
                   <td className="px-4 py-3 text-ink-muted">
                     {new Date(m.createdAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
                   </td>
