@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { IconStorefront, IconArrowRight, IconCheckCircle, IconAlert, IconGear } from "@/components/icons";
+import { IconStorefront, IconArrowRight, IconCheckCircle, IconAlert, IconGear, IconDownload, IconPrinter } from "@/components/icons";
+import { exporterRapportPdf } from "@/lib/rapportPdf";
 
 type PointVente = {
   id: string;
@@ -32,7 +33,7 @@ const STATUT_LABEL: Record<string, string> = {
   EN_TRAVAUX: "En travaux",
 };
 
-const FILTRES_VIDES = { villeId: "", typeId: "", q: "" };
+const FILTRES_VIDES = { villeId: "", typeId: "", quartier: "", q: "" };
 
 export default function PointsDeVentePage() {
   const [items, setItems] = useState<PointVente[]>([]);
@@ -41,13 +42,65 @@ export default function PointsDeVentePage() {
   const [ref, setRef] = useState<Referentiels | null>(null);
   const [filtres, setFiltres] = useState(FILTRES_VIDES);
   const [chargement, setChargement] = useState(true);
+  const [exportEnCours, setExportEnCours] = useState(false);
 
   function params(p: number) {
     const s = new URLSearchParams({ page: String(p) });
     if (filtres.villeId) s.set("villeId", filtres.villeId);
     if (filtres.typeId) s.set("typeId", filtres.typeId);
+    if (filtres.quartier) s.set("quartier", filtres.quartier);
     if (filtres.q) s.set("q", filtres.q);
     return s;
+  }
+
+  function resumeFiltres(): string {
+    const morceaux: string[] = [];
+    if (filtres.villeId) morceaux.push(`Ville : ${ref?.villes.find((v) => v.id === filtres.villeId)?.nom || filtres.villeId}`);
+    if (filtres.quartier) morceaux.push(`Quartier : ${filtres.quartier}`);
+    if (filtres.typeId) morceaux.push(`Type : ${ref?.types.find((t) => t.id === filtres.typeId)?.nom || filtres.typeId}`);
+    if (filtres.q) morceaux.push(`Recherche : "${filtres.q}"`);
+    return morceaux.length ? morceaux.join(" · ") : "Tous les points de vente";
+  }
+
+  async function exporterPdf() {
+    setExportEnCours(true);
+    try {
+      const s = params(1);
+      s.set("toutesLesLignes", "1");
+      const res = await fetch(`/api/points-vente?${s.toString()}`);
+      const data = await res.json();
+      const lignes = (data.items as PointVente[]).map((p) => ({
+        etablissement: p.nomEtablissement,
+        ville: p.ville?.nom || "—",
+        quartier: p.quartier || "—",
+        contacts: [p.telVendeur, p.telPatron].filter(Boolean).join(" / ") || "—",
+        type: p.type?.nom || "—",
+        statut: STATUT_LABEL[p.statut] || p.statut,
+        visites: p._count.visites,
+        commandes: p._count.commandes,
+      }));
+      await exporterRapportPdf({
+        titre: "Points de vente",
+        sousTitre: resumeFiltres(),
+        colonnes: [
+          { cle: "etablissement", label: "Établissement" },
+          { cle: "ville", label: "Ville" },
+          { cle: "quartier", label: "Quartier" },
+          { cle: "contacts", label: "Contacts" },
+          { cle: "type", label: "Type" },
+          { cle: "statut", label: "Statut" },
+          { cle: "visites", label: "Visites", droite: true },
+          { cle: "commandes", label: "Commandes", droite: true },
+        ],
+        lignes,
+        totaux: {
+          visites: lignes.reduce((s, l) => s + l.visites, 0),
+          commandes: lignes.reduce((s, l) => s + l.commandes, 0),
+        },
+      });
+    } finally {
+      setExportEnCours(false);
+    }
   }
 
   async function charger(p = page) {
@@ -77,17 +130,35 @@ export default function PointsDeVentePage() {
 
   return (
     <div>
-      <div className="mb-5">
-        <h1 className="flex items-center gap-2 font-display text-2xl text-ink">
-          <IconStorefront className="h-5 w-5 text-brass" />
-          Points de vente
-        </h1>
-        <p className="text-sm text-ink-muted">
-          Fiche complète (coordonnées, historique de visites et de commandes) pour chaque point de vente.
-        </p>
+      <div className="mb-5 hidden print:block">
+        <h1 className="font-display text-2xl text-ink">Belgravia — Points de vente</h1>
+        <p className="text-sm text-ink-muted">{resumeFiltres()}</p>
+        <p className="text-xs text-ink-muted">Généré le {new Date().toLocaleDateString("fr-FR")}</p>
       </div>
 
-      <div className="mb-6 grid grid-cols-3 gap-3">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3 no-print">
+        <div>
+          <h1 className="flex items-center gap-2 font-display text-2xl text-ink">
+            <IconStorefront className="h-5 w-5 text-brass" />
+            Points de vente
+          </h1>
+          <p className="text-sm text-ink-muted">
+            Fiche complète (coordonnées, historique de visites et de commandes) pour chaque point de vente.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button className="btn-secondary" disabled={exportEnCours} onClick={exporterPdf}>
+            <IconDownload className="h-4 w-4" />
+            {exportEnCours ? "Export…" : "Télécharger PDF"}
+          </button>
+          <button className="btn-secondary" onClick={() => window.print()}>
+            <IconPrinter className="h-4 w-4" />
+            Imprimer
+          </button>
+        </div>
+      </div>
+
+      <div className="mb-6 grid grid-cols-3 gap-3 no-print">
         <div className="field-card flex items-center gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brass/10 text-brass">
             <IconStorefront className="h-5 w-5" />
@@ -117,7 +188,7 @@ export default function PointsDeVentePage() {
         </div>
       </div>
 
-      <div className="field-card mb-6 flex flex-wrap items-center gap-2">
+      <div className="field-card mb-6 flex flex-wrap items-center gap-2 no-print">
         <input
           className="field-input max-w-[240px]"
           placeholder="Rechercher établissement, vendeur, tél…"
@@ -128,6 +199,12 @@ export default function PointsDeVentePage() {
           <option value="">Toutes les villes</option>
           {ref?.villes.map((v) => <option key={v.id} value={v.id}>{v.nom}</option>)}
         </select>
+        <input
+          className="field-input max-w-[170px]"
+          placeholder="Quartier…"
+          value={filtres.quartier}
+          onChange={(e) => setFiltres({ ...filtres, quartier: e.target.value })}
+        />
         <select className="field-input max-w-[190px]" value={filtres.typeId} onChange={(e) => setFiltres({ ...filtres, typeId: e.target.value })}>
           <option value="">Tous les types</option>
           {ref?.types.map((t) => <option key={t.id} value={t.id}>{t.nom}</option>)}

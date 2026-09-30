@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { IconStorefront, IconPhone, IconPin, IconReceipt, IconClipboard } from "@/components/icons";
+import { IconStorefront, IconPhone, IconPin, IconReceipt, IconClipboard, IconCamera } from "@/components/icons";
 
 type Ligne = { id: string; quantite: number; prixUnitaire: string; produit: { nom: string } | null };
 type Commande = {
@@ -23,6 +23,7 @@ type Visite = {
   observations: string | null;
   commercial: { nom: string; prenom: string };
 };
+type Photo = { id: string; url: string; createdAt: string };
 type Fiche = {
   id: string;
   nomEtablissement: string;
@@ -40,6 +41,7 @@ type Fiche = {
   createdAt: string;
   visites: Visite[];
   commandes: Commande[];
+  photos: Photo[];
 };
 
 const MODE_LABEL: Record<string, string> = {
@@ -53,6 +55,7 @@ export default function FichePointVentePage() {
   const { id } = useParams<{ id: string }>();
   const [fiche, setFiche] = useState<Fiche | null>(null);
   const [chargement, setChargement] = useState(true);
+  const [photoAgrandie, setPhotoAgrandie] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/points-vente/${id}`)
@@ -137,6 +140,41 @@ export default function FichePointVentePage() {
 
       <div className="mb-5">
         <h2 className="mb-2 flex items-center gap-2 font-display text-lg text-ink">
+          <IconCamera className="h-4 w-4 text-brass" />
+          Photos ({fiche.photos.length})
+        </h2>
+        {fiche.photos.length === 0 ? (
+          <p className="field-card text-center text-sm text-ink-muted">Aucune photo pour ce point de vente.</p>
+        ) : (
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+            {fiche.photos.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => setPhotoAgrandie(p.url)}
+                className="group aspect-square overflow-hidden rounded-lg border border-line bg-bg-elevated"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={p.url}
+                  alt="Photo terrain"
+                  className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                  loading="lazy"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = "none";
+                    e.currentTarget.parentElement?.insertAdjacentHTML(
+                      "beforeend",
+                      '<span class="flex h-full items-center justify-center p-1 text-center text-[10px] text-danger">Image indisponible</span>'
+                    );
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mb-5">
+        <h2 className="mb-2 flex items-center gap-2 font-display text-lg text-ink">
           <IconReceipt className="h-4 w-4 text-brass" />
           Commandes ({fiche.commandes.length})
         </h2>
@@ -191,6 +229,16 @@ export default function FichePointVentePage() {
           )}
         </div>
       </div>
+
+      {photoAgrandie && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setPhotoAgrandie(null)}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={photoAgrandie} alt="Photo terrain agrandie" className="max-h-full max-w-full rounded-lg object-contain" />
+        </div>
+      )}
     </div>
   );
 }

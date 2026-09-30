@@ -39,6 +39,10 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
           lignes: { include: { produit: true } },
         },
       },
+      // Photos prises sur le terrain pour ce point de vente (voir
+      // lib/storage.ts) — l'admin doit pouvoir les consulter ici, ce qui
+      // manquait jusque-là : la relation n'était même pas chargée.
+      photos: { orderBy: { createdAt: "desc" } },
     },
   });
   if (!p) return NextResponse.json({ error: "Point de vente introuvable." }, { status: 404 });

@@ -19,11 +19,16 @@ export async function GET(req: NextRequest) {
   const pageSize = 20;
   const villeId = searchParams.get("villeId") || undefined;
   const typeId = searchParams.get("typeId") || undefined;
+  const quartier = searchParams.get("quartier") || undefined;
   const q = searchParams.get("q") || undefined;
+  // Pagination normale côté API, mais le PDF/impression a besoin de TOUTES
+  // les lignes correspondant aux filtres, pas seulement la page affichée.
+  const toutesLesLignes = searchParams.get("toutesLesLignes") === "1";
 
   const where = {
     ...(villeId ? { villeId } : {}),
     ...(typeId ? { typeId } : {}),
+    ...(quartier ? { quartier: { contains: quartier, mode: "insensitive" as const } } : {}),
     ...(q
       ? {
           OR: [
@@ -40,8 +45,7 @@ export async function GET(req: NextRequest) {
     prisma.pointVente.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
+      ...(toutesLesLignes ? {} : { skip: (page - 1) * pageSize, take: pageSize }),
       include: {
         ville: true,
         type: true,
