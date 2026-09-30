@@ -9,8 +9,10 @@ type Ligne = { id: string; quantite: number; prixUnitaire: string; sousTotal: st
 type Commande = {
   id: string;
   createdAt: string;
+  dateLivraison: string | null;
   montantTotal: string;
   modePaiement: string;
+  mobileMoneyConfirme: boolean;
   montantRecu: string;
   resteAPayer: string;
   pointVente: { nomEtablissement: string; quartier: string | null; ville: { nom: string } | null };
@@ -114,8 +116,11 @@ export default function FacturesPage() {
                   N° {c.id.slice(0, 8).toUpperCase()} — {c.pointVente.nomEtablissement}
                 </p>
                 <p className="text-xs text-ink-muted">
-                  {c.pointVente.ville?.nom} · {c.commercial.prenom} {c.commercial.nom} · {libelleModePaiement(c.modePaiement)} ·{" "}
+                  {c.pointVente.ville?.nom} · {c.commercial.prenom} {c.commercial.nom} ·{" "}
+                  {libelleModePaiement(c.modePaiement)}
+                  {c.modePaiement === "MOBILE_MONEY" && !c.mobileMoneyConfirme ? " (non confirmé)" : ""} ·{" "}
                   {new Date(c.createdAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
+                  {c.dateLivraison ? ` · Livraison prévue le ${new Date(c.dateLivraison).toLocaleDateString("fr-FR")}` : ""}
                 </p>
               </div>
               <div className="flex items-center gap-3">

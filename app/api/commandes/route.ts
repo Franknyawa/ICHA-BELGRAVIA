@@ -30,16 +30,20 @@ export async function POST(req: NextRequest) {
     uuidClient,
     pointVenteId,
     observations,
+    dateLivraison,
     lignes,
     modePaiement,
     montantRecu: montantRecuSaisi,
+    mobileMoneyConfirme,
   } = body as {
     uuidClient: string;
     pointVenteId: string;
     observations?: string;
+    dateLivraison?: string;
     lignes: LigneEntree[];
     modePaiement: ModePaiementValue;
     montantRecu?: number;
+    mobileMoneyConfirme?: boolean;
   };
 
   if (!uuidClient || !pointVenteId || !Array.isArray(lignes) || lignes.length === 0) {
@@ -103,7 +107,8 @@ export async function POST(req: NextRequest) {
   const { montantRecu, resteAPayer } = calculerPaiement(
     modePaiement,
     montantTotal,
-    Number(montantRecuSaisi) || 0
+    Number(montantRecuSaisi) || 0,
+    !!mobileMoneyConfirme
   );
 
   const commande = await prisma.$transaction(async (tx) => {
@@ -113,8 +118,10 @@ export async function POST(req: NextRequest) {
         pointVenteId,
         commercialId: session.userId,
         observations: observations || null,
+        dateLivraison: dateLivraison ? new Date(dateLivraison) : null,
         montantTotal,
         modePaiement,
+        mobileMoneyConfirme: !!mobileMoneyConfirme,
         montantRecu,
         resteAPayer,
       },

@@ -52,8 +52,10 @@ function NouvelleCommandeInner() {
   // du prix, qui dépend du volume TOTAL de la commande, pas du produit).
   const [quantites, setQuantites] = useState<Record<string, number>>({});
   const [observations, setObservations] = useState("");
+  const [dateLivraison, setDateLivraison] = useState("");
   const [modePaiement, setModePaiement] = useState<ModePaiementValue>("ESPECES");
   const [montantRecuSaisi, setMontantRecuSaisi] = useState(0);
+  const [mobileMoneyConfirme, setMobileMoneyConfirme] = useState(false);
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [messageInfo, setMessageInfo] = useState<string | null>(null);
@@ -117,8 +119,8 @@ function NouvelleCommandeInner() {
   );
 
   const { montantRecu, resteAPayer } = useMemo(
-    () => calculerPaiement(modePaiement, montantTotal, montantRecuSaisi),
-    [modePaiement, montantTotal, montantRecuSaisi]
+    () => calculerPaiement(modePaiement, montantTotal, montantRecuSaisi, mobileMoneyConfirme),
+    [modePaiement, montantTotal, montantRecuSaisi, mobileMoneyConfirme]
   );
 
   const peutEnregistrer =
@@ -158,8 +160,10 @@ function NouvelleCommandeInner() {
       uuidClient: uuidCommande,
       pointVenteId: client.id,
       observations,
+      dateLivraison: dateLivraison || undefined,
       modePaiement,
       montantRecu: modePaiement === "CREDIT_PARTIEL" ? montantRecuSaisi : undefined,
+      mobileMoneyConfirme: modePaiement === "MOBILE_MONEY" ? mobileMoneyConfirme : undefined,
       lignes: lignesRetenues.map((l) => ({ produitId: l.produit.id, quantite: l.quantite })),
     };
 
@@ -264,7 +268,7 @@ function NouvelleCommandeInner() {
           <div>
             <input
               className="field-input"
-              placeholder="Rechercher un point de vente déjà recensé…"
+              placeholder="Nom de la boutique, quartier ou ville…"
               value={recherche}
               onChange={(e) => setRecherche(e.target.value)}
             />
@@ -396,6 +400,24 @@ function NouvelleCommandeInner() {
           </div>
         )}
 
+        {modePaiement === "MOBILE_MONEY" && (
+          <label className="flex items-center gap-2 rounded-md border border-line bg-bg-elevated px-3 py-2.5 text-sm text-ink">
+            <input
+              type="checkbox"
+              checked={mobileMoneyConfirme}
+              onChange={(e) => setMobileMoneyConfirme(e.target.checked)}
+              className="h-4 w-4"
+            />
+            Paiement Mobile Money confirmé (SMS reçu)
+          </label>
+        )}
+        {modePaiement === "MOBILE_MONEY" && !mobileMoneyConfirme && (
+          <p className="text-xs text-ink-muted">
+            Tant que ce n'est pas confirmé, la commande est enregistrée avec le montant total en
+            reste à payer — coche la case dès réception du SMS de confirmation.
+          </p>
+        )}
+
         {totalCartons > 0 && (
           <div className="space-y-1 border-t border-line pt-3 text-sm">
             <div className="flex items-center justify-between text-ink-muted">
@@ -412,13 +434,25 @@ function NouvelleCommandeInner() {
         )}
       </div>
 
-      <div className="field-card">
-        <label className="field-label">Observations</label>
-        <textarea
-          className="field-input min-h-[80px]"
-          value={observations}
-          onChange={(e) => setObservations(e.target.value)}
-        />
+      <div className="field-card space-y-3">
+        <div>
+          <label className="field-label">Date de livraison souhaitée</label>
+          <input
+            type="date"
+            className="field-input"
+            value={dateLivraison}
+            onChange={(e) => setDateLivraison(e.target.value)}
+            min={new Date().toISOString().slice(0, 10)}
+          />
+        </div>
+        <div>
+          <label className="field-label">Observations</label>
+          <textarea
+            className="field-input min-h-[80px]"
+            value={observations}
+            onChange={(e) => setObservations(e.target.value)}
+          />
+        </div>
       </div>
 
       <button type="button" className="btn-primary w-full py-4" onClick={soumettre} disabled={!peutEnregistrer || envoi}>

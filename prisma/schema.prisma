@@ -297,13 +297,19 @@ model Commande {
   commercialId  String       @map("commercial_id")
   commercial    User         @relation(fields: [commercialId], references: [id])
   dateCommande  DateTime     @default(now()) @map("date_commande")
+  dateLivraison DateTime?    @map("date_livraison")
   observations  String?
   montantTotal  Decimal      @default(0) @db.Decimal(12, 2) @map("montant_total")
 
   // Paiement — calculé et validé côté serveur selon modePaiement (voir
   // app/api/commandes/route.ts) : jamais de confiance dans un montant
   // envoyé par le client pour ESPECES/MOBILE_MONEY/CREDIT_TOTAL.
-  modePaiement  ModePaiement @default(ESPECES) @map("mode_paiement")
+  // mobileMoneyConfirme : tant que l'agent n'a pas confirmé la réception
+  // effective du paiement Mobile Money (peut arriver après la commande),
+  // le montant est traité comme un crédit en attente — même logique que le
+  // projet HYPO/HTC (voir reassort/page.tsx : montantEffectivementRecu).
+  modePaiement       ModePaiement @default(ESPECES) @map("mode_paiement")
+  mobileMoneyConfirme Boolean     @default(false) @map("mobile_money_confirme")
   montantRecu   Decimal      @default(0) @db.Decimal(12, 2) @map("montant_recu")
   resteAPayer   Decimal      @default(0) @db.Decimal(12, 2) @map("reste_a_payer")
 

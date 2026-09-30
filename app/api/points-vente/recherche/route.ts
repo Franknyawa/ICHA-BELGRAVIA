@@ -3,9 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 
 /**
- * Recherche de points de vente par nom, pour la sélection du client au
- * moment de prendre une commande depuis le bouton "Nouvelle commande" de la
- * page d'accueil (hors enchaînement direct après une visite).
+ * Recherche de points de vente par nom d'établissement OU localisation
+ * (quartier, ville, repère), pour la sélection du client au moment de
+ * prendre une commande depuis le bouton "Nouvelle commande" de la page
+ * d'accueil (hors enchaînement direct après une visite).
  */
 export async function GET(req: NextRequest) {
   const session = await getSession();
@@ -17,7 +18,14 @@ export async function GET(req: NextRequest) {
   if (q.length < 2) return NextResponse.json({ points: [] });
 
   const points = await prisma.pointVente.findMany({
-    where: { nomEtablissement: { contains: q, mode: "insensitive" } },
+    where: {
+      OR: [
+        { nomEtablissement: { contains: q, mode: "insensitive" } },
+        { quartier: { contains: q, mode: "insensitive" } },
+        { repereQuartier: { contains: q, mode: "insensitive" } },
+        { ville: { nom: { contains: q, mode: "insensitive" } } },
+      ],
+    },
     orderBy: { createdAt: "desc" },
     take: 8,
     include: { ville: true },

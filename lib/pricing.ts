@@ -60,16 +60,27 @@ export function libelleModePaiement(mode: string): string {
  * n'est utilisé que pour CREDIT_PARTIEL (montant reçu déclaré par l'agent) ;
  * pour les autres modes il est ignoré — c'est le mode qui détermine le
  * résultat, jamais une saisie libre, pour éviter toute incohérence.
+ *
+ * `mobileMoneyConfirme` reproduit la même logique que le projet HYPO/HTC
+ * (voir reassort/page.tsx : montantEffectivementRecu) : un paiement Mobile
+ * Money n'est compté comme réellement reçu que si l'agent confirme l'avoir
+ * effectivement vu arriver (le SMS de confirmation peut arriver après la
+ * saisie de la commande) — tant que ce n'est pas confirmé, il est traité
+ * comme un crédit en attente.
  */
 export function calculerPaiement(
   modePaiement: ModePaiementValue,
   montantTotal: number,
-  montantSaisi = 0
+  montantSaisi = 0,
+  mobileMoneyConfirme = false
 ) {
   switch (modePaiement) {
     case "ESPECES":
-    case "MOBILE_MONEY":
       return { montantRecu: montantTotal, resteAPayer: 0 };
+    case "MOBILE_MONEY":
+      return mobileMoneyConfirme
+        ? { montantRecu: montantTotal, resteAPayer: 0 }
+        : { montantRecu: 0, resteAPayer: montantTotal };
     case "CREDIT_TOTAL":
       return { montantRecu: 0, resteAPayer: montantTotal };
     case "CREDIT_PARTIEL": {
