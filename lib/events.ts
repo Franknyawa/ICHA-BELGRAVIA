@@ -20,3 +20,4 @@ if (process.env.NODE_ENV !== "production") global.belgraviaEvents = visiteEvents
 
 export const NOUVELLE_VISITE = "nouvelle-visite";
 export const NOUVELLE_COMMANDE = "nouvelle-commande";
+export const NOUVELLE_NOTIFICATION = "nouvelle-notification";

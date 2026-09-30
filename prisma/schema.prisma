@@ -84,9 +84,27 @@ model User {
   visites          Visite[]
   commandes        Commande[]
   sessions         Session[]
+  notifications    Notification[]
 
   @@index([role])
   @@map("users")
+}
+
+/// Notification adressée à un commercial (ex. commande passée en livraison
+/// par l'admin) — affichée dans l'appli terrain (voir NotificationBanner),
+/// avec repli sur un polling léger si le flux temps réel (SSE) est coupé.
+model Notification {
+  id           String   @id @default(uuid())
+  commercialId String   @map("commercial_id")
+  commercial   User     @relation(fields: [commercialId], references: [id])
+  commandeId   String?  @map("commande_id")
+  message      String
+  lu           Boolean  @default(false)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([commercialId])
+  @@index([createdAt])
+  @@map("notifications")
 }
 
 model Session {
@@ -289,6 +307,16 @@ enum ModePaiement {
   CREDIT_TOTAL
 }
 
+/// Cycle de vie côté admin — NON_TRAITEE dès l'enregistrement par le
+/// commercial ; l'admin fait passer à EN_COURS_LIVRAISON via le bouton
+/// "Valider" (déclenche une notification au commercial concerné), puis à
+/// LIVREE une fois la livraison effective confirmée.
+enum StatutCommande {
+  NON_TRAITEE
+  EN_COURS_LIVRAISON
+  LIVREE
+}
+
 model Commande {
   id            String       @id @default(uuid())
   uuidClient    String       @unique @map("uuid_client")
@@ -298,6 +326,7 @@ model Commande {
   commercial    User         @relation(fields: [commercialId], references: [id])
   dateCommande  DateTime     @default(now()) @map("date_commande")
   dateLivraison DateTime?    @map("date_livraison")
+  statut        StatutCommande @default(NON_TRAITEE)
   observations  String?
   montantTotal  Decimal      @default(0) @db.Decimal(12, 2) @map("montant_total")
 
@@ -321,6 +350,7 @@ model Commande {
   @@index([commercialId])
   @@index([createdAt])
   @@index([modePaiement])
+  @@index([statut])
   @@map("commandes")
 }
 

@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { v4 as uuid } from "uuid";
-import { IconStorefront, IconGlass, IconReceipt, IconClipboard, IconDownload } from "@/components/icons";
+import { IconStorefront, IconGlass, IconReceipt, IconClipboard, IconDownload, IconPin } from "@/components/icons";
 import { enqueuerCommande } from "@/lib/offlineQueue";
 import { envoyerCommande } from "@/lib/envoyerCommande";
 import { ErreurEnvoi } from "@/lib/erreurEnvoi";
@@ -18,6 +18,7 @@ type Client = {
   telVendeur: string | null;
   quartier: string | null;
   ville: string | null;
+  distanceKm?: number | null;
 };
 
 function ligneVide() {
@@ -45,6 +46,8 @@ function NouvelleCommandeInner() {
   const [recherche, setRecherche] = useState("");
   const [resultats, setResultats] = useState<Client[]>([]);
   const [rechercheEnCours, setRechercheEnCours] = useState(false);
+  const [geolocalisationEnCours, setGeolocalisationEnCours] = useState(false);
+  const [erreurGeolocalisation, setErreurGeolocalisation] = useState<string | null>(null);
 
   // Une ligne par produit du catalogue (fixe) — l'agent ne fait que
   // renseigner le nombre de cartons souhaité pour chacun, il ne peut pas
@@ -100,6 +103,29 @@ function NouvelleCommandeInner() {
     }, 300);
     return () => clearTimeout(t);
   }, [recherche, pointVenteIdInitial]);
+
+  function rechercherAutourDeMoi() {
+    setErreurGeolocalisation(null);
+    if (!("geolocation" in navigator)) {
+      setErreurGeolocalisation("La géolocalisation n'est pas disponible sur cet appareil.");
+      return;
+    }
+    setGeolocalisationEnCours(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        fetch(`/api/points-vente/recherche?lat=${latitude}&lng=${longitude}`)
+          .then((r) => r.json())
+          .then((data) => setResultats(data.points || []))
+          .finally(() => setGeolocalisationEnCours(false));
+      },
+      () => {
+        setErreurGeolocalisation("Impossible d'obtenir ta position — vérifie l'autorisation de localisation.");
+        setGeolocalisationEnCours(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
 
   function modifierQuantite(produitId: string, quantite: number) {
     setQuantites((prev) => ({ ...prev, [produitId]: Math.max(0, quantite) }));
@@ -266,12 +292,24 @@ function NouvelleCommandeInner() {
 
         {!chargementClient && !client && (
           <div>
-            <input
-              className="field-input"
-              placeholder="Nom de la boutique, quartier ou ville…"
-              value={recherche}
-              onChange={(e) => setRecherche(e.target.value)}
-            />
+            <div className="flex gap-2">
+              <input
+                className="field-input"
+                placeholder="Nom de la boutique, quartier ou ville…"
+                value={recherche}
+                onChange={(e) => setRecherche(e.target.value)}
+              />
+              <button
+                type="button"
+                className="btn-secondary flex-shrink-0 whitespace-nowrap"
+                onClick={rechercherAutourDeMoi}
+                disabled={geolocalisationEnCours}
+              >
+                <IconPin className="h-4 w-4" />
+                {geolocalisationEnCours ? "…" : "Autour de moi"}
+              </button>
+            </div>
+            {erreurGeolocalisation && <p className="mt-1 text-xs text-danger">{erreurGeolocalisation}</p>}
             {rechercheEnCours && <p className="mt-1 text-xs text-ink-muted">Recherche…</p>}
             {resultats.length > 0 && (
               <ul className="mt-2 space-y-1.5">
@@ -286,7 +324,12 @@ function NouvelleCommandeInner() {
                       }}
                       className="w-full rounded-md border border-line bg-bg-elevated px-3 py-2 text-left text-sm hover:border-brass/50"
                     >
-                      <span className="font-medium text-ink">{r.nomEtablissement}</span>
+                      <span className="flex items-center justify-between">
+                        <span className="font-medium text-ink">{r.nomEtablissement}</span>
+                        {r.distanceKm !== null && r.distanceKm !== undefined && (
+                          <span className="text-xs font-medium text-brass">{r.distanceKm} km</span>
+                        )}
+                      </span>
                       <span className="block text-xs text-ink-muted">
                         {[r.quartier, r.ville].filter(Boolean).join(", ")}
                       </span>

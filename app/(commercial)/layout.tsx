@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import LogoutButton from "@/components/LogoutButton";
 import SyncBanner from "@/components/SyncBanner";
+import NotificationBanner from "@/components/NotificationBanner";
 import ThemeToggle from "@/components/ThemeToggle";
 import InstallButton from "@/components/InstallButton";
 import LocationHeartbeat from "@/components/LocationHeartbeat";
@@ -28,6 +29,7 @@ export default async function CommercialLayout({ children }: { children: React.R
       </header>
       <main className="px-4 pb-10 pt-4">
         <SyncBanner />
+        <NotificationBanner />
         {children}
       </main>
     </div>

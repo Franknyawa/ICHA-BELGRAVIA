@@ -192,6 +192,7 @@ export async function GET(req: NextRequest) {
   const commercialId = searchParams.get("commercialId") || undefined;
   const villeId = searchParams.get("villeId") || undefined;
   const modePaiement = searchParams.get("modePaiement") || undefined;
+  const statut = searchParams.get("statut") || undefined;
   const dateFrom = searchParams.get("dateFrom");
   const dateTo = searchParams.get("dateTo");
 
@@ -199,6 +200,7 @@ export async function GET(req: NextRequest) {
     ...(commercialId ? { commercialId } : {}),
     ...(villeId ? { pointVente: { villeId } } : {}),
     ...(modePaiement ? { modePaiement: modePaiement as any } : {}),
+    ...(statut ? { statut: statut as any } : {}),
     ...(dateFrom || dateTo
       ? {
           createdAt: {
@@ -209,7 +211,13 @@ export async function GET(req: NextRequest) {
       : {}),
   };
 
-  const [total, items] = await Promise.all([
+  // Compteurs par statut (sur les mêmes filtres hors statut) — alimentent
+  // les onglets "Non traitées / En cours de livraison / Livrées" côté admin,
+  // pour afficher un badge sans requête séparée par onglet.
+  const whereSansStatut = { ...where };
+  delete (whereSansStatut as any).statut;
+
+  const [total, items, comptesParStatut] = await Promise.all([
     prisma.commande.count({ where }),
     prisma.commande.findMany({
       where,
@@ -222,7 +230,13 @@ export async function GET(req: NextRequest) {
         lignes: { include: { produit: true } },
       },
     }),
+    prisma.commande.groupBy({ by: ["statut"], where: whereSansStatut, _count: true }),
   ]);
 
-  return NextResponse.json({ items, total, page, pageSize });
+  const compteurs = { NON_TRAITEE: 0, EN_COURS_LIVRAISON: 0, LIVREE: 0 };
+  for (const c of comptesParStatut as any[]) {
+    compteurs[c.statut as keyof typeof compteurs] = c._count;
+  }
+
+  return NextResponse.json({ items, total, page, pageSize, compteurs });
 }
