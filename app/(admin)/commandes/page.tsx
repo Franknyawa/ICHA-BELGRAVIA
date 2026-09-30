@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { IconReceipt, IconCheckCircle, IconClock } from "@/components/icons";
+import { genererBonLivraisonPdf } from "@/lib/bonLivraisonPdf";
 
 type Ligne = { id: string; quantite: number; prixUnitaire: string; produit: { nom: string } | null; libelleLibre: string | null };
 type Commande = {
@@ -10,9 +11,10 @@ type Commande = {
   dateLivraison: string | null;
   statut: "NON_TRAITEE" | "EN_COURS_LIVRAISON" | "LIVREE";
   montantTotal: string;
+  modePaiement: string;
   resteAPayer: string;
   observations: string | null;
-  pointVente: { nomEtablissement: string; nomVendeur: string | null; quartier: string | null; ville: { nom: string } | null };
+  pointVente: { nomEtablissement: string; nomVendeur: string | null; telVendeur: string | null; quartier: string | null; ville: { nom: string } | null };
   commercial: { prenom: string; nom: string };
   lignes: Ligne[];
 };
@@ -72,7 +74,7 @@ export default function CommandesPage() {
     charger();
   }
 
-  async function changerStatut(id: string, statut: string) {
+  async function changerStatut(id: string, statut: string, commande: Commande) {
     setEnCours(id);
     try {
       const res = await fetch(`/api/commandes/${id}/statut`, {
@@ -80,7 +82,34 @@ export default function CommandesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ statut }),
       });
-      if (res.ok) charger();
+      if (res.ok) {
+        if (statut === "LIVREE") {
+          // Bon de livraison généré et téléchargé automatiquement dès la
+          // confirmation de livraison — mêmes infos que la commande.
+          try {
+            await genererBonLivraisonPdf({
+              numero: commande.id.slice(0, 8).toUpperCase(),
+              dateLivraison: commande.dateLivraison ? new Date(commande.dateLivraison) : new Date(),
+              pointVenteNom: commande.pointVente.nomEtablissement,
+              nomVendeur: commande.pointVente.nomVendeur,
+              telVendeur: commande.pointVente.telVendeur,
+              villeNom: commande.pointVente.ville?.nom,
+              quartier: commande.pointVente.quartier,
+              commercialNom: `${commande.commercial.prenom} ${commande.commercial.nom}`,
+              lignes: commande.lignes.map((l) => ({
+                produitNom: l.produit?.nom || l.libelleLibre || "Produit",
+                quantiteCartons: l.quantite,
+              })),
+              montantTotal: Number(commande.montantTotal),
+              modePaiement: commande.modePaiement,
+              resteAPayer: Number(commande.resteAPayer),
+            });
+          } catch {
+            /* le changement de statut a réussi ; le bon peut être régénéré manuellement si besoin */
+          }
+        }
+        charger();
+      }
     } finally {
       setEnCours(null);
     }
@@ -146,7 +175,7 @@ export default function CommandesPage() {
                   <button
                     className="btn-primary"
                     disabled={enCours === c.id}
-                    onClick={() => changerStatut(c.id, "EN_COURS_LIVRAISON")}
+                    onClick={() => changerStatut(c.id, "EN_COURS_LIVRAISON", c)}
                   >
                     <IconCheckCircle className="h-4 w-4" />
                     {enCours === c.id ? "…" : "Valider"}
@@ -156,7 +185,7 @@ export default function CommandesPage() {
                   <button
                     className="btn-secondary"
                     disabled={enCours === c.id}
-                    onClick={() => changerStatut(c.id, "LIVREE")}
+                    onClick={() => changerStatut(c.id, "LIVREE", c)}
                   >
                     <IconClock className="h-4 w-4" />
                     {enCours === c.id ? "…" : "Marquer livrée"}

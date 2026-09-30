@@ -1,65 +1,48 @@
 "use client";
 
+import { formaterMontant } from "./facturePdf";
 import { libelleModePaiement } from "./pricing";
 
 /**
- * Formate un montant avec un point comme séparateur de milliers
- * (ex. 21500 → "21.500"), tel que demandé. `toLocaleString("fr-FR")` insère
- * une espace fine insécable (U+202F) entre les groupes de chiffres, un
- * caractère que la police par défaut de jsPDF (helvetica/WinAnsi) ne sait
- * pas dessiner — les montants apparaissaient donc déformés dans le PDF.
- */
-export function formaterMontant(n: number): string {
-  return Math.round(n)
-    .toString()
-    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
-
-/**
- * Génère la facture PDF BELGRAVIA — même logique et structure que le
- * modèle de référence (en-tête, blocs point de vente/vendu par, tableau
- * produits, bloc totaux, signatures) mais adaptée à l'identité visuelle
- * BELGRAVIA (ivoire/or/émeraude) et à la vente au carton uniquement (une
- * seule colonne quantité, plus le prix/carton et le sous-total par ligne,
- * utiles ici puisque le prix dépend du palier de la commande entière).
+ * Génère le bon de livraison — même identité visuelle que la facture, mais
+ * centré sur les informations de livraison (produits/quantités à livrer,
+ * point de vente, livreur/commercial) plutôt que sur les montants détaillés
+ * par ligne. Déclenché côté admin dès que le statut d'une commande passe à
+ * LIVREE (voir app/(admin)/commandes/page.tsx).
  */
 
-export type FactureLigne = {
-  produitNom: string;
-  quantiteCartons: number;
-  prixCarton: number;
-  sousTotal: number;
-};
+export type BonLivraisonLigne = { produitNom: string; quantiteCartons: number };
 
-export type FactureData = {
+export type BonLivraisonData = {
   numero: string;
-  date: Date;
+  dateLivraison: Date;
   pointVenteNom: string;
+  nomVendeur?: string | null;
+  telVendeur?: string | null;
   villeNom?: string | null;
   quartier?: string | null;
   commercialNom: string;
-  lignes: FactureLigne[];
+  lignes: BonLivraisonLigne[];
   montantTotal: number;
-  modePaiement: string; // valeur de l'enum ModePaiement
-  montantRecu: number;
+  modePaiement: string;
   resteAPayer: number;
 };
 
-const COULEUR_EMERAUDE: [number, number, number] = [15, 61, 46]; // #0f3d2e
-const COULEUR_OR: [number, number, number] = [166, 124, 35]; // brass
+const COULEUR_EMERAUDE: [number, number, number] = [15, 61, 46];
+const COULEUR_OR: [number, number, number] = [166, 124, 35];
 const COULEUR_IVOIRE: [number, number, number] = [250, 247, 238];
-const COULEUR_ALERTE: [number, number, number] = [178, 58, 46]; // #b23a2e
+const COULEUR_ALERTE: [number, number, number] = [178, 58, 46];
 const COULEUR_TEXTE_ATT: [number, number, number] = [90, 100, 92];
 const COULEUR_ENCRE: [number, number, number] = [26, 46, 34];
 
-export async function genererFacturePdf(data: FactureData) {
+export async function genererBonLivraisonPdf(data: BonLivraisonData) {
   const { default: jsPDF } = await import("jspdf");
   const autoTable = (await import("jspdf-autotable")).default;
 
   const doc = new jsPDF();
   const largeur = doc.internal.pageSize.getWidth();
 
-  // --- En-tête -----------------------------------------------------------
+  // --- En-tête -------------------------------------------------------------
   doc.setFillColor(...COULEUR_EMERAUDE);
   doc.rect(0, 0, largeur, 38, "F");
   doc.setFillColor(...COULEUR_OR);
@@ -75,25 +58,25 @@ export async function genererFacturePdf(data: FactureData) {
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(15);
-  doc.text("FACTURE", largeur - 14, 16, { align: "right" });
+  doc.text("BON DE LIVRAISON", largeur - 14, 16, { align: "right" });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.text(`N° ${data.numero}`, largeur - 14, 22, { align: "right" });
-  doc.text(data.date.toLocaleDateString("fr-FR"), largeur - 14, 27, { align: "right" });
+  doc.text(data.dateLivraison.toLocaleDateString("fr-FR"), largeur - 14, 27, { align: "right" });
 
-  // --- Bloc infos ----------------------------------------------------------
+  // --- Bloc infos ------------------------------------------------------------
   const yInfos = 48;
   const largeurColonne = (largeur - 28 - 6) / 2;
 
   doc.setFillColor(245, 241, 228);
-  doc.roundedRect(14, yInfos, largeurColonne, 24, 2, 2, "F");
-  doc.roundedRect(14 + largeurColonne + 6, yInfos, largeurColonne, 24, 2, 2, "F");
+  doc.roundedRect(14, yInfos, largeurColonne, 28, 2, 2, "F");
+  doc.roundedRect(14 + largeurColonne + 6, yInfos, largeurColonne, 28, 2, 2, "F");
 
   doc.setTextColor(...COULEUR_TEXTE_ATT);
   doc.setFontSize(7.5);
   doc.setFont("helvetica", "bold");
-  doc.text("POINT DE VENTE", 18, yInfos + 7);
-  doc.text("VENDU PAR", 14 + largeurColonne + 10, yInfos + 7);
+  doc.text("LIVRER À", 18, yInfos + 7);
+  doc.text("LIVRÉ PAR", 14 + largeurColonne + 10, yInfos + 7);
 
   doc.setTextColor(...COULEUR_ENCRE);
   doc.setFontSize(11);
@@ -105,35 +88,23 @@ export async function genererFacturePdf(data: FactureData) {
   doc.setFontSize(9);
   const localisation = [data.quartier, data.villeNom].filter(Boolean).join(", ");
   if (localisation) doc.text(localisation, 18, yInfos + 20);
-  doc.text(
-    `Le ${data.date.toLocaleDateString("fr-FR")} à ${data.date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`,
-    14 + largeurColonne + 10,
-    yInfos + 20
-  );
+  if (data.nomVendeur) doc.text(`Contact : ${data.nomVendeur}${data.telVendeur ? ` — ${data.telVendeur}` : ""}`, 18, yInfos + 25);
+  doc.text(`Livraison du ${data.dateLivraison.toLocaleDateString("fr-FR")}`, 14 + largeurColonne + 10, yInfos + 20);
 
-  // --- Tableau produits ----------------------------------------------------
+  // --- Tableau produits à livrer --------------------------------------------
   autoTable(doc, {
-    startY: yInfos + 32,
-    head: [["Produit", "Cartons", "Prix/carton", "Sous-total"]],
-    body: data.lignes.map((l) => [
-      l.produitNom,
-      String(l.quantiteCartons),
-      `${formaterMontant(l.prixCarton)} FCFA`,
-      `${formaterMontant(l.sousTotal)} FCFA`,
-    ]),
+    startY: yInfos + 36,
+    head: [["Produit", "Cartons à livrer"]],
+    body: data.lignes.map((l) => [l.produitNom, String(l.quantiteCartons)]),
     theme: "striped",
     headStyles: { fillColor: COULEUR_EMERAUDE, textColor: 255, fontStyle: "bold", fontSize: 9 },
     alternateRowStyles: { fillColor: [250, 247, 238] },
     styles: { fontSize: 9.5, textColor: COULEUR_ENCRE, cellPadding: 3 },
-    columnStyles: {
-      1: { halign: "center" },
-      2: { halign: "right" },
-      3: { halign: "right" },
-    },
+    columnStyles: { 1: { halign: "center" } },
     margin: { left: 14, right: 14 },
   });
 
-  // --- Bloc totaux ---------------------------------------------------------
+  // --- Bloc récap paiement ----------------------------------------------------
   const finTableau = (doc as any).lastAutoTable.finalY + 8;
   const largeurBoiteTotal = 76;
   const xBoiteTotal = largeur - 14 - largeurBoiteTotal;
@@ -142,7 +113,7 @@ export async function genererFacturePdf(data: FactureData) {
   doc.setFontSize(9.5);
   doc.setTextColor(...COULEUR_TEXTE_ATT);
   doc.setFont("helvetica", "normal");
-  doc.text("Montant total", xBoiteTotal, y);
+  doc.text("Montant total de la commande", xBoiteTotal, y);
   doc.setTextColor(...COULEUR_ENCRE);
   doc.setFont("helvetica", "bold");
   doc.text(`${formaterMontant(data.montantTotal)} FCFA`, largeur - 14, y, { align: "right" });
@@ -154,13 +125,6 @@ export async function genererFacturePdf(data: FactureData) {
   doc.setTextColor(...COULEUR_ENCRE);
   doc.text(libelleModePaiement(data.modePaiement), largeur - 14, y, { align: "right" });
 
-  y += 6;
-  doc.setTextColor(...COULEUR_TEXTE_ATT);
-  doc.text("Montant reçu", xBoiteTotal, y);
-  doc.setTextColor(...COULEUR_EMERAUDE);
-  doc.setFont("helvetica", "bold");
-  doc.text(`${formaterMontant(data.montantRecu)} FCFA`, largeur - 14, y, { align: "right" });
-
   if (data.resteAPayer > 0) {
     y += 8;
     doc.setFillColor(250, 235, 232);
@@ -168,11 +132,11 @@ export async function genererFacturePdf(data: FactureData) {
     doc.setTextColor(...COULEUR_ALERTE);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.text("Reste à payer", xBoiteTotal, y);
+    doc.text("Reste à payer à la livraison", xBoiteTotal, y);
     doc.text(`${formaterMontant(data.resteAPayer)} FCFA`, largeur - 14, y, { align: "right" });
   }
 
-  // --- Signatures ------------------------------------------------------
+  // --- Signatures --------------------------------------------------------
   const ySignatures = Math.max(y + 30, doc.internal.pageSize.getHeight() - 45);
   doc.setDrawColor(210, 200, 175);
   doc.setLineWidth(0.3);
@@ -181,7 +145,7 @@ export async function genererFacturePdf(data: FactureData) {
   doc.setFontSize(8.5);
   doc.setTextColor(...COULEUR_TEXTE_ATT);
   doc.setFont("helvetica", "normal");
-  doc.text("Signature du client", 14, ySignatures + 5);
+  doc.text("Signature du client (réception)", 14, ySignatures + 5);
   doc.text(`Signature — ${data.commercialNom}`, largeur - 90, ySignatures + 5);
 
   // --- Pied de page --------------------------------------------------------
@@ -193,5 +157,5 @@ export async function genererFacturePdf(data: FactureData) {
   doc.setFont("helvetica", "italic");
   doc.text("Merci pour votre confiance — Belgravia", largeur / 2, hauteurPage - 8, { align: "center" });
 
-  doc.save(`facture-${data.pointVenteNom.replace(/\s+/g, "-").toLowerCase()}-${data.numero}.pdf`);
+  doc.save(`bon-livraison-${data.pointVenteNom.replace(/\s+/g, "-").toLowerCase()}-${data.numero}.pdf`);
 }

@@ -58,6 +58,17 @@ export default function TerrainHome() {
         Nouvelle commande
       </Link>
 
+      <div className="grid grid-cols-2 gap-3">
+        <Link href="/terrain/commandes" className="btn-secondary flex items-center justify-center gap-2 py-3 text-sm">
+          <IconReceipt className="h-4 w-4" />
+          Mes commandes
+        </Link>
+        <Link href="/terrain/historique" className="btn-secondary flex items-center justify-center gap-2 py-3 text-sm">
+          <IconClock className="h-4 w-4" />
+          Historique 7j
+        </Link>
+      </div>
+
       {/* Mes performances */}
       <section className="field-card">
         <p className="section-eyebrow mb-3">

@@ -179,17 +179,24 @@ export async function POST(req: NextRequest) {
   });
 }
 
-/** Listing paginé pour le dashboard admin — filtrable comme les visites. */
+/**
+ * Listing paginé — usage admin (toutes les commandes, filtrable) ou usage
+ * commercial (uniquement ses propres commandes, ex. pour retélécharger sa
+ * facture depuis "Mes commandes" — voir app/(commercial)/terrain/commandes).
+ * Un commercial ne peut jamais voir ni filtrer les commandes d'un collègue :
+ * son commercialId de session écrase tout paramètre reçu.
+ */
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") {
-    return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!session) {
+    return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
   }
 
   const { searchParams } = new URL(req.url);
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
   const pageSize = 20;
-  const commercialId = searchParams.get("commercialId") || undefined;
+  const commercialId =
+    session.role === "COMMERCIAL" ? session.userId : searchParams.get("commercialId") || undefined;
   const villeId = searchParams.get("villeId") || undefined;
   const modePaiement = searchParams.get("modePaiement") || undefined;
   const statut = searchParams.get("statut") || undefined;
