@@ -114,10 +114,40 @@ model Session {
   userAgent  String?  @map("user_agent")
   createdAt  DateTime @default(now()) @map("created_at")
   expiresAt  DateTime @map("expires_at")
+  lastSeenAt DateTime @default(now()) @map("last_seen_at")
   revoked    Boolean  @default(false)
 
   @@index([userId])
   @@map("sessions")
+}
+
+/// Type d'alerte détectée automatiquement (job planifié ou déclenchement
+/// manuel depuis l'admin) — voir lib/alertes.ts. Restreint aux situations
+/// que le modèle de données BELGRAVIA permet réellement de détecter
+/// (contrairement au projet HYPO/HTC, pas de prospects/clients ici).
+enum TypeAlerte {
+  STOCK_FAIBLE
+  LIVRAISON_A_VENIR
+  LIVRAISON_RETARD
+  CREDIT_RETARD
+}
+
+/// Alerte générée automatiquement — affichée dans l'onglet Alertes de
+/// l'admin, marquée résolue manuellement (ou en se corrigeant d'elle-même,
+/// une prochaine génération ne recrée pas de doublon pour une même entité
+/// tant qu'une alerte identique non résolue existe déjà).
+model Alerte {
+  id         String     @id @default(uuid())
+  type       TypeAlerte
+  message    String
+  entiteType String?    @map("entite_type")
+  entiteId   String?    @map("entite_id")
+  resolue    Boolean    @default(false)
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  @@index([type, resolue])
+  @@index([createdAt])
+  @@map("alertes")
 }
 
 // ---------------------------------------------------------------------------

@@ -5,6 +5,7 @@ import LogoutButton from "@/components/LogoutButton";
 import ThemeToggle from "@/components/ThemeToggle";
 import InstallButton from "@/components/InstallButton";
 import GoldRule from "@/components/GoldRule";
+import AlertesBadge from "@/components/AlertesBadge";
 import {
   IconStorefront,
   IconChart,
@@ -17,6 +18,7 @@ import {
   IconDownload,
   IconTrend,
   IconList,
+  IconAlert,
 } from "@/components/icons";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -37,6 +39,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/dashboard" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
             <IconStorefront className="h-4 w-4" />
             Visites terrain
+          </Link>
+          <Link href="/alertes" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
+            <IconAlert className="h-4 w-4" />
+            Alertes
+            <AlertesBadge />
           </Link>
           <Link href="/commandes" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
             <IconReceipt className="h-4 w-4" />

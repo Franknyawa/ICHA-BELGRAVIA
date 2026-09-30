@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IconUsers, IconPlus, IconPencil, IconKey, IconTrash, IconShield, IconUser } from "@/components/icons";
+import { IconUsers, IconPlus, IconPencil, IconKey, IconTrash, IconShield, IconUser, IconSmartphone } from "@/components/icons";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
 type Utilisateur = {
@@ -15,6 +15,7 @@ type Utilisateur = {
   villeId: string | null;
 };
 type Ville = { id: string; nom: string };
+type SessionActive = { id: string; userAgent: string | null; createdAt: string; lastSeenAt: string };
 
 type ChampsCreation = { identifiant: string; motDePasse: string; nom: string; prenom: string; telephone: string; role: "ADMIN" | "COMMERCIAL"; villeId: string };
 const CHAMPS_VIDES: ChampsCreation = { identifiant: "", motDePasse: "", nom: "", prenom: "", telephone: "", role: "COMMERCIAL", villeId: "" };
@@ -36,6 +37,10 @@ export default function UtilisateursPage() {
   const [utilisateurASupprimer, setUtilisateurASupprimer] = useState<Utilisateur | null>(null);
   const [suppressionEnCours, setSuppressionEnCours] = useState(false);
   const [erreurSuppression, setErreurSuppression] = useState<string | null>(null);
+
+  const [sessionsCible, setSessionsCible] = useState<Utilisateur | null>(null);
+  const [sessionsListe, setSessionsListe] = useState<SessionActive[]>([]);
+  const [sessionsChargement, setSessionsChargement] = useState(false);
 
   async function charger() {
     const params = filtreRole ? `?role=${filtreRole}` : "";
@@ -137,6 +142,26 @@ export default function UtilisateursPage() {
     }
   }
 
+  async function ouvrirSessions(u: Utilisateur) {
+    setSessionsCible(u);
+    setSessionsChargement(true);
+    const res = await fetch(`/api/utilisateurs/${u.id}/sessions`);
+    const data = await res.json().catch(() => ({ sessions: [] }));
+    setSessionsListe(data.sessions || []);
+    setSessionsChargement(false);
+  }
+
+  async function revoquerSession(id: string) {
+    await fetch(`/api/sessions/${id}`, { method: "DELETE" });
+    if (sessionsCible) ouvrirSessions(sessionsCible);
+  }
+
+  async function revoquerToutesLesSessions() {
+    if (!sessionsCible) return;
+    await fetch(`/api/utilisateurs/${sessionsCible.id}/sessions`, { method: "DELETE" });
+    ouvrirSessions(sessionsCible);
+  }
+
   return (
     <div className="max-w-3xl">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -204,6 +229,9 @@ export default function UtilisateursPage() {
                 </div>
               </div>
               <div className="flex shrink-0 gap-1">
+                <button onClick={() => ouvrirSessions(u)} title="Sessions actives" className="rounded-md p-2 text-ink-muted hover:bg-bg-elevated hover:text-brass">
+                  <IconSmartphone className="h-4 w-4" />
+                </button>
                 <button onClick={() => ouvrirEdition(u)} title="Modifier" className="rounded-md p-2 text-ink-muted hover:bg-bg-elevated hover:text-brass">
                   <IconPencil className="h-4 w-4" />
                 </button>
@@ -267,6 +295,50 @@ export default function UtilisateursPage() {
           setErreurSuppression(null);
         }}
       />
+
+      {sessionsCible && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setSessionsCible(null)}>
+          <div className="w-full max-w-sm rounded-xl bg-bg-card p-5 shadow-lg" onClick={(e) => e.stopPropagation()}>
+            <h2 className="font-display text-lg text-ink">Sessions actives</h2>
+            <p className="mb-4 text-sm text-ink-muted">
+              {sessionsCible.prenom} {sessionsCible.nom}
+            </p>
+
+            {sessionsChargement ? (
+              <p className="text-sm text-ink-muted">Chargement…</p>
+            ) : sessionsListe.length === 0 ? (
+              <p className="text-sm text-ink-muted">Aucune session active.</p>
+            ) : (
+              <div className="mb-4 space-y-2">
+                {sessionsListe.map((s) => (
+                  <div key={s.id} className="flex items-center justify-between gap-2 rounded-md bg-bg-elevated px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-medium text-ink">{s.userAgent || "Appareil inconnu"}</p>
+                      <p className="text-[11px] text-ink-muted">
+                        Dernière activité : {new Date(s.lastSeenAt).toLocaleString("fr-FR")}
+                      </p>
+                    </div>
+                    <button onClick={() => revoquerSession(s.id)} className="shrink-0 rounded-md bg-danger/10 px-2 py-1 text-xs font-semibold text-danger">
+                      Déconnecter
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <button className="btn-secondary flex-1" onClick={() => setSessionsCible(null)}>
+                Fermer
+              </button>
+              {sessionsListe.length > 0 && (
+                <button className="flex-1 rounded-md bg-danger/10 py-2 text-sm font-semibold text-danger" onClick={revoquerToutesLesSessions}>
+                  Déconnecter partout
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

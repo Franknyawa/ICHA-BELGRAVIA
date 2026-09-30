@@ -277,3 +277,21 @@ export function IconTrend({ className }: Props) {
     </svg>
   );
 }
+
+export function IconSmartphone({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <rect x="6.5" y="3" width="11" height="18" rx="2.2" />
+      <path d="M10.5 18.2h3" />
+    </svg>
+  );
+}
+
+export function IconRefresh({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M4.5 12a7.5 7.5 0 0 1 12.6-5.4M19.5 12a7.5 7.5 0 0 1-12.6 5.4" />
+      <path d="M17 3.7v3.4h-3.4M7 20.3v-3.4h3.4" />
+    </svg>
+  );
+}

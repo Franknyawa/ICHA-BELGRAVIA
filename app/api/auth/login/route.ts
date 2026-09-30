@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Identifiants incorrects." }, { status: 401 });
   }
 
-  await createSession(user.id, user.role, user.nom, user.prenom);
+  await createSession(user.id, user.role, user.nom, user.prenom, req.headers.get("user-agent"));
 
   return NextResponse.json({ role: user.role });
 }

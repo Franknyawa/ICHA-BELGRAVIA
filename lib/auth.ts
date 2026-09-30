@@ -22,10 +22,16 @@ export type SessionPayload = {
 };
 
 /** Crée une session en base (révocable) + le cookie JWT correspondant. */
-export async function createSession(userId: string, role: Role, nom: string, prenom: string) {
+export async function createSession(
+  userId: string,
+  role: Role,
+  nom: string,
+  prenom: string,
+  userAgent?: string | null
+) {
   const expiresAt = new Date(Date.now() + SESSION_DURATION_HOURS * 60 * 60 * 1000);
   const session = await prisma.session.create({
-    data: { id: uuid(), userId, expiresAt },
+    data: { id: uuid(), userId, expiresAt, userAgent: userAgent || null },
   });
 
   const token = await new SignJWT({ userId, role, nom, prenom } satisfies Omit<SessionPayload, "sessionId">)
@@ -52,6 +58,12 @@ export async function getSession(): Promise<SessionPayload | null> {
     const sessionId = payload.jti as string;
     const session = await prisma.session.findUnique({ where: { id: sessionId } });
     if (!session || session.revoked || session.expiresAt < new Date()) return null;
+
+    // Alimente "dernière activité" affichée dans le back office (voir
+    // "Sessions actives" — app/(admin)/utilisateurs/page.tsx). Best-effort,
+    // ne doit jamais faire échouer la requête en cours.
+    prisma.session.update({ where: { id: sessionId }, data: { lastSeenAt: new Date() } }).catch(() => {});
+
     return {
       sessionId,
       userId: payload.userId as string,
