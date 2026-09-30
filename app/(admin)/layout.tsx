@@ -27,7 +27,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[230px_1fr]">
-      <aside className="border-b border-line bg-bg-elevated px-5 py-5 lg:min-h-screen lg:border-b-0 lg:border-r">
+      <aside className="no-print border-b border-line bg-bg-elevated px-5 py-5 lg:min-h-screen lg:border-b-0 lg:border-r">
         <p className="font-display italic text-2xl text-ink">Belgravia</p>
         <p className="mb-4 text-xs text-ink-muted">Espace administration</p>
         <GoldRule className="mb-5 hidden lg:flex" />
@@ -89,7 +89,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </nav>
       </aside>
       <div>
-        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3 sm:px-6">
+        <header className="no-print flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3 sm:px-6">
           <span className="text-sm text-ink-muted">
             {session.prenom} {session.nom}
           </span>

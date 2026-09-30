@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { genererRapport, type GroupBy } from "@/lib/rapports";
+
+const GROUPES_VALIDES: GroupBy[] = ["commercial", "pointVente", "ville", "quartier", "vente"];
 
 /**
- * Rapport de performance par commercial : nb de points de vente recensés,
- * nb de visites, nb de commandes, montant total vendu, reste à payer en
- * cours. Filtrable par période — aucun chiffre n'est codé en dur, tout est
- * recalculé à partir des tables Visite/Commande/PointVente.
+ * Rapports admin — un seul endpoint, paramétré par `groupBy`, pour les 5
+ * vues (par commercial / point de vente / ville / quartier / détail des
+ * ventes) avec les mêmes filtres communs (période, agent, ville, quartier)
+ * — voir lib/rapports.ts pour la logique de regroupement.
  */
 export async function GET(req: NextRequest) {
   const session = await getSession();
@@ -15,52 +17,18 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const dateFrom = searchParams.get("dateFrom");
-  const dateTo = searchParams.get("dateTo");
-  const dateFilter =
-    dateFrom || dateTo
-      ? {
-          ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
-          ...(dateTo ? { lte: new Date(`${dateTo}T23:59:59`) } : {}),
-        }
-      : undefined;
+  const groupByParam = searchParams.get("groupBy") || "commercial";
+  if (!GROUPES_VALIDES.includes(groupByParam as GroupBy)) {
+    return NextResponse.json({ error: "Catégorie de rapport invalide." }, { status: 400 });
+  }
 
-  const commerciaux = await prisma.user.findMany({
-    where: { role: "COMMERCIAL" },
-    orderBy: [{ nom: "asc" }],
-    select: { id: true, nom: true, prenom: true, actif: true },
+  const resultat = await genererRapport(groupByParam as GroupBy, {
+    dateFrom: searchParams.get("dateFrom") || undefined,
+    dateTo: searchParams.get("dateTo") || undefined,
+    commercialId: searchParams.get("commercialId") || undefined,
+    villeId: searchParams.get("villeId") || undefined,
+    quartier: searchParams.get("quartier") || undefined,
   });
 
-  const rapports = await Promise.all(
-    commerciaux.map(async (c) => {
-      const [pointsVenteRecenses, visites, commandes, agg] = await Promise.all([
-        prisma.pointVente.count({
-          where: { createdById: c.id, ...(dateFilter ? { createdAt: dateFilter } : {}) },
-        }),
-        prisma.visite.count({
-          where: { commercialId: c.id, ...(dateFilter ? { createdAt: dateFilter } : {}) },
-        }),
-        prisma.commande.count({
-          where: { commercialId: c.id, ...(dateFilter ? { createdAt: dateFilter } : {}) },
-        }),
-        prisma.commande.aggregate({
-          where: { commercialId: c.id, ...(dateFilter ? { createdAt: dateFilter } : {}) },
-          _sum: { montantTotal: true, resteAPayer: true },
-        }),
-      ]);
-
-      return {
-        commercial: { id: c.id, nom: c.nom, prenom: c.prenom, actif: c.actif },
-        pointsVenteRecenses,
-        visites,
-        commandes,
-        montantTotal: agg._sum.montantTotal || 0,
-        resteAPayer: agg._sum.resteAPayer || 0,
-      };
-    })
-  );
-
-  rapports.sort((a, b) => Number(b.montantTotal) - Number(a.montantTotal));
-
-  return NextResponse.json({ rapports });
+  return NextResponse.json(resultat);
 }

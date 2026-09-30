@@ -295,3 +295,13 @@ export function IconRefresh({ className }: Props) {
     </svg>
   );
 }
+
+export function IconPrinter({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <rect x="6" y="8.5" width="12" height="7" rx="1.2" />
+      <path d="M7.5 8.5V4.5h9v4M7.5 15.5v4h9v-4" />
+      <circle cx="15" cy="11.2" r="0.15" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}

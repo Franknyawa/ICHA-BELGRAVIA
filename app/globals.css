@@ -78,3 +78,18 @@
     @apply flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-brass;
   }
 }
+
+/* Impression — utilisé par la page Rapports (bouton "Imprimer") : masque
+   la navigation admin et les contrôles interactifs, ne garde que le
+   contenu du rapport en pleine largeur. */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+}
