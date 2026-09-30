@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle";
 import CoupeIllustration from "@/components/CoupeIllustration";
@@ -8,7 +8,18 @@ import GoldRule from "@/components/GoldRule";
 import InstallButton from "@/components/InstallButton";
 import { IconUser, IconLock } from "@/components/icons";
 
+// useSearchParams() (lecture de ?motif=inactivite, voir InactivityLogout)
+// oblige Next.js à isoler le composant qui l'utilise dans un <Suspense> —
+// sans ça, le build échoue au prerendering de /login.
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [identifiant, setIdentifiant] = useState("");
