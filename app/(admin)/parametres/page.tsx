@@ -5,6 +5,7 @@ import Link from "next/link";
 import ReferentielManager from "@/components/ReferentielManager";
 import PaliersPrixManager from "@/components/PaliersPrixManager";
 import DureeSessionManager from "@/components/DureeSessionManager";
+import { GRILLE_BELGRAVIA, BOUTEILLES_PAR_CARTON_BELGRAVIA } from "@/lib/tarifs";
 import { libelleGamme, type GammeInfo } from "@/lib/gammesClient";
 import { IconGear, IconPin, IconStorefront, IconGlass, IconArrowRight, IconUsers } from "@/components/icons";
 
@@ -67,7 +68,14 @@ export default function ParametresPage() {
         </Link>
 
         {gammes.map((g) => (
-          <PaliersPrixManager key={g.id} gammeId={g.id} libelle={libelleGamme(g)} />
+          <PaliersPrixManager
+            key={g.id}
+            gammeId={g.id}
+            libelle={libelleGamme(g)}
+            {...(g.code === "BELGRAVIA"
+              ? { bouteillesParCarton: BOUTEILLES_PAR_CARTON_BELGRAVIA, grilleOfficielle: GRILLE_BELGRAVIA }
+              : {})}
+          />
         ))}
       </div>
     </div>

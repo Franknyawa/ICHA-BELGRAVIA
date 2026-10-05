@@ -3,16 +3,45 @@
 import { useEffect, useState } from "react";
 import { IconChart, IconPlus, IconTrash } from "@/components/icons";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { GRILLE_BELGRAVIA, BOUTEILLES_PAR_CARTON_BELGRAVIA } from "@/lib/tarifs";
 
 type Palier = { id: string; cartonsMin: number; cartonsMax: number | null; prixCarton: string; actif: boolean };
 
 export default function PaliersPrixManager({
   gammeId,
   libelle,
+  bouteillesParCarton,
+  grilleOfficielle,
 }: {
   gammeId: string;
   libelle: string; // nom court de la gamme, ex. "Belgravia" ou "VDV"
+  bouteillesParCarton?: number; // affiche une colonne prix/bouteille
+  grilleOfficielle?: { cartonsMin: number; cartonsMax: number | null; prixCarton: number }[];
 }) {
+  const [confirmGrille, setConfirmGrille] = useState(false);
+  const [grilleEnCours, setGrilleEnCours] = useState(false);
+
+  async function appliquerGrille() {
+    if (!grilleOfficielle) return;
+    setGrilleEnCours(true);
+    setErreur(null);
+    try {
+      const res = await fetch("/api/paliers-prix", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gammeId, paliers: grilleOfficielle }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setErreur(data.error || "Impossible d'appliquer la grille.");
+      }
+      setConfirmGrille(false);
+      charger();
+    } finally {
+      setGrilleEnCours(false);
+    }
+  }
+
   const [paliers, setPaliers] = useState<Palier[]>([]);
   const [nouveauMin, setNouveauMin] = useState("");
   const [nouveauMax, setNouveauMax] = useState("");
@@ -105,6 +134,12 @@ export default function PaliersPrixManager({
         ouvert ("et plus").
       </p>
 
+      {grilleOfficielle && (
+        <button type="button" className="btn-secondary mb-3" onClick={() => setConfirmGrille(true)}>
+          Appliquer la grille tarifaire {libelle} (1–9 : {grilleOfficielle[0].prixCarton.toLocaleString("fr-FR")} … {grilleOfficielle[grilleOfficielle.length - 1].cartonsMin}+ : {grilleOfficielle[grilleOfficielle.length - 1].prixCarton.toLocaleString("fr-FR")})
+        </button>
+      )}
+
       <form onSubmit={ajouter} className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]">
         <input className="field-input" type="number" placeholder="Cartons min" value={nouveauMin} onChange={(e) => setNouveauMin(e.target.value)} required />
         <input className="field-input" type="number" placeholder="Cartons max (vide = et plus)" value={nouveauMax} onChange={(e) => setNouveauMax(e.target.value)} />
@@ -122,13 +157,14 @@ export default function PaliersPrixManager({
               <th className="px-3 py-2 font-medium">Cartons min</th>
               <th className="px-3 py-2 font-medium">Cartons max</th>
               <th className="px-3 py-2 font-medium">Prix/carton</th>
+              {bouteillesParCarton ? <th className="px-3 py-2 font-medium">Prix / bouteille</th> : null}
               <th className="px-3 py-2 font-medium">Statut</th>
               <th className="px-3 py-2" />
             </tr>
           </thead>
           <tbody>
             {paliers.map((p) => (
-              <tr key={p.id} className="border-t border-line">
+              <tr key={p.id + "-" + p.cartonsMin + "-" + p.cartonsMax + "-" + p.prixCarton} className="border-t border-line">
                 <td className="px-3 py-2">
                   <input
                     type="number"
@@ -155,6 +191,11 @@ export default function PaliersPrixManager({
                     className="w-28 rounded-md border border-line bg-bg-elevated px-2 py-1 text-ink"
                   />
                 </td>
+                {bouteillesParCarton ? (
+                  <td className="px-3 py-2 text-ink-muted">
+                    {Math.round(Number(p.prixCarton) / bouteillesParCarton).toLocaleString("fr-FR")}
+                  </td>
+                ) : null}
                 <td className="px-3 py-2">
                   <span className={p.actif ? "text-ok" : "text-ink-muted"}>{p.actif ? "Actif" : "Désactivé"}</span>
                 </td>
@@ -172,7 +213,7 @@ export default function PaliersPrixManager({
             ))}
             {paliers.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-3 py-4 text-center text-ink-muted">
+                <td colSpan={6} className="px-3 py-4 text-center text-ink-muted">
                   Aucun palier configuré.
                 </td>
               </tr>
@@ -181,6 +222,16 @@ export default function PaliersPrixManager({
         </table>
       </div>
 
+      <ConfirmDialog
+        open={confirmGrille}
+        title={`Remplacer le barème ${libelle} ?`}
+        confirmLabel="Appliquer"
+        danger={false}
+        message="Tous les paliers actuels de cette gamme seront remplacés par la grille officielle. Les commandes déjà enregistrées ne sont pas modifiées. Tu pourras ensuite ajuster chaque ligne."
+        pending={grilleEnCours}
+        onConfirm={appliquerGrille}
+        onCancel={() => setConfirmGrille(false)}
+      />
       <ConfirmDialog
         open={!!palierASupprimer}
         title="Supprimer ce palier ?"

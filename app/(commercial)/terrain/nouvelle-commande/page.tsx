@@ -381,6 +381,23 @@ function NouvelleCommandeInner() {
           </p>
         )}
 
+        {paliersPrix.length > 0 && (
+          <details className="rounded-md border border-line bg-bg-elevated px-3 py-2 text-sm">
+            <summary className="cursor-pointer font-medium text-ink">Grille tarifaire (prix / carton)</summary>
+            <div className="mt-2 space-y-1">
+              {paliersPrix.map((p) => {
+                const actif = totalCartons > 0 && prixCarton === p.prixCarton && totalCartons >= p.cartonsMin && (p.cartonsMax === null || totalCartons <= p.cartonsMax);
+                return (
+                  <div key={p.cartonsMin} className={["flex justify-between rounded px-2 py-1", actif ? "bg-brass/10 text-brass font-medium" : "text-ink-muted"].join(" ")}>
+                    <span>{p.cartonsMax === null ? `${p.cartonsMin} cartons et plus` : `${p.cartonsMin} à ${p.cartonsMax} cartons`}</span>
+                    <span>{p.prixCarton.toLocaleString("fr-FR")} FCFA</span>
+                  </div>
+                );
+              })}
+            </div>
+          </details>
+        )}
+
         <div className="space-y-2">
           {produitsGamme.map((p) => (
             <div key={p.id} className="flex items-center justify-between gap-3 rounded-md border border-line bg-bg-elevated px-3 py-2.5">

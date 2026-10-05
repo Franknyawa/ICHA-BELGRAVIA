@@ -49,7 +49,7 @@ async function main() {
   });
 
   // Catalogue produits réel BELGRAVIA — 275ml, vente au carton uniquement.
-  // prixUnitaire ici = prix de référence affiché en admin (palier 0-9
+  // prixUnitaire ici = prix de référence affiché en admin (palier 1-9
   // cartons) ; le prix réellement appliqué à une commande vient du barème
   // PalierPrixCarton, recalculé côté serveur selon le volume total commandé.
   const produitsReels = [
@@ -64,18 +64,18 @@ async function main() {
     await prisma.produit.upsert({
       where: { nom },
       update: { actif: true, volumeMl: 275 },
-      create: { nom, volumeMl: 275, prixUnitaire: 21500, ordre: i + 1 },
+      create: { nom, volumeMl: 275, prixUnitaire: 24000, ordre: i + 1 },
     });
   }
 
   // Barème de prix par palier de cartons (commande entière, tous produits
   // confondus) — modifiable ensuite depuis l'admin (Paramètres).
   const paliers: { min: number; max: number | null; prix: number }[] = [
-    { min: 0, max: 9, prix: 21500 },
-    { min: 10, max: 49, prix: 21000 },
-    { min: 50, max: 99, prix: 20000 },
-    { min: 100, max: 499, prix: 19500 },
-    { min: 500, max: null, prix: 19000 },
+    { min: 1, max: 9, prix: 24000 },
+    { min: 10, max: 49, prix: 23000 },
+    { min: 50, max: 99, prix: 22000 },
+    { min: 100, max: 199, prix: 21000 },
+    { min: 200, max: null, prix: 20000 },
   ];
   const paliersExistants = await prisma.palierPrixCarton.count();
   if (paliersExistants === 0) {
