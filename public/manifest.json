@@ -1,7 +1,7 @@
 {
-  "name": "BELGRAVIA — Recensement terrain",
-  "short_name": "Belgravia",
-  "description": "Recensement des points de vente et qualification commerciale BELGRAVIA",
+  "name": "BELGRAVIA / VDV by ICHA IMPORT",
+  "short_name": "BELGRAVIA / VDV",
+  "description": "Gestion des boissons ICHA IMPORT : recensement terrain, commandes, stock et rapports BELGRAVIA et Veuve du Vernay",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

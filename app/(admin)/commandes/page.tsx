@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { IconReceipt, IconCheckCircle, IconClock, IconDownload, IconStorefront, IconAlert } from "@/components/icons";
 import { genererBonLivraisonPdf } from "@/lib/bonLivraisonPdf";
+import GammeTabs from "@/components/GammeTabs";
+import { libelleGamme, styleBadgeGamme, type GammeInfo } from "@/lib/gammesClient";
 
 type Ligne = { id: string; quantite: number; prixUnitaire: string; produit: { nom: string } | null; libelleLibre: string | null };
 type Commande = {
@@ -16,6 +18,7 @@ type Commande = {
   observations: string | null;
   pointVente: { nomEtablissement: string; nomVendeur: string | null; telVendeur: string | null; quartier: string | null; ville: { nom: string } | null };
   commercial: { prenom: string; nom: string };
+  gamme: GammeInfo | null;
   lignes: Ligne[];
 };
 type Compteurs = { NON_TRAITEE: number; EN_COURS_LIVRAISON: number; LIVREE: number };
@@ -45,6 +48,8 @@ export default function CommandesPage() {
   const [total, setTotal] = useState(0);
   const [compteurs, setCompteurs] = useState<Compteurs>({ NON_TRAITEE: 0, EN_COURS_LIVRAISON: 0, LIVREE: 0 });
   const [onglet, setOnglet] = useState("");
+  const [gammes, setGammes] = useState<GammeInfo[]>([]);
+  const [filtreGamme, setFiltreGamme] = useState("");
   const [nouvelles, setNouvelles] = useState(0);
   const [chargement, setChargement] = useState(true);
   const [enCours, setEnCours] = useState<string | null>(null);
@@ -53,13 +58,18 @@ export default function CommandesPage() {
     setChargement(true);
     const params = new URLSearchParams();
     if (onglet) params.set("statut", onglet);
+    if (filtreGamme) params.set("gammeId", filtreGamme);
     const res = await fetch(`/api/commandes?${params.toString()}`);
     const data = await res.json();
     setCommandes(data.items || []);
     setTotal(data.total || 0);
     if (data.compteurs) setCompteurs(data.compteurs);
     setChargement(false);
-  }, [onglet]);
+  }, [onglet, filtreGamme]);
+
+  useEffect(() => {
+    fetch("/api/gammes").then((r) => r.json()).then((d) => setGammes(d.gammes || []));
+  }, []);
 
   useEffect(() => {
     charger();
@@ -82,6 +92,7 @@ export default function CommandesPage() {
   async function telechargerBonLivraison(commande: Commande) {
     await genererBonLivraisonPdf({
       numero: commande.id.slice(0, 8).toUpperCase(),
+      gammeNom: commande.gamme ? libelleGamme(commande.gamme) : undefined,
       dateLivraison: commande.dateLivraison ? new Date(commande.dateLivraison) : new Date(),
       pointVenteNom: commande.pointVente.nomEtablissement,
       nomVendeur: commande.pointVente.nomVendeur,
@@ -176,6 +187,10 @@ export default function CommandesPage() {
         </div>
       </div>
 
+      <div className="mb-3">
+        <GammeTabs gammes={gammes} value={filtreGamme} onChange={setFiltreGamme} />
+      </div>
+
       <div className="mb-5 flex flex-wrap gap-2">
         {ONGLETS.map((o) => {
           const Icon = o.icon;
@@ -229,9 +244,16 @@ export default function CommandesPage() {
                       {new Date(c.dateCommande).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
                       {c.dateLivraison && ` · Livraison prévue le ${new Date(c.dateLivraison).toLocaleDateString("fr-FR")}`}
                     </p>
-                    <span className={`mt-1.5 inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${STATUT_BADGE[c.statut]}`}>
-                      {STATUT_LABEL[c.statut]}
-                    </span>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${STATUT_BADGE[c.statut]}`}>
+                        {STATUT_LABEL[c.statut]}
+                      </span>
+                      {c.gamme && (
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${styleBadgeGamme(c.gamme.code)}`}>
+                          {libelleGamme(c.gamme)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">

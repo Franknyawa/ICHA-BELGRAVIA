@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { assurerGammes } from "@/lib/gammes";
 
 /** État courant du stock par produit — inclut les produits sans ligne Stock
  * encore créée (quantité affichée à 0) pour ne jamais en oublier un. */
@@ -10,16 +11,19 @@ export async function GET() {
     return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
   }
 
+  await assurerGammes();
   const produits = await prisma.produit.findMany({
     where: { actif: true },
     orderBy: { ordre: "asc" },
-    include: { stock: true },
+    include: { stock: true, gamme: true },
   });
 
   const items = produits.map((p) => ({
     produitId: p.id,
     nom: p.nom,
     volumeMl: p.volumeMl,
+    gammeId: p.gammeId,
+    gammeCode: p.gamme?.code ?? null,
     quantiteCartons: p.stock?.quantiteCartons ?? 0,
     seuilAlerte: p.stock?.seuilAlerte ?? 0,
     enAlerte: (p.stock?.quantiteCartons ?? 0) <= (p.stock?.seuilAlerte ?? 0),

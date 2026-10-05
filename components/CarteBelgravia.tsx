@@ -44,8 +44,7 @@ export default function CarteBelgravia({ points }: { points: Point[] }) {
           <Popup>
             <strong>{p.nom}</strong>
             <br />
-            {p.statut}
-            {p.potentiel ? ` · Potentiel ${p.potentiel.toLowerCase()}` : ""}
+            {p.potentiel ? `Potentiel ${p.potentiel.toLowerCase()}` : "Potentiel non qualifié"}
           </Popup>
         </CircleMarker>
       ))}

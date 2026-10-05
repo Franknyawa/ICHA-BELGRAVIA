@@ -18,7 +18,7 @@ export default async function CommercialLayout({ children }: { children: React.R
       <InactivityLogout />
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-bg/95 px-4 py-3 backdrop-blur">
         <div>
-          <p className="font-display italic text-lg leading-none text-ink">Belgravia</p>
+          <p className="font-display italic text-lg leading-none text-ink">Belgravia / VDV</p>
           <p className="text-xs text-ink-muted">
             {session.prenom} {session.nom}
           </p>

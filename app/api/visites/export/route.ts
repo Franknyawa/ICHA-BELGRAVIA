@@ -26,8 +26,9 @@ export async function GET(req: NextRequest) {
 
   const colonnes = [
     "Date visite", "Agent", "Établissement", "Vendeur", "Tél. vendeur", "Ville", "Quartier",
-    "Type", "Statut", "Latitude", "Longitude", "Vend spiritueux", "Marques présentes", "Propose cocktails",
-    "Capacité estimée", "Fournisseur", "Potentiel estimé", "Intéressé visite",
+    "Type", "Latitude", "Longitude", "Vend spiritueux", "Vins mousseux / Champagnes (prix FCFA)",
+    "Cocktails RTD (prix FCFA)", "Autres marques",
+    "Capacité estimée", "Jours / heures d'affluence", "Fournisseur", "Potentiel estimé", "Intéressé visite",
     "Répondant", "Veut commander", "Observations",
   ];
 
@@ -39,7 +40,22 @@ export async function GET(req: NextRequest) {
       v.fournisseurLivraison && "Livraison directe",
       v.fournisseurNeSaitPas && "Ne sait pas",
     ].filter(Boolean).join(" / ");
-    const marques = v.marquesPresentes.map((m) => m.marque?.nom || m.libelleLibre).filter(Boolean).join(" / ");
+    const libelleMarque = (m: (typeof v.marquesPresentes)[number]) => {
+      const nom = m.marque?.nom || m.libelleLibre;
+      if (!nom) return null;
+      return m.prix !== null && m.prix !== undefined ? `${nom} (${Math.round(Number(m.prix))})` : nom;
+    };
+    // Catégorie portée par la ligne elle-même (nouveaux formulaires) ou, pour
+    // les anciennes visites sans catégorie, par la marque du référentiel.
+    const categorieDe = (m: (typeof v.marquesPresentes)[number]) => m.categorie ?? m.marque?.categorie ?? null;
+    const parCategorie = (cat: "MOUSSEUX" | "RTD") =>
+      v.marquesPresentes.filter((m) => categorieDe(m) === cat).map(libelleMarque).filter(Boolean).join(" / ");
+    const autres = v.marquesPresentes.filter((m) => !categorieDe(m)).map(libelleMarque).filter(Boolean).join(" / ");
+    const affluence = (
+      (v.affluence as { jour: string; creneaux: string[] }[] | null) || []
+    )
+      .map((a) => `${a.jour}: ${a.creneaux.join("+")}`)
+      .join(" | ");
 
     return [
       new Date(v.dateVisite).toLocaleString("fr-FR"),
@@ -50,13 +66,14 @@ export async function GET(req: NextRequest) {
       pv.ville?.nom,
       pv.quartier,
       pv.type?.nom || pv.typeAutrePrecision,
-      pv.statut,
       pv.latitude,
       pv.longitude,
       v.vendSpiritueux === null ? "" : v.vendSpiritueux ? "Oui" : "Non",
-      marques,
-      v.proposeCocktails,
+      parCategorie("MOUSSEUX"),
+      parCategorie("RTD"),
+      autres,
       v.capaciteEstimee,
+      affluence,
       fournisseur,
       v.potentielEstime,
       v.interesseVisiteCommerciale === null ? "" : v.interesseVisiteCommerciale ? "Oui" : "Non",

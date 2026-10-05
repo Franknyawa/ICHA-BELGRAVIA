@@ -151,7 +151,6 @@ export default function Dashboard() {
               <th className="px-4 py-3 font-medium">Ville / Quartier</th>
               <th className="px-4 py-3 font-medium">Tél. vendeur</th>
               <th className="px-4 py-3 font-medium">Type</th>
-              <th className="px-4 py-3 font-medium">Statut</th>
               <th className="px-4 py-3 font-medium">Potentiel</th>
               <th className="px-4 py-3 font-medium">Commande ?</th>
               <th className="px-4 py-3 font-medium">Date</th>
@@ -171,7 +170,6 @@ export default function Dashboard() {
                 </td>
                 <td className="px-4 py-3 text-ink-muted">{v.pointVente.telVendeur || "—"}</td>
                 <td className="px-4 py-3 text-ink-muted">{v.pointVente.type?.nom || "—"}</td>
-                <td className="px-4 py-3 text-ink-muted">{v.pointVente.statut}</td>
                 <td className={`px-4 py-3 font-medium ${v.potentielEstime ? POTENTIEL_STYLE[v.potentielEstime] : "text-ink-muted"}`}>
                   {v.potentielEstime || "—"}
                 </td>
@@ -196,7 +194,7 @@ export default function Dashboard() {
             ))}
             {!chargement && visites.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-4 py-8 text-center text-ink-muted">
+                <td colSpan={8} className="px-4 py-8 text-center text-ink-muted">
                   Aucune visite ne correspond à ces filtres.
                 </td>
               </tr>

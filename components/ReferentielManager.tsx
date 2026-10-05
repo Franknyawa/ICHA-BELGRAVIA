@@ -4,16 +4,19 @@ import { useEffect, useState } from "react";
 import { IconPlus, IconPencil, IconTrash } from "@/components/icons";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
-type Item = { id: string; nom: string; actif: boolean };
+type Item = { id: string; nom: string; actif: boolean; categorie?: string };
 
 export default function ReferentielManager({
   titre,
   icon: Icon,
   apiBase,
+  categorie,
 }: {
   titre: string;
   icon: React.ComponentType<{ className?: string }>;
   apiBase: string; // ex. "/api/villes" — l'API doit exposer { <cle>: Item[] } en GET
+  /** Optionnel : n'affiche et ne crée que les éléments de cette catégorie (ex. marques MOUSSEUX / RTD). */
+  categorie?: string;
 }) {
   const [items, setItems] = useState<Item[]>([]);
   const [cleReponse, setCleReponse] = useState<string>("");
@@ -30,7 +33,8 @@ export default function ReferentielManager({
     const data = await res.json();
     const cle = Object.keys(data)[0];
     setCleReponse(cle);
-    setItems(data[cle] || []);
+    const tous: Item[] = data[cle] || [];
+    setItems(categorie ? tous.filter((i) => i.categorie === categorie) : tous);
   }
 
   useEffect(() => {
@@ -45,7 +49,7 @@ export default function ReferentielManager({
     const res = await fetch(apiBase, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nom: nouveauNom.trim() }),
+      body: JSON.stringify({ nom: nouveauNom.trim(), ...(categorie ? { categorie } : {}) }),
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));

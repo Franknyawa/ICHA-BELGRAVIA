@@ -30,8 +30,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="min-h-screen lg:grid lg:grid-cols-[230px_1fr]">
       <InactivityLogout />
       <aside className="no-print border-b border-line bg-bg-elevated px-5 py-5 lg:min-h-screen lg:border-b-0 lg:border-r">
-        <p className="font-display italic text-2xl text-ink">Belgravia</p>
-        <p className="mb-4 text-xs text-ink-muted">Espace administration</p>
+        <p className="font-display italic text-2xl text-ink">Belgravia / VDV</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brass">by ICHA IMPORT</p>
+        <p className="mb-4 mt-1 text-xs text-ink-muted">Espace administration</p>
         <GoldRule className="mb-5 hidden lg:flex" />
         <nav className="flex flex-wrap gap-2 text-sm lg:flex-col">
           <Link href="/tableau-de-bord" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">

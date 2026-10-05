@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { IconStorefront, IconArrowRight, IconCheckCircle, IconAlert, IconGear, IconDownload, IconPrinter } from "@/components/icons";
 import { exporterRapportPdf } from "@/lib/rapportPdf";
+import { NOM_APP } from "@/lib/marque";
 
 type PointVente = {
   id: string;
@@ -12,7 +13,6 @@ type PointVente = {
   telVendeur: string | null;
   telPatron: string | null;
   quartier: string | null;
-  statut: string;
   createdAt: string;
   ville: { nom: string } | null;
   type: { nom: string } | null;
@@ -21,17 +21,6 @@ type PointVente = {
 };
 
 type Referentiels = { villes: { id: string; nom: string }[]; types: { id: string; nom: string }[] };
-
-const STATUT_BADGE: Record<string, string> = {
-  OUVERT: "bg-ok/10 text-ok",
-  FERME_TEMPORAIREMENT: "bg-warn/10 text-warn",
-  EN_TRAVAUX: "bg-ink-muted/10 text-ink-muted",
-};
-const STATUT_LABEL: Record<string, string> = {
-  OUVERT: "Ouvert",
-  FERME_TEMPORAIREMENT: "Fermé temp.",
-  EN_TRAVAUX: "En travaux",
-};
 
 const FILTRES_VIDES = { villeId: "", typeId: "", quartier: "", q: "" };
 
@@ -75,7 +64,6 @@ export default function PointsDeVentePage() {
         quartier: p.quartier || "—",
         contacts: [p.telVendeur, p.telPatron].filter(Boolean).join(" / ") || "—",
         type: p.type?.nom || "—",
-        statut: STATUT_LABEL[p.statut] || p.statut,
         visites: p._count.visites,
         commandes: p._count.commandes,
       }));
@@ -88,7 +76,6 @@ export default function PointsDeVentePage() {
           { cle: "quartier", label: "Quartier" },
           { cle: "contacts", label: "Contacts" },
           { cle: "type", label: "Type" },
-          { cle: "statut", label: "Statut" },
           { cle: "visites", label: "Visites", droite: true },
           { cle: "commandes", label: "Commandes", droite: true },
         ],
@@ -117,21 +104,26 @@ export default function PointsDeVentePage() {
   }, []);
 
   useEffect(() => {
-    setPage(1);
-    charger(1);
+    // Anti-rafale : évite une requête DB à chaque lettre tapée dans
+    // "Rechercher…" ou "Quartier".
+    const t = setTimeout(() => {
+      setPage(1);
+      charger(1);
+    }, 350);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtres]);
 
   const debutPage = total === 0 ? 0 : (page - 1) * 20 + 1;
   const finPage = Math.min(page * 20, total);
-  const ouverts = items.filter((p) => p.statut === "OUVERT").length;
-  const fermes = items.filter((p) => p.statut !== "OUVERT").length;
+  const avecCommandes = items.filter((p) => p._count.commandes > 0).length;
+  const sansCommande = items.length - avecCommandes;
   const filtresActifs = JSON.stringify(filtres) !== JSON.stringify(FILTRES_VIDES);
 
   return (
     <div>
       <div className="mb-5 hidden print:block">
-        <h1 className="font-display text-2xl text-ink">Belgravia — Points de vente</h1>
+        <h1 className="font-display text-2xl text-ink">{NOM_APP} — Points de vente</h1>
         <p className="text-sm text-ink-muted">{resumeFiltres()}</p>
         <p className="text-xs text-ink-muted">Généré le {new Date().toLocaleDateString("fr-FR")}</p>
       </div>
@@ -173,8 +165,8 @@ export default function PointsDeVentePage() {
             <IconCheckCircle className="h-5 w-5" />
           </span>
           <div>
-            <p className="font-display text-2xl text-ink">{ouverts}</p>
-            <p className="text-xs text-ink-muted">Ouverts (page courante)</p>
+            <p className="font-display text-2xl text-ink">{avecCommandes}</p>
+            <p className="text-xs text-ink-muted">Déjà clients (page courante)</p>
           </div>
         </div>
         <div className="field-card flex items-center gap-3">
@@ -182,8 +174,8 @@ export default function PointsDeVentePage() {
             <IconAlert className="h-5 w-5" />
           </span>
           <div>
-            <p className="font-display text-2xl text-ink">{fermes}</p>
-            <p className="text-xs text-ink-muted">Fermés / en travaux (page)</p>
+            <p className="font-display text-2xl text-ink">{sansCommande}</p>
+            <p className="text-xs text-ink-muted">Sans commande (page courante)</p>
           </div>
         </div>
       </div>
@@ -228,7 +220,6 @@ export default function PointsDeVentePage() {
               <th className="px-4 py-3 font-medium">Ville / Quartier</th>
               <th className="px-4 py-3 font-medium">Contacts</th>
               <th className="px-4 py-3 font-medium">Type</th>
-              <th className="px-4 py-3 font-medium">Statut</th>
               <th className="px-4 py-3 font-medium">Visites</th>
               <th className="px-4 py-3 font-medium">Commandes</th>
               <th className="px-4 py-3" />
@@ -238,7 +229,7 @@ export default function PointsDeVentePage() {
             {chargement &&
               [0, 1, 2, 3, 4].map((i) => (
                 <tr key={i} className="border-t border-line">
-                  <td colSpan={8} className="px-4 py-3">
+                  <td colSpan={7} className="px-4 py-3">
                     <div className="h-5 animate-pulse rounded bg-bg-elevated" />
                   </td>
                 </tr>
@@ -268,11 +259,6 @@ export default function PointsDeVentePage() {
                     {!p.telVendeur && !p.telPatron && "—"}
                   </td>
                   <td className="px-4 py-3 text-ink-muted">{p.type?.nom || "—"}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${STATUT_BADGE[p.statut] || "bg-ink-muted/10 text-ink-muted"}`}>
-                      {STATUT_LABEL[p.statut] || p.statut}
-                    </span>
-                  </td>
                   <td className="px-4 py-3 text-ink-muted">{p._count.visites}</td>
                   <td className="px-4 py-3 text-ink-muted">{p._count.commandes}</td>
                   <td className="px-4 py-3 text-right">
@@ -284,7 +270,7 @@ export default function PointsDeVentePage() {
               ))}
             {!chargement && items.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-ink-muted">
+                <td colSpan={7} className="px-4 py-10 text-center text-ink-muted">
                   Aucun point de vente ne correspond à ces filtres.
                 </td>
               </tr>

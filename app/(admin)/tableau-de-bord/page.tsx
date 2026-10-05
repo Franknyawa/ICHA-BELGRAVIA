@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import BarreGraphique from "@/components/BarreGraphique";
+import GammeTabs from "@/components/GammeTabs";
+import type { GammeInfo } from "@/lib/gammesClient";
 import {
   IconChart,
   IconStorefront,
@@ -32,17 +34,34 @@ function formatMontant(n: number) {
 
 export default function TableauDeBordPage() {
   const [data, setData] = useState<TableauDeBord | null>(null);
+  const [gammes, setGammes] = useState<GammeInfo[]>([]);
+  const [gammeId, setGammeId] = useState("");
 
   useEffect(() => {
-    fetch("/api/tableau-de-bord").then((r) => r.json()).then(setData);
+    fetch("/api/gammes").then((r) => r.json()).then((d) => setGammes(d.gammes || []));
   }, []);
+
+  useEffect(() => {
+    const url = gammeId ? `/api/tableau-de-bord?gammeId=${encodeURIComponent(gammeId)}` : "/api/tableau-de-bord";
+    fetch(url).then((r) => r.json()).then(setData);
+  }, [gammeId]);
 
   return (
     <div>
-      <h1 className="mb-6 flex items-center gap-2 font-display text-2xl text-ink">
+      <h1 className="mb-4 flex items-center gap-2 font-display text-2xl text-ink">
         <IconChart className="h-5 w-5 text-brass" />
         Tableau de bord
       </h1>
+
+      <div className="mb-2">
+        <GammeTabs gammes={gammes} value={gammeId} onChange={setGammeId} />
+      </div>
+      {gammeId && (
+        <p className="mb-5 text-xs text-ink-muted">
+          La gamme choisie s'applique aux commandes et au chiffre d'affaires ; visites et points de vente restent globaux.
+        </p>
+      )}
+      {!gammeId && <div className="mb-4" />}
 
       {!data && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">

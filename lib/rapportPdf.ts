@@ -2,6 +2,7 @@
 
 import { formaterMontant } from "./facturePdf";
 import type { Colonne } from "./rapports";
+import { NOM_APP, SIGNATURE_APP } from "./marque";
 
 const COULEUR_EMERAUDE: [number, number, number] = [15, 61, 46];
 const COULEUR_OR: [number, number, number] = [166, 124, 35];
@@ -36,10 +37,10 @@ export async function exporterRapportPdf(data: ExportRapportData) {
   doc.setTextColor(...COULEUR_IVOIRE);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
-  doc.text("BELGRAVIA", 14, 12);
+  doc.text(NOM_APP, 14, 12);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text(data.titre, 14, 19);
+  doc.text(`${data.titre} — ${SIGNATURE_APP}`, 14, 19);
 
   doc.setTextColor(...COULEUR_TEXTE_ATT);
   doc.setFontSize(9);

@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     pointVente,
     offrePotentiel,
     qualification,
-    marquesPresentes, // [{ marqueId?: string, libelleLibre?: string }]
+    marquesPresentes, // [{ marqueId?, libelleLibre?, categorie?: "MOUSSEUX" | "RTD", prix?: number }]
     photos, // [{ uuidClient: string, url: string }]
   } = body;
 
@@ -81,11 +81,18 @@ export async function POST(req: NextRequest) {
 
     if (Array.isArray(marquesPresentes) && marquesPresentes.length > 0) {
       await tx.marquePresente.createMany({
-        data: marquesPresentes.map((m: { marqueId?: string; libelleLibre?: string }) => ({
-          visiteId: v.id,
-          marqueId: m.marqueId || null,
-          libelleLibre: m.libelleLibre || null,
-        })),
+        data: marquesPresentes.map(
+          (m: { marqueId?: string; libelleLibre?: string; categorie?: string; prix?: number | string | null }) => {
+            const prix = m.prix === undefined || m.prix === null || m.prix === "" ? null : Number(m.prix);
+            return {
+              visiteId: v.id,
+              marqueId: m.marqueId || null,
+              libelleLibre: m.libelleLibre || null,
+              categorie: m.categorie === "MOUSSEUX" || m.categorie === "RTD" ? m.categorie : null,
+              prix: prix !== null && Number.isFinite(prix) && prix >= 0 ? prix : null,
+            };
+          }
+        ),
       });
     }
 

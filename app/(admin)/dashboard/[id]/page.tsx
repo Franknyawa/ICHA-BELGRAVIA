@@ -7,7 +7,17 @@ const JOUR_LABEL: Record<string, string> = {
   Lundi: "Lundi", Mardi: "Mardi", Mercredi: "Mercredi", Jeudi: "Jeudi",
   Vendredi: "Vendredi", Samedi: "Samedi", Dimanche: "Dimanche",
 };
-const CRENEAU_LABEL: Record<string, string> = { MATIN: "Matin", APRES_MIDI: "Après-midi", SOIR: "Soir" };
+const CRENEAU_LABEL: Record<string, string> = {
+  MATIN: "Matin (6h–12h)",
+  APRES_MIDI: "Après-midi (12h–18h)",
+  SOIR: "Soir (18h–23h)",
+  NUIT: "Nuit (23h–6h)",
+};
+
+const CATEGORIE_LABEL: Record<string, string> = {
+  MOUSSEUX: "Vins mousseux / Champagnes",
+  RTD: "Cocktails RTD",
+};
 
 export default async function DetailVisite({ params }: { params: { id: string } }) {
   const session = await getSession();
@@ -57,7 +67,6 @@ export default async function DetailVisite({ params }: { params: { id: string } 
           <Champ label="Quartier" valeur={pv.quartier} />
           <Champ label="Repère" valeur={pv.repereQuartier} />
           <Champ label="Type" valeur={pv.type?.nom || pv.typeAutrePrecision} />
-          <Champ label="Statut" valeur={pv.statut} />
           <div>
             <p className="text-xs text-ink-muted">Position GPS</p>
             {pv.latitude && pv.longitude ? (
@@ -79,7 +88,7 @@ export default async function DetailVisite({ params }: { params: { id: string } 
       <Section titre="Offre & potentiel">
         <Grid>
           <Champ label="Vend des spiritueux" valeur={boolLabel(visite.vendSpiritueux)} />
-          <Champ label="Propose des cocktails" valeur={visite.proposeCocktails} />
+          {visite.proposeCocktails && <Champ label="Propose des cocktails" valeur={visite.proposeCocktails} />}
           <Champ label="Capacité estimée" valeur={visite.capaciteEstimee} />
           <Champ
             label="Fournisseur actuel"
@@ -94,12 +103,35 @@ export default async function DetailVisite({ params }: { params: { id: string } 
           />
         </Grid>
         {visite.marquesPresentes.length > 0 && (
-          <p className="mt-3 text-sm text-ink-muted">
-            Marques présentes :{" "}
-            <span className="text-ink">
-              {visite.marquesPresentes.map((m) => m.marque?.nom || m.libelleLibre).filter(Boolean).join(", ")}
-            </span>
-          </p>
+          <div className="mt-4 space-y-3">
+            {(["MOUSSEUX", "RTD", null] as const).map((cat) => {
+              // Catégorie portée par la ligne (nouveaux formulaires) ou, pour
+              // les anciennes visites, par la marque du référentiel.
+              const lignes = visite.marquesPresentes.filter(
+                (m) => (m.categorie ?? m.marque?.categorie ?? null) === cat
+              );
+              if (lignes.length === 0) return null;
+              return (
+                <div key={cat ?? "autres"}>
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                    {cat ? CATEGORIE_LABEL[cat] : "Autres marques"}
+                  </p>
+                  <ul className="space-y-1">
+                    {lignes.map((m) => (
+                      <li key={m.id} className="flex items-center justify-between rounded-md bg-bg-elevated px-3 py-1.5 text-sm">
+                        <span className="text-ink">{m.marque?.nom || m.libelleLibre}</span>
+                        <span className="text-ink-muted">
+                          {m.prix !== null && m.prix !== undefined
+                            ? `${Math.round(Number(m.prix)).toLocaleString("fr-FR")} FCFA`
+                            : "Prix non relevé"}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
         )}
         {affluence.length > 0 && (
           <div className="mt-3 space-y-1 text-sm">

@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { IconTrend, IconUsers, IconStorefront, IconMap, IconPin, IconReceipt, IconDownload, IconPrinter } from "@/components/icons";
 import { exporterRapportPdf } from "@/lib/rapportPdf";
+import { libelleGamme, type GammeInfo } from "@/lib/gammesClient";
+import { NOM_APP } from "@/lib/marque";
 
 type Colonne = { cle: string; label: string; droite?: boolean; montant?: boolean };
 type Rapport = {
@@ -17,7 +19,7 @@ type Commercial = { id: string; nom: string; prenom: string };
 // Les filtres (période, agent, ville, quartier) sont communs aux 5
 // catégories et NE sont PAS réinitialisés en changeant d'onglet — c'est
 // la demande explicite ("maintenir les filtres").
-const FILTRES_VIDES = { dateFrom: "", dateTo: "", commercialId: "", villeId: "", quartier: "" };
+const FILTRES_VIDES = { dateFrom: "", dateTo: "", commercialId: "", villeId: "", quartier: "", gammeId: "" };
 
 const CATEGORIES: { valeur: string; label: string; icon: typeof IconUsers }[] = [
   { valeur: "commercial", label: "Par commercial", icon: IconUsers },
@@ -47,11 +49,13 @@ export default function RapportsPage() {
   const [chargement, setChargement] = useState(true);
   const [villes, setVilles] = useState<Ville[]>([]);
   const [commerciaux, setCommerciaux] = useState<Commercial[]>([]);
+  const [gammes, setGammes] = useState<GammeInfo[]>([]);
   const [export_, setExport] = useState(false);
 
   useEffect(() => {
     fetch("/api/referentiels").then((r) => r.json()).then((d) => setVilles(d.villes || []));
     fetch("/api/utilisateurs?role=COMMERCIAL").then((r) => r.json()).then((d) => setCommerciaux(d.users || []));
+    fetch("/api/gammes").then((r) => r.json()).then((d) => setGammes(d.gammes || []));
   }, []);
 
   const charger = useCallback(async () => {
@@ -62,6 +66,7 @@ export default function RapportsPage() {
     if (filtres.commercialId) s.set("commercialId", filtres.commercialId);
     if (filtres.villeId) s.set("villeId", filtres.villeId);
     if (filtres.quartier) s.set("quartier", filtres.quartier);
+    if (filtres.gammeId) s.set("gammeId", filtres.gammeId);
     const res = await fetch(`/api/rapports?${s.toString()}`);
     const data = await res.json();
     setRapport(data);
@@ -69,7 +74,11 @@ export default function RapportsPage() {
   }, [categorie, filtres]);
 
   useEffect(() => {
-    charger();
+    // Anti-rafale : sans ça, taper "Bonamoussadi" dans le champ quartier
+    // déclenchait 12 requêtes DB (une par lettre). On attend une courte
+    // pause dans la saisie avant d'interroger le serveur.
+    const t = setTimeout(charger, 350);
+    return () => clearTimeout(t);
   }, [charger]);
 
   const filtresActifs = JSON.stringify(filtres) !== JSON.stringify(FILTRES_VIDES);
@@ -88,6 +97,10 @@ export default function RapportsPage() {
       if (v) parties.push(`Ville : ${v.nom}`);
     }
     if (filtres.quartier) parties.push(`Quartier : ${filtres.quartier}`);
+    if (filtres.gammeId) {
+      const g = gammes.find((x) => x.id === filtres.gammeId);
+      parties.push(`Gamme : ${g ? libelleGamme(g) : filtres.gammeId}`);
+    }
     return parties.join(" · ") || "Toutes périodes, tous filtres";
   }
 
@@ -166,6 +179,13 @@ export default function RapportsPage() {
           </select>
         </div>
         <div>
+          <label className="mb-1 block text-xs text-ink-muted">Gamme</label>
+          <select className="field-input max-w-[160px]" value={filtres.gammeId} onChange={(e) => setFiltres({ ...filtres, gammeId: e.target.value })}>
+            <option value="">Toutes</option>
+            {gammes.map((g) => <option key={g.id} value={g.id}>{libelleGamme(g)}</option>)}
+          </select>
+        </div>
+        <div>
           <label className="mb-1 block text-xs text-ink-muted">Quartier</label>
           <input className="field-input max-w-[160px]" placeholder="Contient…" value={filtres.quartier} onChange={(e) => setFiltres({ ...filtres, quartier: e.target.value })} />
         </div>
@@ -184,10 +204,17 @@ export default function RapportsPage() {
         </div>
       </div>
 
+      {filtres.gammeId && (
+        <p className="no-print -mt-3 mb-5 text-xs text-ink-muted">
+          Le filtre de gamme s'applique aux commandes et au chiffre d'affaires ; les visites et recensements ne sont pas
+          rattachés à une gamme.
+        </p>
+      )}
+
       {/* En-tête visible seulement à l'impression/dans le PDF — pour situer
           le rapport une fois la nav masquée. */}
       <div className="mb-4 hidden print:block">
-        <p className="font-display text-xl text-ink">BELGRAVIA — {LABEL_CATEGORIE[categorie]}</p>
+        <p className="font-display text-xl text-ink">{NOM_APP} — {LABEL_CATEGORIE[categorie]}</p>
         <p className="text-sm text-ink-muted">{resumeFiltres()}</p>
       </div>
 

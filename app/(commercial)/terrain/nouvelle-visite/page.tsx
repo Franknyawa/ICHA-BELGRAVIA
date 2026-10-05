@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { v4 as uuid } from "uuid";
 import StepIndicator from "@/components/form/StepIndicator";
 import { ChoiceGroup, MultiChoiceGroup } from "@/components/form/ChoiceGroup";
+import AffluenceGrid, { type Affluence } from "@/components/form/AffluenceGrid";
+import BlocBoissons, { type ValeurBoisson, type BoissonLibre } from "@/components/form/BlocBoissons";
 import { resolveVilleDepuisCoordonnees, matchVille } from "@/lib/reverseGeocode";
 import { enqueuerVisite } from "@/lib/offlineQueue";
 import { envoyerVisite } from "@/lib/envoyerVisite";
@@ -15,15 +17,20 @@ import { IconStorefront, IconPhone, IconPin, IconCamera, IconGlass, IconClock, I
 type Referentiels = {
   villes: { id: string; nom: string }[];
   types: { id: string; nom: string }[];
-  marques: { id: string; nom: string }[];
+  marques: { id: string; nom: string; categorie: "MOUSSEUX" | "RTD" }[];
 };
 
-const JOURS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
-const CRENEAUX = [
-  { value: "MATIN", label: "Matin" },
-  { value: "APRES_MIDI", label: "Après-midi" },
-  { value: "SOIR", label: "Soir" },
+const LIBRES_VIDES = (): BoissonLibre[] => [
+  { nom: "", prix: "" },
+  { nom: "", prix: "" },
+  { nom: "", prix: "" },
 ];
+
+/** Prix saisi ("12500") → nombre, ou undefined si vide / invalide. */
+function versPrix(brut: string): number | undefined {
+  const n = parseFloat(brut.replace(",", "."));
+  return Number.isFinite(n) && n >= 0 && brut.trim() !== "" ? n : undefined;
+}
 
 type PhotoSlot = { uuidClient: string; preview: string | null; url: string | null; enCours: boolean };
 
@@ -50,7 +57,6 @@ export default function NouvelleVisite() {
   const [repereQuartier, setRepereQuartier] = useState("");
   const [typeId, setTypeId] = useState("");
   const [typeAutrePrecision, setTypeAutrePrecision] = useState("");
-  const [statut, setStatut] = useState<"OUVERT" | "FERME_TEMPORAIREMENT" | "EN_TRAVAUX">("OUVERT");
   const [gps, setGps] = useState<{ lat: number; lng: number; precision: number } | null>(null);
   const [gpsEnCours, setGpsEnCours] = useState(false);
   const [photos, setPhotos] = useState<[PhotoSlot, PhotoSlot]>([
@@ -60,11 +66,14 @@ export default function NouvelleVisite() {
 
   // Section 3
   const [vendSpiritueux, setVendSpiritueux] = useState<boolean | undefined>();
-  const [marquesCoches, setMarquesCoches] = useState<string[]>([]);
-  const [marquesLibres, setMarquesLibres] = useState(["", "", ""]);
-  const [proposeCocktails, setProposeCocktails] = useState<"OUI" | "NON" | "INTERESSE">();
+  // Boissons relevées sur place, par marque du référentiel (présence + prix)
+  // puis 3 lignes libres par catégorie — visibles seulement si le point de
+  // vente vend des spiritueux.
+  const [boissons, setBoissons] = useState<Record<string, ValeurBoisson>>({});
+  const [libresMousseux, setLibresMousseux] = useState<BoissonLibre[]>(LIBRES_VIDES());
+  const [libresRtd, setLibresRtd] = useState<BoissonLibre[]>(LIBRES_VIDES());
   const [capaciteEstimee, setCapaciteEstimee] = useState<string>();
-  const [affluence, setAffluence] = useState<Record<string, string[]>>({});
+  const [affluence, setAffluence] = useState<Affluence>({});
   const [fournisseurs, setFournisseurs] = useState({
     grossiste: false,
     marche: false,
@@ -185,16 +194,6 @@ export default function NouvelleVisite() {
     reader.readAsDataURL(file);
   }
 
-  function toggleCreneau(jour: string, creneau: string) {
-    setAffluence((prev) => {
-      const courants = prev[jour] || [];
-      const next = courants.includes(creneau)
-        ? courants.filter((c) => c !== creneau)
-        : [...courants, creneau];
-      return { ...prev, [jour]: next };
-    });
-  }
-
   const peutAvancer = useMemo(() => {
     if (step === 2) return nomEtablissement.trim().length > 0;
     return true;
@@ -209,10 +208,30 @@ export default function NouvelleVisite() {
       .filter(([, creneaux]) => creneaux.length > 0)
       .map(([jour, creneaux]) => ({ jour, creneaux }));
 
-    const marquesPresentes = [
-      ...marquesCoches.map((marqueId) => ({ marqueId })),
-      ...marquesLibres.filter((m) => m.trim()).map((libelleLibre) => ({ libelleLibre })),
-    ];
+    // Les boissons ne sont envoyées que si le point de vente vend des
+    // spiritueux (sinon la section est masquée et ne doit rien enregistrer).
+    const marquesPresentes: {
+      marqueId?: string;
+      libelleLibre?: string;
+      categorie: "MOUSSEUX" | "RTD";
+      prix?: number;
+    }[] = [];
+    if (vendSpiritueux) {
+      for (const m of ref?.marques || []) {
+        const v = boissons[m.id];
+        if (v?.present) marquesPresentes.push({ marqueId: m.id, categorie: m.categorie, prix: versPrix(v.prix) });
+      }
+      for (const [categorie, libres] of [
+        ["MOUSSEUX", libresMousseux],
+        ["RTD", libresRtd],
+      ] as const) {
+        for (const l of libres) {
+          if (l.nom.trim()) {
+            marquesPresentes.push({ libelleLibre: l.nom.trim(), categorie, prix: versPrix(l.prix) });
+          }
+        }
+      }
+    }
 
     const payload = {
       uuidClient: uuidVisite,
@@ -227,14 +246,12 @@ export default function NouvelleVisite() {
         repereQuartier,
         typeId: typeId || null,
         typeAutrePrecision,
-        statut,
         latitude: gps?.lat,
         longitude: gps?.lng,
         precisionGps: gps?.precision,
       },
       offrePotentiel: {
         vendSpiritueux,
-        proposeCocktails,
         capaciteEstimee,
         affluence: affluenceArray,
         fournisseurGrossiste: fournisseurs.grossiste,
@@ -444,7 +461,7 @@ export default function NouvelleVisite() {
             </Champ>
           </SousSection>
 
-          <SousSection titre="Devanture & statut" icon={IconCamera}>
+          <SousSection titre="Devanture" icon={IconCamera}>
             <Champ label="Photos de la devanture (2)">
               <div className="grid grid-cols-2 gap-3">
                 {photos.map((slot, i) => (
@@ -469,18 +486,6 @@ export default function NouvelleVisite() {
                 ))}
               </div>
             </Champ>
-
-            <Champ label="Statut">
-              <ChoiceGroup
-                options={[
-                  { value: "OUVERT", label: "Ouvert" },
-                  { value: "FERME_TEMPORAIREMENT", label: "Fermé temporairement" },
-                  { value: "EN_TRAVAUX", label: "En travaux" },
-                ]}
-                value={statut}
-                onChange={(v) => setStatut(v as typeof statut)}
-              />
-            </Champ>
           </SousSection>
         </section>
       )}
@@ -489,7 +494,7 @@ export default function NouvelleVisite() {
         <section className="space-y-5">
           <h1 className="font-display text-2xl text-ink">Offre &amp; potentiel</h1>
 
-          <SousSection titre="Spiritueux & cocktails" icon={IconGlass}>
+          <SousSection titre="Spiritueux" icon={IconGlass}>
             <Champ label="Vend des spiritueux ?">
               <ChoiceGroup
                 options={[{ value: "oui", label: "Oui" }, { value: "non", label: "Non" }]}
@@ -497,44 +502,37 @@ export default function NouvelleVisite() {
                 onChange={(v) => setVendSpiritueux(v === "oui")}
               />
             </Champ>
-
-            <Champ label="Marques présentes">
-              <MultiChoiceGroup
-                options={ref?.marques.map((m) => ({ value: m.id, label: m.nom })) || []}
-                values={marquesCoches}
-                onToggle={(id) =>
-                  setMarquesCoches((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
-                }
-              />
-              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
-                {marquesLibres.map((val, i) => (
-                  <input
-                    key={i}
-                    className="field-input"
-                    placeholder={`Autre ${i + 1}`}
-                    value={val}
-                    onChange={(e) => {
-                      const next = [...marquesLibres];
-                      next[i] = e.target.value;
-                      setMarquesLibres(next);
-                    }}
-                  />
-                ))}
-              </div>
-            </Champ>
-
-            <Champ label="Propose des cocktails ?">
-              <ChoiceGroup
-                options={[
-                  { value: "OUI", label: "Oui" },
-                  { value: "NON", label: "Non" },
-                  { value: "INTERESSE", label: "Intéressé" },
-                ]}
-                value={proposeCocktails}
-                onChange={(v) => setProposeCocktails(v as typeof proposeCocktails)}
-              />
-            </Champ>
           </SousSection>
+
+          {vendSpiritueux === true && (
+            <>
+              <SousSection titre="Vins mousseux / Champagnes" icon={IconGlass}>
+                <p className="-mt-1 text-xs text-ink-muted">
+                  Cochez les marques vendues et indiquez leur prix en rayon.
+                </p>
+                <BlocBoissons
+                  marques={(ref?.marques || []).filter((m) => m.categorie === "MOUSSEUX")}
+                  valeurs={boissons}
+                  onChangeMarque={(id, v) => setBoissons((prev) => ({ ...prev, [id]: v }))}
+                  libres={libresMousseux}
+                  onChangeLibre={(i, v) => setLibresMousseux((prev) => prev.map((x, k) => (k === i ? v : x)))}
+                />
+              </SousSection>
+
+              <SousSection titre="Cocktails RTD" icon={IconGlass}>
+                <p className="-mt-1 text-xs text-ink-muted">
+                  Cochez les marques vendues et indiquez leur prix en rayon.
+                </p>
+                <BlocBoissons
+                  marques={(ref?.marques || []).filter((m) => m.categorie === "RTD")}
+                  valeurs={boissons}
+                  onChangeMarque={(id, v) => setBoissons((prev) => ({ ...prev, [id]: v }))}
+                  libres={libresRtd}
+                  onChangeLibre={(i, v) => setLibresRtd((prev) => prev.map((x, k) => (k === i ? v : x)))}
+                />
+              </SousSection>
+            </>
+          )}
 
           <SousSection titre="Fréquentation & approvisionnement" icon={IconClock}>
             <Champ label="Capacité estimée">
@@ -551,18 +549,7 @@ export default function NouvelleVisite() {
             </Champ>
 
             <Champ label="Jours / heures d'affluence">
-              <div className="space-y-2">
-                {JOURS.map((jour) => (
-                  <div key={jour} className="rounded-md border border-line bg-bg-elevated p-3">
-                    <p className="mb-2 text-sm font-medium text-ink">{jour}</p>
-                    <MultiChoiceGroup
-                      options={CRENEAUX}
-                      values={affluence[jour] || []}
-                      onToggle={(c) => toggleCreneau(jour, c)}
-                    />
-                  </div>
-                ))}
-              </div>
+              <AffluenceGrid value={affluence} onChange={setAffluence} />
             </Champ>
 
             <Champ label="Fournisseur actuel">

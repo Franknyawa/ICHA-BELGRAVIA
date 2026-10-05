@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { IconList, IconAlert, IconPlus, IconCheckCircle, IconGlass } from "@/components/icons";
+import GammeTabs from "@/components/GammeTabs";
+import { styleBadgeGamme, libelleGamme, type GammeInfo } from "@/lib/gammesClient";
 
 type StockItem = {
   produitId: string;
   nom: string;
   volumeMl: number;
+  gammeId: string | null;
+  gammeCode: string | null;
   quantiteCartons: number;
   seuilAlerte: number;
   enAlerte: boolean;
@@ -28,6 +32,8 @@ export default function StockPage() {
   const [items, setItems] = useState<StockItem[]>([]);
   const [mouvements, setMouvements] = useState<Mouvement[]>([]);
   const [chargement, setChargement] = useState(true);
+  const [gammes, setGammes] = useState<GammeInfo[]>([]);
+  const [filtreGamme, setFiltreGamme] = useState("");
   const [produitId, setProduitId] = useState("");
   const [type, setType] = useState<"ENTREE" | "AJUSTEMENT">("ENTREE");
   const [quantite, setQuantite] = useState("");
@@ -54,6 +60,7 @@ export default function StockPage() {
 
   useEffect(() => {
     chargerTout();
+    fetch("/api/gammes").then((r) => r.json()).then((d) => setGammes(d.gammes || []));
   }, []);
 
   async function enregistrerMouvement(e: React.FormEvent) {
@@ -81,8 +88,12 @@ export default function StockPage() {
     }
   }
 
-  const enAlerte = items.filter((i) => i.enAlerte);
-  const totalCartons = items.reduce((s, i) => s + i.quantiteCartons, 0);
+  // Toutes les vues (compteurs, alertes, tableau, sélecteur du mouvement
+  // manuel) suivent la gamme choisie en haut de page.
+  const itemsAffiches = filtreGamme ? items.filter((i) => i.gammeId === filtreGamme) : items;
+  const enAlerte = itemsAffiches.filter((i) => i.enAlerte);
+  const totalCartons = itemsAffiches.reduce((s, i) => s + i.quantiteCartons, 0);
+  const gammeParId = (id: string | null) => gammes.find((g) => g.id === id);
 
   return (
     <div>
@@ -96,13 +107,17 @@ export default function StockPage() {
         </p>
       </div>
 
+      <div className="mb-5">
+        <GammeTabs gammes={gammes} value={filtreGamme} onChange={setFiltreGamme} />
+      </div>
+
       <div className="mb-6 grid grid-cols-3 gap-3">
         <div className="field-card flex items-center gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brass/10 text-brass">
             <IconGlass className="h-5 w-5" />
           </span>
           <div>
-            <p className="font-display text-2xl text-ink">{items.length}</p>
+            <p className="font-display text-2xl text-ink">{itemsAffiches.length}</p>
             <p className="text-xs text-ink-muted">Produits actifs</p>
           </div>
         </div>
@@ -141,6 +156,7 @@ export default function StockPage() {
           <thead className="bg-bg-elevated text-left text-ink-muted">
             <tr>
               <th className="px-4 py-3 font-medium">Produit</th>
+              <th className="px-4 py-3 font-medium">Gamme</th>
               <th className="px-4 py-3 font-medium">Volume</th>
               <th className="px-4 py-3 font-medium">Stock disponible</th>
               <th className="px-4 py-3 font-medium">Seuil d'alerte</th>
@@ -148,9 +164,14 @@ export default function StockPage() {
             </tr>
           </thead>
           <tbody>
-            {items.map((i) => (
+            {itemsAffiches.map((i) => (
               <tr key={i.produitId} className={`border-t border-line transition-colors hover:bg-bg-elevated ${i.enAlerte ? "bg-danger/[0.03]" : ""}`}>
                 <td className="px-4 py-3 font-medium text-ink">{i.nom}</td>
+                <td className="px-4 py-3">
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${styleBadgeGamme(i.gammeCode)}`}>
+                    {libelleGamme(gammeParId(i.gammeId) || (i.gammeCode ? { code: i.gammeCode, nom: i.gammeCode } : null))}
+                  </span>
+                </td>
                 <td className="px-4 py-3 text-ink-muted">{i.volumeMl} ml</td>
                 <td className={`px-4 py-3 font-semibold ${i.enAlerte ? "text-danger" : "text-ink"}`}>
                   {i.quantiteCartons} carton{i.quantiteCartons !== 1 ? "s" : ""}
@@ -169,10 +190,10 @@ export default function StockPage() {
                 </td>
               </tr>
             ))}
-            {!chargement && items.length === 0 && (
+            {!chargement && itemsAffiches.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-ink-muted">
-                  Aucun produit actif.
+                <td colSpan={6} className="px-4 py-8 text-center text-ink-muted">
+                  Aucun produit actif dans cette gamme.
                 </td>
               </tr>
             )}
@@ -188,7 +209,7 @@ export default function StockPage() {
         <form onSubmit={enregistrerMouvement} className="grid gap-2 sm:grid-cols-[1.5fr_1fr_1fr_1.5fr_auto]">
           <select className="field-input" value={produitId} onChange={(e) => setProduitId(e.target.value)} required>
             <option value="">Produit…</option>
-            {items.map((i) => <option key={i.produitId} value={i.produitId}>{i.nom}</option>)}
+            {itemsAffiches.map((i) => <option key={i.produitId} value={i.produitId}>{i.nom}</option>)}
           </select>
           <select className="field-input" value={type} onChange={(e) => setType(e.target.value as "ENTREE" | "AJUSTEMENT")}>
             <option value="ENTREE">Entrée (+)</option>

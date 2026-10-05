@@ -38,14 +38,43 @@ model TypeEtablissement {
   @@map("types_etablissement")
 }
 
+/// Catégorie de boisson relevée au point de vente lors du recensement
+/// (section "Offre et potentiel") : distincte de la Gamme, qui désigne nos
+/// propres lignes de produits. Une marque concurrente de mousseux est
+/// MOUSSEUX sans appartenir à aucune de nos gammes.
+enum CategorieBoisson {
+  MOUSSEUX
+  RTD
+}
+
 model Marque {
   id          String               @id @default(uuid())
   nom         String               @unique
+  categorie   CategorieBoisson     @default(RTD)
   actif       Boolean              @default(true)
   ordre       Int                  @default(0)
   presences   MarquePresente[]
 
   @@map("marques")
+}
+
+/// Gamme de produits de l'entreprise (BELGRAVIA = cocktails RTD, VDV = vins
+/// mousseux Veuve du Vernay). Chaque gamme a son catalogue, son stock, son
+/// barème de prix par palier et ses commandes. Créées automatiquement au
+/// premier appel (voir lib/gammes.ts) — jamais codées en dur ailleurs.
+model Gamme {
+  id        String   @id @default(uuid())
+  code      String   @unique // "BELGRAVIA" | "VDV"
+  nom       String
+  actif     Boolean  @default(true)
+  ordre     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  produits  Produit[]
+  paliers   PalierPrixCarton[]
+  commandes Commande[]
+
+  @@map("gammes")
 }
 
 // ---------------------------------------------------------------------------
@@ -212,6 +241,8 @@ model PointVente {
   latitude          Decimal?           @db.Decimal(10, 7)
   longitude         Decimal?           @db.Decimal(10, 7)
   precisionGps      Decimal?           @map("precision_gps") @db.Decimal(6, 2)
+  // Obsolète : le champ n'est plus demandé dans le formulaire de recensement
+  // (valeur par défaut conservée pour ne rien supprimer en base).
   statut            StatutPointVente   @default(OUVERT)
 
   createdById String   @map("created_by")
@@ -279,6 +310,10 @@ model MarquePresente {
   marqueId     String?  @map("marque_id")
   marque       Marque?  @relation(fields: [marqueId], references: [id])
   libelleLibre String?  @map("libelle_libre")
+  // Catégorie relevée (mousseux / RTD) et prix constaté au point de vente,
+  // en FCFA. Nuls pour les anciennes visites, saisies avant cette évolution.
+  categorie    CategorieBoisson?
+  prix         Decimal? @db.Decimal(10, 2)
 
   @@index([visiteId])
   @@map("marques_presentes")
@@ -317,10 +352,13 @@ model Produit {
   prixUnitaire   Decimal          @db.Decimal(10, 2) @map("prix_unitaire")
   actif          Boolean          @default(true)
   ordre          Int              @default(0)
+  gammeId        String?          @map("gamme_id")
+  gamme          Gamme?           @relation(fields: [gammeId], references: [id])
   lignesCommande LigneCommande[]
   stock          Stock?
   mouvementsStock MouvementStock[]
 
+  @@index([gammeId])
   @@map("produits")
 }
 
@@ -335,8 +373,11 @@ model PalierPrixCarton {
   prixCarton  Decimal  @db.Decimal(10, 2) @map("prix_carton")
   ordre       Int      @default(0)
   actif       Boolean  @default(true)
+  gammeId     String?  @map("gamme_id")
+  gamme       Gamme?   @relation(fields: [gammeId], references: [id])
   createdAt   DateTime @default(now()) @map("created_at")
 
+  @@index([gammeId])
   @@map("paliers_prix_carton")
 }
 
@@ -369,6 +410,10 @@ model Commande {
   statut        StatutCommande @default(NON_TRAITEE)
   observations  String?
   montantTotal  Decimal      @default(0) @db.Decimal(12, 2) @map("montant_total")
+  // Une commande appartient à une seule gamme (tous ses produits en
+  // viennent) : le barème de prix appliqué est celui de cette gamme.
+  gammeId       String?      @map("gamme_id")
+  gamme         Gamme?       @relation(fields: [gammeId], references: [id])
 
   // Paiement — calculé et validé côté serveur selon modePaiement (voir
   // app/api/commandes/route.ts) : jamais de confiance dans un montant
@@ -391,6 +436,7 @@ model Commande {
   @@index([createdAt])
   @@index([modePaiement])
   @@index([statut])
+  @@index([gammeId])
   @@map("commandes")
 }
 

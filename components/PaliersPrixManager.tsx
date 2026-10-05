@@ -6,7 +6,13 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 
 type Palier = { id: string; cartonsMin: number; cartonsMax: number | null; prixCarton: string; actif: boolean };
 
-export default function PaliersPrixManager() {
+export default function PaliersPrixManager({
+  gammeId,
+  libelle,
+}: {
+  gammeId: string;
+  libelle: string; // nom court de la gamme, ex. "Belgravia" ou "VDV"
+}) {
   const [paliers, setPaliers] = useState<Palier[]>([]);
   const [nouveauMin, setNouveauMin] = useState("");
   const [nouveauMax, setNouveauMax] = useState("");
@@ -16,14 +22,15 @@ export default function PaliersPrixManager() {
   const [suppressionEnCours, setSuppressionEnCours] = useState(false);
 
   async function charger() {
-    const res = await fetch("/api/paliers-prix");
+    const res = await fetch(`/api/paliers-prix?gammeId=${encodeURIComponent(gammeId)}`);
     const data = await res.json();
     setPaliers(data.paliers || []);
   }
 
   useEffect(() => {
     charger();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gammeId]);
 
   async function ajouter(e: React.FormEvent) {
     e.preventDefault();
@@ -36,6 +43,7 @@ export default function PaliersPrixManager() {
         cartonsMin: parseInt(nouveauMin, 10),
         cartonsMax: nouveauMax ? parseInt(nouveauMax, 10) : null,
         prixCarton: parseFloat(nouveauPrix),
+        gammeId,
       }),
     });
     if (!res.ok) {
@@ -89,11 +97,12 @@ export default function PaliersPrixManager() {
     <div className="field-card sm:col-span-2">
       <p className="section-eyebrow mb-1">
         <IconChart className="h-4 w-4" />
-        Barème de prix par volume de commande
+        Barème de prix par volume de commande — {libelle}
       </p>
       <p className="mb-3 text-sm text-ink-muted">
-        Le prix/carton appliqué dépend du nombre total de cartons de la commande (tous produits
-        confondus). Laisser le maximum vide pour un palier ouvert ("et plus").
+        Le prix/carton appliqué aux commandes {libelle} dépend du nombre total de cartons de la
+        commande (tous produits de la gamme confondus). Laisser le maximum vide pour un palier
+        ouvert ("et plus").
       </p>
 
       <form onSubmit={ajouter} className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]">

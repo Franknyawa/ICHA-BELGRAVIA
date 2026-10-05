@@ -17,8 +17,8 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
-  title: "BELGRAVIA — Recensement terrain",
-  description: "Recensement et qualification des points de vente BELGRAVIA",
+  title: "BELGRAVIA / VDV by ICHA IMPORT",
+  description: "Gestion des boissons ICHA IMPORT : recensement terrain, commandes, stock et rapports BELGRAVIA (cocktails RTD) et VDV (Veuve du Vernay)",
   manifest: "/manifest.json",
   icons: {
     icon: [{ url: "/icon-192.png", sizes: "192x192", type: "image/png" }],

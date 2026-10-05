@@ -3,11 +3,24 @@
 import { useEffect, useState } from "react";
 import { IconGlass, IconPlus, IconTrash } from "@/components/icons";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import GammeTabs from "@/components/GammeTabs";
+import { libelleGamme, styleBadgeGamme, type GammeInfo } from "@/lib/gammesClient";
 
-type Produit = { id: string; nom: string; volumeMl: number; prixUnitaire: string; actif: boolean };
+type Produit = {
+  id: string;
+  nom: string;
+  volumeMl: number;
+  prixUnitaire: string;
+  actif: boolean;
+  gammeId: string | null;
+  gamme: GammeInfo | null;
+};
 
 export default function ProduitsPage() {
   const [produits, setProduits] = useState<Produit[]>([]);
+  const [gammes, setGammes] = useState<GammeInfo[]>([]);
+  const [filtreGamme, setFiltreGamme] = useState("");
+  const [gammeId, setGammeId] = useState("");
   const [formulaireOuvert, setFormulaireOuvert] = useState(false);
   const [nom, setNom] = useState("");
   const [volumeMl, setVolumeMl] = useState("275");
@@ -26,7 +39,23 @@ export default function ProduitsPage() {
 
   useEffect(() => {
     charger();
+    fetch("/api/gammes")
+      .then((r) => r.json())
+      .then((d) => {
+        setGammes(d.gammes || []);
+        if (d.gammes?.length) setGammeId(d.gammes[0].id);
+      });
   }, []);
+
+  const produitsAffiches = filtreGamme ? produits.filter((p) => p.gammeId === filtreGamme) : produits;
+
+  // Volume par défaut selon la gamme choisie : 275 ml pour les canettes RTD,
+  // 750 ml pour les bouteilles de vin mousseux.
+  function changerGammeCreation(id: string) {
+    setGammeId(id);
+    const g = gammes.find((x) => x.id === id);
+    setVolumeMl(g?.code === "VDV" ? "750" : "275");
+  }
 
   async function creer(e: React.FormEvent) {
     e.preventDefault();
@@ -35,7 +64,7 @@ export default function ProduitsPage() {
     const res = await fetch("/api/produits", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nom, volumeMl: parseInt(volumeMl, 10) || 275, prixUnitaire: parseFloat(prix) || 0 }),
+      body: JSON.stringify({ nom, gammeId, volumeMl: parseInt(volumeMl, 10) || 275, prixUnitaire: parseFloat(prix) || 0 }),
     });
     setEnCours(false);
     if (!res.ok) {
@@ -44,7 +73,7 @@ export default function ProduitsPage() {
       return;
     }
     setNom("");
-    setVolumeMl("275");
+    setVolumeMl(gammes.find((x) => x.id === gammeId)?.code === "VDV" ? "750" : "275");
     setPrix("");
     setFormulaireOuvert(false);
     charger();
@@ -93,7 +122,7 @@ export default function ProduitsPage() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-3xl">
       <div className="mb-2 flex items-center justify-between">
         <h1 className="flex items-center gap-2 font-display text-2xl text-ink">
           <IconGlass className="h-5 w-5 text-brass" />
@@ -104,14 +133,22 @@ export default function ProduitsPage() {
           {formulaireOuvert ? "Annuler" : "Nouveau produit"}
         </button>
       </div>
-      <p className="mb-5 text-sm text-ink-muted">
-        Catalogue vendu au terrain — le commercial choisit uniquement parmi les produits actifs ici, il ne peut pas
-        en créer. Le prix indiqué est une référence d'affichage ; le prix réellement facturé dépend du barème par
-        palier de cartons (onglet Paramètres).
+      <p className="mb-4 text-sm text-ink-muted">
+        Catalogue vendu au terrain, par gamme (Belgravia, VDV) — le commercial choisit uniquement parmi les produits
+        actifs ici, il ne peut pas en créer. Le prix indiqué est une référence d'affichage ; le prix réellement
+        facturé dépend du barème par palier de cartons de la gamme (onglet Paramètres).
       </p>
+
+      <div className="mb-5">
+        <GammeTabs gammes={gammes} value={filtreGamme} onChange={setFiltreGamme} />
+      </div>
 
       {formulaireOuvert && (
         <form onSubmit={creer} className="field-card mb-6 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_100px_120px]">
+          <div className="col-span-full">
+            <label className="field-label">Gamme</label>
+            <GammeTabs gammes={gammes} value={gammeId} onChange={changerGammeCreation} avecToutes={false} />
+          </div>
           <input className="field-input" placeholder="Nom du produit" value={nom} onChange={(e) => setNom(e.target.value)} required />
           <input className="field-input" type="number" placeholder="Volume (ml)" value={volumeMl} onChange={(e) => setVolumeMl(e.target.value)} required />
           <input className="field-input" type="number" step="0.01" placeholder="Prix de référence" value={prix} onChange={(e) => setPrix(e.target.value)} required />
@@ -127,6 +164,7 @@ export default function ProduitsPage() {
           <thead className="bg-bg-elevated text-left text-ink-muted">
             <tr>
               <th className="px-4 py-3 font-medium">Produit</th>
+              <th className="px-4 py-3 font-medium">Gamme</th>
               <th className="px-4 py-3 font-medium">Volume</th>
               <th className="px-4 py-3 font-medium">Prix de référence</th>
               <th className="px-4 py-3 font-medium">Statut</th>
@@ -134,7 +172,7 @@ export default function ProduitsPage() {
             </tr>
           </thead>
           <tbody>
-            {produits.map((p) => (
+            {produitsAffiches.map((p) => (
               <tr key={p.id} className="border-t border-line">
                 <td className="px-4 py-3">
                   <input
@@ -142,6 +180,24 @@ export default function ProduitsPage() {
                     onBlur={(e) => e.target.value !== p.nom && modifierChamp(p, "nom", e.target.value)}
                     className="w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-ink hover:border-line focus:border-brass focus:outline-none"
                   />
+                </td>
+                <td className="px-4 py-3">
+                  <select
+                    value={p.gammeId || ""}
+                    onChange={(e) => {
+                      fetch(`/api/produits/${p.id}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ gammeId: e.target.value || null }),
+                      }).then(charger);
+                    }}
+                    className={`rounded-full border-0 px-2.5 py-1 text-[11px] font-semibold ${styleBadgeGamme(p.gamme?.code)}`}
+                  >
+                    <option value="">Sans gamme</option>
+                    {gammes.map((g) => (
+                      <option key={g.id} value={g.id}>{libelleGamme(g)}</option>
+                    ))}
+                  </select>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-1">
@@ -182,6 +238,13 @@ export default function ProduitsPage() {
                 </td>
               </tr>
             ))}
+            {produitsAffiches.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center text-ink-muted">
+                  Aucun produit dans cette gamme pour le moment.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

@@ -67,7 +67,7 @@ function LoginForm() {
         <div className="relative flex items-center gap-3">
           <span className="h-px w-8 bg-[#D4AF6A]" />
           <span className="text-xs font-semibold uppercase tracking-[0.3em] text-[#D4AF6A]">
-            Belgravia
+            Belgravia / VDV
           </span>
         </div>
 
@@ -79,13 +79,13 @@ function LoginForm() {
             servi frais.
           </p>
           <p className="max-w-xs text-sm leading-relaxed text-[#F5EFDF]/70">
-            Recensement des points de vente et qualification commerciale pour
-            le déploiement BELGRAVIA.
+            Recensement des points de vente, commandes et suivi commercial pour
+            les cocktails BELGRAVIA et les vins mousseux Veuve du Vernay.
           </p>
         </div>
 
         <p className="relative text-xs text-[#F5EFDF]/50">
-          © {new Date().getFullYear()} Belgravia — usage interne
+          © {new Date().getFullYear()} BELGRAVIA / VDV by ICHA IMPORT — usage interne
         </p>
       </div>
 
@@ -98,8 +98,9 @@ function LoginForm() {
 
         <div className="w-full max-w-sm">
           <div className="mb-10 text-center lg:hidden">
-            <p className="font-display text-5xl italic text-ink">Belgravia</p>
-            <p className="mt-2 text-sm text-ink-muted">Recensement &amp; qualification terrain</p>
+            <p className="font-display text-4xl italic text-ink">Belgravia / VDV</p>
+            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.25em] text-brass">by ICHA IMPORT</p>
+            <p className="mt-2 text-sm text-ink-muted">Recensement &amp; commandes terrain</p>
             <GoldRule className="mx-auto mt-4 max-w-[140px]" />
           </div>
 
@@ -177,7 +178,7 @@ function LoginForm() {
           </form>
 
           <p className="mt-6 text-center text-xs text-ink-muted lg:hidden">
-            Recensement des points de vente et qualification commerciale.
+            Recensement des points de vente, commandes et suivi commercial.
           </p>
         </div>
       </div>

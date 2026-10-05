@@ -9,8 +9,11 @@ import { envoyerCommande } from "@/lib/envoyerCommande";
 import { ErreurEnvoi } from "@/lib/erreurEnvoi";
 import { calculerCommande, calculerPaiement, MODES_PAIEMENT, type ModePaiementValue, type PalierPrix } from "@/lib/pricing";
 import { genererFacturePdf } from "@/lib/facturePdf";
+import GammeTabs from "@/components/GammeTabs";
+import { libelleGamme, type GammeInfo } from "@/lib/gammesClient";
 
-type Produit = { id: string; nom: string; volumeMl: number };
+type Produit = { id: string; nom: string; volumeMl: number; gammeId: string | null };
+type PalierGamme = PalierPrix & { gammeId: string | null };
 type Client = {
   id: string;
   nomEtablissement: string;
@@ -40,7 +43,9 @@ function NouvelleCommandeInner() {
 
   const [uuidCommande] = useState(() => uuid());
   const [produits, setProduits] = useState<Produit[]>([]);
-  const [paliersPrix, setPaliersPrix] = useState<PalierPrix[]>([]);
+  const [paliersTous, setPaliersTous] = useState<PalierGamme[]>([]);
+  const [gammes, setGammes] = useState<GammeInfo[]>([]);
+  const [gammeId, setGammeId] = useState("");
   const [client, setClient] = useState<Client | null>(null);
   const [chargementClient, setChargementClient] = useState(!!pointVenteIdInitial);
   const [recherche, setRecherche] = useState("");
@@ -68,8 +73,11 @@ function NouvelleCommandeInner() {
       .then((r) => r.json())
       .then((data) => {
         setProduits(data.produits || []);
-        setPaliersPrix(
+        setGammes(data.gammes || []);
+        setGammeId((prev) => prev || data.gammes?.[0]?.id || "");
+        setPaliersTous(
           (data.paliersPrix || []).map((p: any) => ({
+            gammeId: p.gammeId ?? null,
             cartonsMin: p.cartonsMin,
             cartonsMax: p.cartonsMax,
             prixCarton: Number(p.prixCarton),
@@ -131,12 +139,23 @@ function NouvelleCommandeInner() {
     setQuantites((prev) => ({ ...prev, [produitId]: Math.max(0, quantite) }));
   }
 
+  // Une commande = une seule gamme : le catalogue affiché et le barème de
+  // prix appliqué sont ceux de la gamme sélectionnée (BELGRAVIA ou VDV).
+  const gammeChoisie = gammes.find((g) => g.id === gammeId);
+  const produitsGamme = useMemo(() => produits.filter((p) => p.gammeId === gammeId), [produits, gammeId]);
+  const paliersPrix = useMemo(() => paliersTous.filter((p) => p.gammeId === gammeId), [paliersTous, gammeId]);
+
+  function changerGamme(id: string) {
+    setGammeId(id);
+    setQuantites({}); // catalogue différent : on repart d'une commande vide
+  }
+
   const lignesRetenues = useMemo(
     () =>
-      produits
+      produitsGamme
         .map((p) => ({ produit: p, quantite: quantites[p.id] || 0 }))
         .filter((l) => l.quantite > 0),
-    [produits, quantites]
+    [produitsGamme, quantites]
   );
 
   const { totalCartons, prixCarton, montantTotal } = useMemo(
@@ -151,6 +170,7 @@ function NouvelleCommandeInner() {
 
   const peutEnregistrer =
     !!client &&
+    paliersPrix.length > 0 &&
     lignesRetenues.length > 0 &&
     (modePaiement !== "CREDIT_PARTIEL" || montantRecuSaisi > 0);
 
@@ -162,6 +182,7 @@ function NouvelleCommandeInner() {
       pointVenteNom: client.nomEtablissement,
       villeNom: client.ville,
       quartier: client.quartier,
+      gammeNom: gammeChoisie ? libelleGamme(gammeChoisie) : undefined,
       commercialNom: "—", // affiché correctement depuis la liste admin ; ici l'agent connaît déjà son nom
       lignes: lignesRetenues.map((l) => ({
         produitNom: l.produit.nom,
@@ -349,11 +370,19 @@ function NouvelleCommandeInner() {
       <div className="field-card space-y-3">
         <p className="section-eyebrow">
           <IconGlass className="h-4 w-4" />
-          Produits (275ml — vente au carton)
+          Produits — vente au carton
         </p>
 
+        {gammes.length > 1 && <GammeTabs gammes={gammes} value={gammeId} onChange={changerGamme} avecToutes={false} />}
+
+        {gammeId && paliersPrix.length === 0 && produits.length > 0 && (
+          <p className="rounded-md border border-warn/40 bg-warn/10 px-3 py-2 text-xs text-warn">
+            Aucun barème de prix n'est encore configuré pour cette gamme — contacte l'administrateur.
+          </p>
+        )}
+
         <div className="space-y-2">
-          {produits.map((p) => (
+          {produitsGamme.map((p) => (
             <div key={p.id} className="flex items-center justify-between gap-3 rounded-md border border-line bg-bg-elevated px-3 py-2.5">
               <span className="text-sm font-medium text-ink">{p.nom}</span>
               <div className="flex items-center gap-2">
@@ -386,6 +415,9 @@ function NouvelleCommandeInner() {
           ))}
           {produits.length === 0 && (
             <p className="py-2 text-center text-sm text-ink-muted">Chargement du catalogue…</p>
+          )}
+          {produits.length > 0 && produitsGamme.length === 0 && (
+            <p className="py-2 text-center text-sm text-ink-muted">Aucun produit actif dans cette gamme.</p>
           )}
         </div>
 

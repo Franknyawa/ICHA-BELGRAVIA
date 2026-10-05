@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { assurerGammes } from "@/lib/gammes";
+import { libelleGamme } from "@/lib/gammesClient";
 
 /**
  * Génération des rapports admin — une seule fonction sait construire les 5
@@ -23,6 +25,8 @@ export type FiltresRapport = {
   commercialId?: string;
   villeId?: string;
   quartier?: string;
+  /** Filtre de gamme : ne concerne que les commandes / le CA (visites et recensements ne sont pas rattachés à une gamme). */
+  gammeId?: string;
 };
 
 export type Colonne = { cle: string; label: string; droite?: boolean; montant?: boolean };
@@ -50,12 +54,14 @@ function filtrePointVente(f: FiltresRapport) {
 }
 
 export async function genererRapport(groupBy: GroupBy, f: FiltresRapport): Promise<RapportResultat> {
+  await assurerGammes();
   const df = dateFilter(f);
   const pv = filtrePointVente(f);
 
   const whereCommande = {
     ...(df ? { createdAt: df } : {}),
     ...(f.commercialId ? { commercialId: f.commercialId } : {}),
+    ...(f.gammeId ? { gammeId: f.gammeId } : {}),
     ...(pv ? { pointVente: pv } : {}),
   };
   const whereVisite = {
@@ -81,6 +87,7 @@ export async function genererRapport(groupBy: GroupBy, f: FiltresRapport): Promi
         statut: true,
         commercialId: true,
         commercial: { select: { nom: true, prenom: true } },
+        gamme: { select: { code: true, nom: true } },
         pointVenteId: true,
         pointVente: { select: { nomEtablissement: true, quartier: true, villeId: true, ville: { select: { nom: true } } } },
       },
@@ -109,6 +116,7 @@ export async function genererRapport(groupBy: GroupBy, f: FiltresRapport): Promi
       ville: c.pointVente.ville?.nom || "—",
       quartier: c.pointVente.quartier || "—",
       commercial: `${c.commercial.prenom} ${c.commercial.nom}`,
+      gamme: c.gamme ? libelleGamme(c.gamme) : "—",
       modePaiement: c.modePaiement,
       montantTotal: Number(c.montantTotal),
       resteAPayer: Number(c.resteAPayer),
@@ -122,6 +130,7 @@ export async function genererRapport(groupBy: GroupBy, f: FiltresRapport): Promi
         { cle: "ville", label: "Ville" },
         { cle: "quartier", label: "Quartier" },
         { cle: "commercial", label: "Commercial" },
+        { cle: "gamme", label: "Gamme" },
         { cle: "modePaiement", label: "Paiement" },
         { cle: "montantTotal", label: "Montant", droite: true, montant: true },
         { cle: "resteAPayer", label: "Reste à payer", droite: true, montant: true },

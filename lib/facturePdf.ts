@@ -1,6 +1,7 @@
 "use client";
 
 import { libelleModePaiement } from "./pricing";
+import { NOM_APP, NOM_APP_COMPLET, SIGNATURE_APP } from "./marque";
 
 /**
  * Formate un montant avec un point comme séparateur de milliers
@@ -34,6 +35,7 @@ export type FactureLigne = {
 export type FactureData = {
   numero: string;
   date: Date;
+  gammeNom?: string; // ex. "Belgravia" ou "VDV" — affichée dans l'en-tête
   pointVenteNom: string;
   villeNom?: string | null;
   quartier?: string | null;
@@ -68,10 +70,10 @@ export async function genererFacturePdf(data: FactureData) {
   doc.setTextColor(...COULEUR_IVOIRE);
   doc.setFont("times", "italic");
   doc.setFontSize(20);
-  doc.text("Belgravia", 14, 18);
+  doc.text(NOM_APP, 14, 18);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text("Cocktails prêts à boire — recensement & prise de commande", 14, 25);
+  doc.text(data.gammeNom ? `${SIGNATURE_APP} — Gamme ${data.gammeNom}` : SIGNATURE_APP, 14, 25);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(15);
@@ -191,7 +193,7 @@ export async function genererFacturePdf(data: FactureData) {
   doc.setFontSize(8);
   doc.setTextColor(150, 145, 130);
   doc.setFont("helvetica", "italic");
-  doc.text("Merci pour votre confiance — Belgravia", largeur / 2, hauteurPage - 8, { align: "center" });
+  doc.text(`Merci pour votre confiance — ${NOM_APP_COMPLET}`, largeur / 2, hauteurPage - 8, { align: "center" });
 
   doc.save(`facture-${data.pointVenteNom.replace(/\s+/g, "-").toLowerCase()}-${data.numero}.pdf`);
 }

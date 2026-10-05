@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
     commercialId: searchParams.get("commercialId") || undefined,
     villeId: searchParams.get("villeId") || undefined,
     quartier: searchParams.get("quartier") || undefined,
+    gammeId: searchParams.get("gammeId") || undefined,
   });
 
   return NextResponse.json(resultat);

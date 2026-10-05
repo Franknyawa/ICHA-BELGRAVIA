@@ -2,6 +2,7 @@
 
 import { formaterMontant } from "./facturePdf";
 import { libelleModePaiement } from "./pricing";
+import { NOM_APP, NOM_APP_COMPLET, SIGNATURE_APP } from "./marque";
 
 /**
  * Génère le bon de livraison — même identité visuelle que la facture, mais
@@ -15,6 +16,7 @@ export type BonLivraisonLigne = { produitNom: string; quantiteCartons: number };
 
 export type BonLivraisonData = {
   numero: string;
+  gammeNom?: string;
   dateLivraison: Date;
   pointVenteNom: string;
   nomVendeur?: string | null;
@@ -51,10 +53,10 @@ export async function genererBonLivraisonPdf(data: BonLivraisonData) {
   doc.setTextColor(...COULEUR_IVOIRE);
   doc.setFont("times", "italic");
   doc.setFontSize(20);
-  doc.text("Belgravia", 14, 18);
+  doc.text(NOM_APP, 14, 18);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text("Cocktails prêts à boire — recensement & prise de commande", 14, 25);
+  doc.text(data.gammeNom ? `${SIGNATURE_APP} — Gamme ${data.gammeNom}` : SIGNATURE_APP, 14, 25);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(15);
@@ -155,7 +157,7 @@ export async function genererBonLivraisonPdf(data: BonLivraisonData) {
   doc.setFontSize(8);
   doc.setTextColor(150, 145, 130);
   doc.setFont("helvetica", "italic");
-  doc.text("Merci pour votre confiance — Belgravia", largeur / 2, hauteurPage - 8, { align: "center" });
+  doc.text(`Merci pour votre confiance — ${NOM_APP_COMPLET}`, largeur / 2, hauteurPage - 8, { align: "center" });
 
   doc.save(`bon-livraison-${data.pointVenteNom.replace(/\s+/g, "-").toLowerCase()}-${data.numero}.pdf`);
 }

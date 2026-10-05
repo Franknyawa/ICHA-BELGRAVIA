@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { visiteEvents, NOUVELLE_COMMANDE } from "@/lib/events";
 import { calculerCommande, calculerPaiement, type ModePaiementValue } from "@/lib/pricing";
+import { assurerGammes } from "@/lib/gammes";
 
 type LigneEntree = { produitId: string; quantite: number };
 
@@ -72,10 +73,8 @@ export async function POST(req: NextRequest) {
   }
   const produitIds = [...quantitesParProduit.keys()];
 
-  const [produits, paliers] = await Promise.all([
-    prisma.produit.findMany({ where: { id: { in: produitIds }, actif: true } }),
-    prisma.palierPrixCarton.findMany({ where: { actif: true }, orderBy: { cartonsMin: "asc" } }),
-  ]);
+  await assurerGammes();
+  const produits = await prisma.produit.findMany({ where: { id: { in: produitIds }, actif: true } });
 
   if (produits.length !== produitIds.length) {
     return NextResponse.json(
@@ -83,9 +82,26 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
+  // Une commande = une seule gamme (BELGRAVIA ou VDV) : la gamme se déduit
+  // des produits eux-mêmes, jamais d'une valeur envoyée par le client, et le
+  // barème appliqué est celui de cette gamme.
+  const gammeIds = new Set(produits.map((p) => p.gammeId));
+  if (gammeIds.size > 1) {
+    return NextResponse.json(
+      { error: "Une commande ne peut contenir que les produits d'une seule gamme. Créez une commande par gamme." },
+      { status: 400 }
+    );
+  }
+  const gammeId = produits[0]?.gammeId ?? null;
+
+  const paliers = await prisma.palierPrixCarton.findMany({
+    where: { actif: true, gammeId },
+    orderBy: { cartonsMin: "asc" },
+  });
   if (paliers.length === 0) {
     return NextResponse.json(
-      { error: "Aucun barème de prix configuré. Contactez l'administrateur." },
+      { error: "Aucun barème de prix configuré pour cette gamme. Contactez l'administrateur." },
       { status: 500 }
     );
   }
@@ -117,6 +133,7 @@ export async function POST(req: NextRequest) {
         uuidClient,
         pointVenteId,
         commercialId: session.userId,
+        gammeId,
         observations: observations || null,
         dateLivraison: dateLivraison ? new Date(dateLivraison) : null,
         montantTotal,
@@ -163,7 +180,12 @@ export async function POST(req: NextRequest) {
 
   const complet = await prisma.commande.findUnique({
     where: { id: commande.id },
-    include: { pointVente: { include: { ville: true } }, commercial: true, lignes: { include: { produit: true } } },
+    include: {
+      pointVente: { include: { ville: true } },
+      commercial: true,
+      gamme: true,
+      lignes: { include: { produit: true } },
+    },
   });
 
   visiteEvents.emit(NOUVELLE_COMMANDE, complet);
@@ -192,6 +214,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
   }
 
+  await assurerGammes();
   const { searchParams } = new URL(req.url);
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
   const pageSize = 20;
@@ -200,6 +223,7 @@ export async function GET(req: NextRequest) {
   const villeId = searchParams.get("villeId") || undefined;
   const modePaiement = searchParams.get("modePaiement") || undefined;
   const statut = searchParams.get("statut") || undefined;
+  const gammeId = searchParams.get("gammeId") || undefined;
   const dateFrom = searchParams.get("dateFrom");
   const dateTo = searchParams.get("dateTo");
 
@@ -208,6 +232,7 @@ export async function GET(req: NextRequest) {
     ...(villeId ? { pointVente: { villeId } } : {}),
     ...(modePaiement ? { modePaiement: modePaiement as any } : {}),
     ...(statut ? { statut: statut as any } : {}),
+    ...(gammeId ? { gammeId } : {}),
     ...(dateFrom || dateTo
       ? {
           createdAt: {
@@ -234,6 +259,7 @@ export async function GET(req: NextRequest) {
       include: {
         pointVente: { include: { ville: true } },
         commercial: true,
+        gamme: true,
         lignes: { include: { produit: true } },
       },
     }),
