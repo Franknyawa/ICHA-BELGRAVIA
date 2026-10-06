@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { visiteEvents, NOUVELLE_COMMANDE } from "@/lib/events";
 import { calculerCommande, calculerPaiement, type ModePaiementValue } from "@/lib/pricing";
 import { assurerGammes } from "@/lib/gammes";
 
@@ -184,18 +183,6 @@ export async function POST(req: NextRequest) {
 
     return c;
   });
-
-  const complet = await prisma.commande.findUnique({
-    where: { id: commande.id },
-    include: {
-      pointVente: { include: { ville: true } },
-      commercial: true,
-      gamme: true,
-      lignes: { include: { produit: true } },
-    },
-  });
-
-  visiteEvents.emit(NOUVELLE_COMMANDE, complet);
 
   return NextResponse.json({
     id: commande.id,

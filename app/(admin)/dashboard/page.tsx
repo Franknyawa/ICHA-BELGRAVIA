@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { usePolling } from "@/lib/usePolling";
 import Link from "next/link";
 import { IconDownload, IconStorefront, IconPin } from "@/components/icons";
 
@@ -78,13 +79,23 @@ export default function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtres]);
 
+  // Nouvelles visites : sondage léger toutes les 20 s (onglet visible).
+  const depuisRef = useRef<string | null>(null);
+  async function sonder() {
+    const res = await fetch(`/api/live${depuisRef.current ? `?since=${encodeURIComponent(depuisRef.current)}` : ""}`);
+    if (!res.ok) return;
+    const d = await res.json();
+    if (depuisRef.current && d.visites > 0) setNouveaux((n) => n + d.visites);
+    depuisRef.current = d.maintenant;
+  }
   useEffect(() => {
-    const source = new EventSource("/api/visites/stream");
-    source.addEventListener("nouvelle-visite", () => setNouveaux((n) => n + 1));
-    return () => source.close();
+    sonder(); // point de départ dès l'ouverture de la page
   }, []);
+  usePolling(sonder, 20000);
 
   function rafraichir() {
+    depuisRef.current = null;
+    sonder();
     setNouveaux(0);
     charger(1);
     setPage(1);

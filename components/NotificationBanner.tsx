@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { IconTrend } from "@/components/icons";
+import { usePolling } from "@/lib/usePolling";
 
 type Notification = { id: string; message: string; lu: boolean; createdAt: string };
 
 /**
  * Affiche les notifications adressées au commercial connecté (ex. "commande
  * en cours de livraison" — voir app/api/commandes/[id]/statut/route.ts).
- * Charge la liste au montage, reste à jour en temps réel via SSE, et permet
+ * Charge la liste au montage, se met à jour par sondage régulier, et permet
  * de les marquer comme lues individuellement ou toutes à la fois.
  */
 export default function NotificationBanner() {
@@ -25,18 +26,9 @@ export default function NotificationBanner() {
     charger();
   }, [charger]);
 
-  useEffect(() => {
-    const source = new EventSource("/api/notifications/stream");
-    source.addEventListener("nouvelle-notification", (e) => {
-      try {
-        const notif = JSON.parse((e as MessageEvent).data);
-        setNotifications((prev) => [notif, ...prev]);
-      } catch {
-        /* ignore */
-      }
-    });
-    return () => source.close();
-  }, []);
+  // Mise à jour toutes les 20 s tant que l'appli est visible (et dès le
+  // retour sur l'appli) — remplace l'ancien flux SSE, peu fiable sur Vercel.
+  usePolling(charger, 20000);
 
   async function marquerLue(id: string) {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, lu: true } : n)));

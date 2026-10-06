@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { usePolling } from "@/lib/usePolling";
 import { IconReceipt, IconCheckCircle, IconClock, IconDownload, IconStorefront, IconAlert } from "@/components/icons";
 import { genererBonLivraisonPdf } from "@/lib/bonLivraisonPdf";
 import GammeTabs from "@/components/GammeTabs";
@@ -75,13 +76,23 @@ export default function CommandesPage() {
     charger();
   }, [charger]);
 
+  // Nouvelles commandes : sondage léger toutes les 20 s (onglet visible).
+  const depuisRef = useRef<string | null>(null);
+  async function sonder() {
+    const res = await fetch(`/api/live${depuisRef.current ? `?since=${encodeURIComponent(depuisRef.current)}` : ""}`);
+    if (!res.ok) return;
+    const d = await res.json();
+    if (depuisRef.current && d.commandes > 0) setNouvelles((n) => n + d.commandes);
+    depuisRef.current = d.maintenant;
+  }
   useEffect(() => {
-    const source = new EventSource("/api/commandes/stream");
-    source.addEventListener("nouvelle-commande", () => setNouvelles((n) => n + 1));
-    return () => source.close();
+    sonder(); // point de départ dès l'ouverture de la page
   }, []);
+  usePolling(sonder, 20000);
 
   function rafraichir() {
+    depuisRef.current = null;
+    sonder();
     setNouvelles(0);
     charger();
   }

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { visiteEvents, NOUVELLE_NOTIFICATION } from "@/lib/events";
 
 const TRANSITIONS_VALIDES: Record<string, string[]> = {
   NON_TRAITEE: ["EN_COURS_LIVRAISON"],
@@ -14,7 +13,7 @@ const TRANSITIONS_VALIDES: Record<string, string[]> = {
  * ("Valider") crée une notification pour le commercial qui a enregistré la
  * commande, avec le nom du vendeur et le quartier du point de vente, et
  * l'émet en temps réel (SSE) s'il est connecté (voir
- * app/api/notifications/stream/route.ts).
+ * components/NotificationBanner.tsx).
  */
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getSession();
@@ -51,11 +50,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       commande.pointVente.quartier ? ` (${commande.pointVente.quartier})` : ""
     } en cours de livraison.`;
 
-    const notification = await prisma.notification.create({
+    // Le commercial la reçoit au prochain sondage (≤ 20 s), voir NotificationBanner.
+    await prisma.notification.create({
       data: { commercialId: commande.commercialId, commandeId: commande.id, message },
     });
-
-    visiteEvents.emit(NOUVELLE_NOTIFICATION, { commercialId: commande.commercialId, notification });
   }
 
   return NextResponse.json({ id: misAJour.id, statut: misAJour.statut });

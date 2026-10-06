@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { visiteEvents, NOUVELLE_VISITE } from "@/lib/events";
 import { construireFiltreVisites } from "@/lib/visiteFiltres";
 
 /**
@@ -111,14 +110,6 @@ export async function POST(req: NextRequest) {
 
     return v;
   });
-
-  const complet = await prisma.visite.findUnique({
-    where: { id: visite.id },
-    include: { pointVente: { include: { ville: true, type: true } } },
-  });
-
-  // Diffusion temps réel vers le dashboard admin (§4.2 CDC).
-  visiteEvents.emit(NOUVELLE_VISITE, complet);
 
   return NextResponse.json({ id: visite.id, dejaEnregistree: false, pointVenteId: visite.pointVenteId });
 }
