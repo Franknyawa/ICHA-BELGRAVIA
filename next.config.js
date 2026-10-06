@@ -11,7 +11,13 @@ const enTetesSecurite = [
 
 const nextConfig = {
   poweredByHeader: false,
-  experimental: { serverActions: { bodySizeLimit: "10mb" } },
+  experimental: {
+    serverActions: { bodySizeLimit: "10mb" },
+    // Clients FTP/SFTP du stockage des photos : ssh2 embarque un module natif
+    // (.node) que webpack ne sait pas empaqueter. Ces paquets doivent rester
+    // des dépendances Node chargées à l'exécution, hors du bundle.
+    serverComponentsExternalPackages: ["ssh2", "ssh2-sftp-client", "basic-ftp", "cpu-features"],
+  },
   async headers() {
     return [
       { source: "/:path*", headers: enTetesSecurite },
