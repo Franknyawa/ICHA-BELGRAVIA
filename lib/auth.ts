@@ -30,7 +30,18 @@ function getSecret() {
  * `lastSeenAt`, pour qu'une session laissée inactive reste invalide même
  * si le JavaScript client n'a pas pu s'exécuter (onglet fermé, etc.).
  */
+let cacheDuree: { minutes: number; expire: number } | null = null;
+
 export async function getDureeInactiviteMinutes(): Promise<number> {
+  // Mise en cache 60 s : cette valeur est lue à CHAQUE requête
+  // authentifiée, inutile d'interroger la base à chaque fois.
+  if (cacheDuree && cacheDuree.expire > Date.now()) return cacheDuree.minutes;
+  const minutes = await lireDureeInactiviteEnBase();
+  cacheDuree = { minutes, expire: Date.now() + 60_000 };
+  return minutes;
+}
+
+async function lireDureeInactiviteEnBase(): Promise<number> {
   const param = await prisma.parametreSysteme.findUnique({ where: { cle: CLE_DUREE_INACTIVITE } });
   const minutes = param ? Number(param.valeur) : NaN;
   return Number.isFinite(minutes) && minutes > 0 ? minutes : DUREE_INACTIVITE_DEFAUT_MINUTES;
@@ -42,6 +53,7 @@ export async function definirDureeInactiviteMinutes(minutes: number): Promise<vo
     update: { valeur: String(minutes) },
     create: { cle: CLE_DUREE_INACTIVITE, valeur: String(minutes) },
   });
+  cacheDuree = null;
 }
 
 export type SessionPayload = {
@@ -87,8 +99,13 @@ export async function getSession(): Promise<SessionPayload | null> {
   try {
     const { payload } = await jwtVerify(token, getSecret());
     const sessionId = payload.jti as string;
-    const session = await prisma.session.findUnique({ where: { id: sessionId } });
-    if (!session || session.revoked || session.expiresAt < new Date()) return null;
+    // Une seule requête : session + état du compte. Un compte désactivé
+    // perd l'accès immédiatement, sans attendre l'expiration de sa session.
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: { user: { select: { actif: true } } },
+    });
+    if (!session || session.revoked || session.expiresAt < new Date() || !session.user.actif) return null;
 
     // Déconnexion automatique après N minutes d'inactivité (réglable —
     // Paramètres) : filet de sécurité serveur, en plus de la déconnexion
@@ -105,7 +122,10 @@ export async function getSession(): Promise<SessionPayload | null> {
     // Alimente "dernière activité" affichée dans le back office (voir
     // "Sessions actives" — app/(admin)/utilisateurs/page.tsx). Best-effort,
     // ne doit jamais faire échouer la requête en cours.
-    prisma.session.update({ where: { id: sessionId }, data: { lastSeenAt: new Date() } }).catch(() => {});
+    // Limité à 1 écriture/minute par session (au lieu d'une à chaque appel API).
+    if (inactifDepuis > 60_000) {
+      prisma.session.update({ where: { id: sessionId }, data: { lastSeenAt: new Date() } }).catch(() => {});
+    }
 
     return {
       sessionId,

@@ -98,7 +98,9 @@ export async function POST(req: NextRequest) {
 
     if (Array.isArray(photos) && photos.length > 0) {
       await tx.photo.createMany({
-        data: photos.map((p: { uuidClient: string; url: string }) => ({
+        data: photos
+          .filter((p: { url?: unknown }) => typeof p.url === "string" && /^(\/uploads\/|https:\/\/)/.test(p.url))
+          .map((p: { uuidClient: string; url: string }) => ({
           uuidClient: p.uuidClient,
           pointVenteId: pv.id,
           visiteId: v.id,

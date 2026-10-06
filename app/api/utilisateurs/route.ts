@@ -39,10 +39,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Rôle invalide." }, { status: 400 });
   }
 
+  if (typeof motDePasse !== "string" || motDePasse.length < 8) {
+    return NextResponse.json({ error: "Le mot de passe doit contenir au moins 8 caractères." }, { status: 400 });
+  }
+
   const existant = await prisma.user.findUnique({ where: { identifiant } });
   if (existant) return NextResponse.json({ error: "Cet identifiant existe déjà." }, { status: 409 });
 
-  const passwordHash = await bcrypt.hash(motDePasse, 10);
+  const passwordHash = await bcrypt.hash(motDePasse, 12);
   const user = await prisma.user.create({
     data: { identifiant, passwordHash, role, nom, prenom, telephone: telephone || null, villeId: villeId || null },
   });

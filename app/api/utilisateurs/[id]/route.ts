@@ -12,6 +12,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const { actif, nom, prenom, telephone, villeId, role, nouveauMotDePasse } = await req.json();
 
+  if (role !== undefined && role !== "ADMIN" && role !== "COMMERCIAL") {
+    return NextResponse.json({ error: "Rôle invalide." }, { status: 400 });
+  }
+  if (nouveauMotDePasse && (typeof nouveauMotDePasse !== "string" || nouveauMotDePasse.length < 8)) {
+    return NextResponse.json({ error: "Le mot de passe doit contenir au moins 8 caractères." }, { status: 400 });
+  }
+  // Évite de s'enfermer dehors : on ne se désactive pas / ne se rétrograde pas soi-même.
+  if (params.id === session.userId && (actif === false || (role !== undefined && role !== "ADMIN"))) {
+    return NextResponse.json(
+      { error: "Vous ne pouvez pas désactiver ou rétrograder votre propre compte." },
+      { status: 400 }
+    );
+  }
+
   const data: Prisma.UserUpdateInput = {};
   if (actif !== undefined) data.actif = !!actif;
   if (nom !== undefined) data.nom = nom;
@@ -19,9 +33,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (telephone !== undefined) data.telephone = telephone || null;
   if (villeId !== undefined) data.villeId = villeId || null;
   if (role !== undefined) data.role = role;
-  if (nouveauMotDePasse) data.passwordHash = await bcrypt.hash(nouveauMotDePasse, 10);
+  if (nouveauMotDePasse) data.passwordHash = await bcrypt.hash(nouveauMotDePasse, 12);
 
   const user = await prisma.user.update({ where: { id: params.id }, data });
+
+  // Désactivation, changement de rôle ou de mot de passe : les sessions déjà
+  // ouvertes ne doivent pas survivre.
+  if (actif === false || role !== undefined || nouveauMotDePasse) {
+    await prisma.session.updateMany({ where: { userId: params.id }, data: { revoked: true } });
+  }
   return NextResponse.json({ id: user.id });
 }
 

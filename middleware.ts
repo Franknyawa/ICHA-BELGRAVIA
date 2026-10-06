@@ -3,41 +3,55 @@ import { jwtVerify } from "jose";
 
 const COOKIE_NAME = "belgravia_session";
 
+// Aucune valeur de secours : sans SESSION_SECRET, on refuse tout plutôt que
+// de signer/vérifier avec un secret connu de tout le monde.
 function getSecret() {
-  return new TextEncoder().encode(process.env.SESSION_SECRET || "dev-secret-change-me");
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) return null;
+  return new TextEncoder().encode(secret);
+}
+
+const PREFIXES_ADMIN = [
+  "/dashboard",
+  "/utilisateurs",
+  "/statistiques",
+  "/commandes",
+  "/produits",
+  "/tableau-de-bord",
+  "/parametres",
+  "/tracking",
+  "/points-de-vente",
+  "/rapports",
+  "/stock",
+  "/factures",
+  "/alertes",
+];
+
+function sous(pathname: string, prefix: string) {
+  return pathname === prefix || pathname.startsWith(prefix + "/");
 }
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const isCommercialArea = pathname.startsWith("/terrain");
-  const isAdminArea =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/utilisateurs") ||
-    pathname.startsWith("/statistiques") ||
-    pathname.startsWith("/commandes") ||
-    pathname.startsWith("/produits") ||
-    pathname.startsWith("/tableau-de-bord") ||
-    pathname.startsWith("/parametres") ||
-    pathname.startsWith("/tracking");
-
+  const isCommercialArea = sous(pathname, "/terrain");
+  const isAdminArea = PREFIXES_ADMIN.some((p) => sous(pathname, p));
   if (!isCommercialArea && !isAdminArea) return NextResponse.next();
 
+  const vers = (chemin: string) => NextResponse.redirect(new URL(chemin, req.url));
+
   const token = req.cookies.get(COOKIE_NAME)?.value;
-  if (!token) return NextResponse.redirect(new URL("/login", req.url));
+  const secret = getSecret();
+  if (!token || !secret) return vers("/login");
 
   try {
-    const { payload } = await jwtVerify(token, getSecret());
+    const { payload } = await jwtVerify(token, secret);
     const role = payload.role as string;
-    if (isCommercialArea && role !== "COMMERCIAL") {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-    if (isAdminArea && role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
+    if (isCommercialArea && role !== "COMMERCIAL") return vers("/login");
+    if (isAdminArea && role !== "ADMIN") return vers("/login");
     return NextResponse.next();
   } catch {
-    return NextResponse.redirect(new URL("/login", req.url));
+    return vers("/login");
   }
 }
 
@@ -52,5 +66,10 @@ export const config = {
     "/tableau-de-bord/:path*",
     "/parametres/:path*",
     "/tracking/:path*",
+    "/points-de-vente/:path*",
+    "/rapports/:path*",
+    "/stock/:path*",
+    "/factures/:path*",
+    "/alertes/:path*",
   ],
 };

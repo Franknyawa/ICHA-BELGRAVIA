@@ -16,8 +16,8 @@ export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
 
-  const { dataUrl } = await req.json();
-  if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.startsWith("data:image/")) {
+  const { dataUrl } = await req.json().catch(() => ({}));
+  if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.startsWith("data:image/") || dataUrl.length > 9_000_000) {
     return NextResponse.json({ error: "Image invalide." }, { status: 400 });
   }
 

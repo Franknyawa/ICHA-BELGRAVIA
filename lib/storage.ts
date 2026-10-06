@@ -24,12 +24,16 @@ import { v4 as uuid } from "uuid";
  * fonctionne (le cas le plus fréquent en mutualisé) → utilise "ftp".
  */
 export async function stockerPhoto(dataUrl: string): Promise<string> {
-  const matches = dataUrl.match(/^data:image\/(\w+);base64,(.+)$/);
-  if (!matches) throw new Error("Format d'image invalide.");
+  // Liste blanche stricte : l'extension finit dans le nom du fichier servi
+  // publiquement — accepter n'importe quel type permettrait de déposer un
+  // .html ou .svg (XSS stocké) sur le domaine des photos.
+  const matches = dataUrl.match(/^data:image\/(jpeg|jpg|png|webp);base64,([A-Za-z0-9+/=]+)$/);
+  if (!matches) throw new Error("Format d'image invalide (JPEG, PNG ou WebP uniquement).");
   const [, ext, base64] = matches;
   const extension = ext === "jpeg" ? "jpg" : ext;
   const filename = `${uuid()}.${extension}`;
   const buffer = Buffer.from(base64, "base64");
+  if (buffer.length > 6 * 1024 * 1024) throw new Error("Image trop volumineuse (6 Mo maximum).");
 
   switch (process.env.STORAGE_DRIVER) {
     case "s3":

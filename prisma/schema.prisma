@@ -100,6 +100,12 @@ model User {
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
+  // Protection anti force brute : après plusieurs mots de passe erronés
+  // d'affilée, le compte est verrouillé quelques minutes (voir
+  // app/api/auth/login/route.ts).
+  tentativesEchec  Int       @default(0) @map("tentatives_echec")
+  verrouilleJusqua DateTime? @map("verrouille_jusqua")
+
   // Position "en direct" — alimentée par un battement envoyé depuis la PWA
   // terrain tant que l'application reste ouverte (voir
   // components/LocationHeartbeat.tsx). Ce n'est pas un suivi permanent en

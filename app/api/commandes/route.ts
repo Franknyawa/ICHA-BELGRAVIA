@@ -59,7 +59,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ id: existante.id, dejaEnregistree: true });
   }
 
-  const lignesValides = lignes.filter((l) => l.produitId && l.quantite > 0);
+  const lignesValides = lignes.filter(
+    (l) => l.produitId && Number.isInteger(l.quantite) && l.quantite > 0 && l.quantite <= 100000
+  );
   if (lignesValides.length === 0) {
     return NextResponse.json({ error: "Au moins une ligne de produit valide est requise." }, { status: 400 });
   }
@@ -72,6 +74,11 @@ export async function POST(req: NextRequest) {
     quantitesParProduit.set(l.produitId, (quantitesParProduit.get(l.produitId) || 0) + l.quantite);
   }
   const produitIds = [...quantitesParProduit.keys()];
+
+  const pointVenteExiste = await prisma.pointVente.findUnique({ where: { id: pointVenteId }, select: { id: true } });
+  if (!pointVenteExiste) {
+    return NextResponse.json({ error: "Point de vente introuvable." }, { status: 400 });
+  }
 
   await assurerGammes();
   const produits = await prisma.produit.findMany({ where: { id: { in: produitIds }, actif: true } });

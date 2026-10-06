@@ -5,7 +5,10 @@ import { construireFiltreVisites } from "@/lib/visiteFiltres";
 
 function csvEscape(value: unknown): string {
   if (value === null || value === undefined) return "";
-  const str = String(value);
+  let str = String(value);
+  // Neutralise l'injection de formule (Excel/Sheets) : une cellule qui
+  // commence par = + - @ serait exécutée à l'ouverture du fichier.
+  if (/^[=+\-@\t\r]/.test(str) && Number.isNaN(Number(str))) str = "'" + str;
   return /[",\n;]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
 }
 
