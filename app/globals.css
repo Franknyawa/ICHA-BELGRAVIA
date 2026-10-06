@@ -79,6 +79,24 @@
   }
 }
 
+/* Page de connexion — bulles qui montent dans les verres. Un seul mouvement,
+   lent ; désactivé pour les personnes qui préfèrent moins d'animations. */
+@keyframes bulle {
+  0% { transform: translateY(0); opacity: 0; }
+  15% { opacity: 0.9; }
+  80% { opacity: 0.6; }
+  100% { transform: translateY(var(--dy, -120px)); opacity: 0; }
+}
+.bulle {
+  opacity: 0.6;
+  animation-name: bulle;
+  animation-timing-function: ease-in;
+  animation-iteration-count: infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bulle { animation: none; }
+}
+
 /* Impression — utilisé par la page Rapports (bouton "Imprimer") : masque
    la navigation admin et les contrôles interactifs, ne garde que le
    contenu du rapport en pleine largeur. */

@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle";
-import CoupeIllustration from "@/components/CoupeIllustration";
+import ChampagneScene from "@/components/ChampagneScene";
 import GoldRule from "@/components/GoldRule";
 import InstallButton from "@/components/InstallButton";
 import { IconUser, IconLock } from "@/components/icons";
@@ -51,68 +51,97 @@ function LoginForm() {
   }
 
   return (
-    <main className="min-h-screen lg:grid lg:grid-cols-2">
-      {/* Volet de marque — vert émeraude profond + or, indépendant du mode
+    <main className="min-h-screen lg:grid lg:grid-cols-[1.12fr_1fr]">
+      {/* Volet de marque — minuit bordeaux + or champagne, indépendant du mode
           clair/sombre choisi par la personne. */}
-      <div className="relative hidden overflow-hidden bg-[#0F3D2E] px-14 py-14 text-[#F5EFDF] lg:flex lg:flex-col lg:justify-between">
+      <aside className="relative hidden overflow-hidden bg-[#14070F] text-[#F4EBDD] lg:flex lg:min-h-screen lg:flex-col lg:justify-between lg:px-16 lg:py-14">
+        {/* Lumières : bordeaux derrière les verres, champagne en coin */}
         <div
-          className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full opacity-20 blur-3xl"
-          style={{ background: "radial-gradient(circle, #D4AF6A 0%, transparent 70%)" }}
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(55% 45% at 50% 38%, rgba(122,32,62,0.55) 0%, transparent 70%), radial-gradient(40% 30% at 0% 0%, rgba(230,204,154,0.14) 0%, transparent 70%), radial-gradient(50% 40% at 100% 100%, rgba(90,27,53,0.5) 0%, transparent 70%)",
+          }}
         />
+        {/* Grain fin, esprit étiquette papier */}
         <div
-          className="pointer-events-none absolute -bottom-32 -left-16 h-96 w-96 rounded-full opacity-10 blur-3xl"
-          style={{ background: "radial-gradient(circle, #D4AF6A 0%, transparent 70%)" }}
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.08] mix-blend-overlay"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+          }}
         />
+        {/* Filet d'étiquette */}
+        <div aria-hidden className="pointer-events-none absolute inset-5 rounded-sm border border-[#E6CC9A]/20" />
 
-        <div className="relative flex items-center gap-3">
-          <span className="h-px w-8 bg-[#D4AF6A]" />
-          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-[#D4AF6A]">
-            Belgravia / VDV
-          </span>
+        <header className="relative">
+          <p className="font-display text-3xl italic leading-none text-[#F7EBD0]">Belgravia / VDV</p>
+          <p className="mt-2 text-xs tracking-[0.22em] text-[#E6CC9A]/80">by ICHA IMPORT</p>
+        </header>
+
+        <div className="relative my-6 min-h-[240px] flex-1">
+          <ChampagneScene className="absolute inset-0 h-full w-full" />
         </div>
 
-        <div className="relative flex flex-col items-start gap-8">
-          <CoupeIllustration className="h-44 w-44 text-[#D4AF6A]" />
-          <p className="font-display text-6xl italic leading-[1.05] text-[#F5EFDF]">
+        <div className="relative">
+          <h2 className="bg-gradient-to-b from-[#FBF1D8] via-[#E6CC9A] to-[#B8893F] bg-clip-text font-display text-[clamp(3.2rem,4.8vw,5.2rem)] italic leading-[0.98] tracking-[-0.01em] text-transparent">
             Le terrain,
             <br />
             servi frais.
+          </h2>
+          <p className="mt-6 max-w-md text-[15px] leading-relaxed text-[#F4EBDD]/70">
+            Recensez les points de vente, prenez les commandes et suivez vos tournées — Belgravia et Veuve du Vernay, au même endroit.
           </p>
-          <p className="max-w-xs text-sm leading-relaxed text-[#F5EFDF]/70">
-            Recensement des points de vente, commandes et suivi commercial pour
-            les cocktails BELGRAVIA et les vins mousseux Veuve du Vernay.
+
+          <dl className="mt-8 grid max-w-md grid-cols-2 gap-6 border-t border-[#E6CC9A]/25 pt-5">
+            <div>
+              <dt className="font-display text-xl text-[#F7EBD0]">Belgravia</dt>
+              <dd className="mt-1 text-sm text-[#F4EBDD]/60">Cocktails au gin prêts à boire</dd>
+            </div>
+            <div>
+              <dt className="font-display text-xl text-[#F7EBD0]">Veuve du Vernay</dt>
+              <dd className="mt-1 text-sm text-[#F4EBDD]/60">Vins mousseux, cinq saveurs</dd>
+            </div>
+          </dl>
+
+          <p className="mt-10 text-xs text-[#F4EBDD]/40">
+            © {new Date().getFullYear()} BELGRAVIA / VDV by ICHA IMPORT — usage interne
           </p>
         </div>
-
-        <p className="relative text-xs text-[#F5EFDF]/50">
-          © {new Date().getFullYear()} BELGRAVIA / VDV by ICHA IMPORT — usage interne
-        </p>
-      </div>
+      </aside>
 
       {/* Volet formulaire */}
-      <div className="relative flex min-h-screen flex-col items-center justify-center px-6 py-12">
-        <div className="absolute right-4 top-4 flex items-center gap-2">
+      <section className="relative flex min-h-screen flex-col bg-[radial-gradient(circle_at_100%_0%,rgb(var(--color-brass)/0.12),transparent_45%)]">
+        <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
           <InstallButton />
           <ThemeToggle />
         </div>
 
-        <div className="w-full max-w-sm">
-          <div className="mb-10 text-center lg:hidden">
-            <p className="font-display text-4xl italic text-ink">Belgravia / VDV</p>
-            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.25em] text-brass">by ICHA IMPORT</p>
-            <p className="mt-2 text-sm text-ink-muted">Recensement &amp; commandes terrain</p>
-            <GoldRule className="mx-auto mt-4 max-w-[140px]" />
+        {/* En-tête mobile : même univers que le volet de marque */}
+        <div className="relative overflow-hidden rounded-b-[2rem] bg-[#14070F] px-6 pb-12 pt-10 text-center lg:hidden">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{ background: "radial-gradient(70% 70% at 50% 40%, rgba(122,32,62,0.55) 0%, transparent 70%)" }}
+          />
+          <div className="relative">
+            <ChampagneScene className="mx-auto h-40 w-auto" />
+            <p className="mt-4 font-display text-4xl italic leading-none text-[#F7EBD0]">Belgravia / VDV</p>
+            <p className="mt-2 text-xs tracking-[0.22em] text-[#E6CC9A]/80">by ICHA IMPORT</p>
           </div>
+        </div>
 
-          <div className="mb-8 hidden text-center lg:block">
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-ink-muted">
-              Espace connecté
-            </p>
-            <h1 className="mt-2 font-display text-4xl italic text-ink">Bon retour</h1>
-            <GoldRule className="mx-auto mt-4 max-w-[140px]" />
-          </div>
+        <div className="flex flex-1 items-center justify-center px-6 py-10 max-lg:-mt-6 max-lg:items-start">
+          <div className="w-full max-w-sm">
+            <div className="mb-8 hidden text-center lg:block">
+              <h1 className="font-display text-5xl italic text-ink">Bon retour</h1>
+              <p className="mt-3 text-sm text-ink-muted">Connectez-vous pour accéder à vos visites, commandes et rapports.</p>
+              <GoldRule className="mx-auto mt-5 max-w-[140px]" />
+            </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-line border-t-2 border-t-brass bg-bg-card p-6 shadow-sm">
+          <form onSubmit={handleSubmit} className="relative space-y-5 overflow-hidden rounded-2xl border border-line bg-bg-card p-7 shadow-[0_40px_70px_-40px_rgb(70_20_35/0.45)]">
             <div>
               <label className="field-label" htmlFor="identifiant">
                 Identifiant
@@ -170,18 +199,26 @@ function LoginForm() {
               </div>
             </div>
 
-            {erreur && <p className="text-sm text-danger">{erreur}</p>}
+            {erreur && (
+              <p role="alert" className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+                {erreur}
+              </p>
+            )}
 
-            <button type="submit" className="btn-primary w-full" disabled={enCours}>
+            <button
+              type="submit"
+              className="btn-primary w-full !bg-gradient-to-b !from-[#E6CC9A] !to-[#B8893F] !py-3.5 !text-[#2A1020] shadow-[0_10px_24px_-10px_rgb(184_137_63/0.9)]"
+              disabled={enCours}
+            >
               {enCours ? "Connexion…" : "Se connecter"}
             </button>
+            <span aria-hidden className="absolute inset-x-8 top-0 !m-0 h-px bg-gradient-to-r from-transparent via-[#D9B45E] to-transparent" />
           </form>
 
-          <p className="mt-6 text-center text-xs text-ink-muted lg:hidden">
-            Recensement des points de vente, commandes et suivi commercial.
-          </p>
+            <p className="mt-6 text-center text-xs text-ink-muted">Accès réservé à l&apos;équipe ICHA IMPORT.</p>
+          </div>
         </div>
-      </div>
+      </section>
     </main>
   );
 }
