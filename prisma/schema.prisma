@@ -34,6 +34,7 @@ model TypeEtablissement {
   actif       Boolean      @default(true)
   ordre       Int          @default(0)
   pointsVente PointVente[]
+  pointsVenteLies PointVenteType[]
 
   @@map("types_etablissement")
 }
@@ -225,7 +226,9 @@ enum PotentielEstime {
 }
 
 enum Repondant {
-  GERANT_PATRON
+  GERANT_PATRON // ancien libellé, conservé pour les visites déjà saisies
+  PATRON
+  GERANT
   EMPLOYE
   AUTRE
 }
@@ -236,6 +239,7 @@ model PointVente {
   nomEtablissement  String             @map("nom_etablissement")
   nomVendeur        String?            @map("nom_vendeur")
   telVendeur        String?            @map("tel_vendeur")
+  nomPatron         String?            @map("nom_patron")
   telPatron         String?            @map("tel_patron")
   villeId           String?            @map("ville_id")
   ville             Ville?             @relation(fields: [villeId], references: [id])
@@ -244,6 +248,10 @@ model PointVente {
   typeId            String?            @map("type_id")
   type              TypeEtablissement? @relation(fields: [typeId], references: [id])
   typeAutrePrecision String?           @map("type_autre_precision")
+  // Un établissement peut cumuler plusieurs types (ex. bar + restaurant) :
+  // la liste complète est dans typesLies ; typeId garde le premier choisi
+  // ("type principal") pour les anciennes données, filtres et statistiques.
+  typesLies         PointVenteType[]
   latitude          Decimal?           @db.Decimal(10, 7)
   longitude         Decimal?           @db.Decimal(10, 7)
   precisionGps      Decimal?           @map("precision_gps") @db.Decimal(6, 2)
@@ -263,6 +271,18 @@ model PointVente {
   @@index([typeId])
   @@index([createdAt])
   @@map("points_vente")
+}
+
+/// Liaison point de vente ↔ types d'établissement (choix multiple).
+model PointVenteType {
+  pointVenteId String            @map("point_vente_id")
+  pointVente   PointVente        @relation(fields: [pointVenteId], references: [id], onDelete: Cascade)
+  typeId       String            @map("type_id")
+  type         TypeEtablissement @relation(fields: [typeId], references: [id])
+
+  @@id([pointVenteId, typeId])
+  @@index([typeId])
+  @@map("points_vente_types")
 }
 
 /// Une "visite" = un remplissage complet du formulaire terrain (sections 3 et 4
@@ -286,6 +306,10 @@ model Visite {
   fournisseurMarche    Boolean          @default(false) @map("fournisseur_marche")
   fournisseurLivraison Boolean          @default(false) @map("fournisseur_livraison")
   fournisseurNeSaitPas Boolean          @default(false) @map("fournisseur_ne_sait_pas")
+  fournisseurAutre     Boolean          @default(false) @map("fournisseur_autre")
+  fournisseurAutrePrecision String?     @map("fournisseur_autre_precision")
+  salleClimatisee      Boolean?         @map("salle_climatisee")
+  ecranTv              Boolean?         @map("ecran_tv")
 
   // Section 4 — Qualification commerciale
   potentielEstime      PotentielEstime?  @map("potentiel_estime")

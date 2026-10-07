@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { construireFiltreVisites } from "@/lib/visiteFiltres";
+import { libelleTypes, libelleRepondant } from "@/lib/typesEtablissement";
 
 function csvEscape(value: unknown): string {
   if (value === null || value === undefined) return "";
@@ -22,17 +23,17 @@ export async function GET(req: NextRequest) {
     where,
     orderBy: { createdAt: "desc" },
     include: {
-      pointVente: { include: { ville: true, type: true, createdBy: true } },
+      pointVente: { include: { ville: true, type: true, typesLies: { include: { type: true } }, createdBy: true } },
       marquesPresentes: { include: { marque: true } },
     },
   });
 
   const colonnes = [
-    "Date visite", "Agent", "Établissement", "Vendeur", "Tél. vendeur", "Ville", "Quartier",
+    "Date visite", "Agent", "Établissement", "Répondant", "Nom du contact", "Tél. du contact", "Nom du patron", "Tél. du patron", "Ville", "Quartier",
     "Type", "Latitude", "Longitude", "Vend spiritueux", "Vins mousseux / Champagnes (prix FCFA)",
     "Cocktails RTD (prix FCFA)", "Autres marques",
-    "Capacité estimée", "Jours / heures d'affluence", "Fournisseur", "Potentiel estimé", "Intéressé visite",
-    "Répondant", "Veut commander", "Observations",
+    "Capacité estimée", "Salle climatisée", "Écran TV", "Jours / heures d'affluence", "Fournisseur", "Potentiel estimé", "Intéressé visite",
+    "Veut commander", "Observations",
   ];
 
   const lignes = visites.map((v) => {
@@ -41,6 +42,7 @@ export async function GET(req: NextRequest) {
       v.fournisseurGrossiste && "Grossiste",
       v.fournisseurMarche && "Marché",
       v.fournisseurLivraison && "Livraison directe",
+      v.fournisseurAutre && (v.fournisseurAutrePrecision ? `Autre (${v.fournisseurAutrePrecision})` : "Autre"),
       v.fournisseurNeSaitPas && "Ne sait pas",
     ].filter(Boolean).join(" / ");
     const libelleMarque = (m: (typeof v.marquesPresentes)[number]) => {
@@ -64,11 +66,14 @@ export async function GET(req: NextRequest) {
       new Date(v.dateVisite).toLocaleString("fr-FR"),
       `${pv.createdBy.prenom} ${pv.createdBy.nom}`,
       pv.nomEtablissement,
+      libelleRepondant(v.repondant, v.repondantAutrePrecision),
       pv.nomVendeur,
       pv.telVendeur,
+      pv.nomPatron,
+      pv.telPatron,
       pv.ville?.nom,
       pv.quartier,
-      pv.type?.nom || pv.typeAutrePrecision,
+      libelleTypes(pv),
       pv.latitude,
       pv.longitude,
       v.vendSpiritueux === null ? "" : v.vendSpiritueux ? "Oui" : "Non",
@@ -76,11 +81,12 @@ export async function GET(req: NextRequest) {
       parCategorie("RTD"),
       autres,
       v.capaciteEstimee,
+      v.salleClimatisee === null ? "" : v.salleClimatisee ? "Oui" : "Non",
+      v.ecranTv === null ? "" : v.ecranTv ? "Oui" : "Non",
       affluence,
       fournisseur,
       v.potentielEstime,
       v.interesseVisiteCommerciale === null ? "" : v.interesseVisiteCommerciale ? "Oui" : "Non",
-      v.repondant === "AUTRE" ? v.repondantAutrePrecision : v.repondant,
       v.veutCommander === null ? "" : v.veutCommander ? "Oui" : "Non",
       v.observations,
     ].map(csvEscape).join(";");

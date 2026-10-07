@@ -35,17 +35,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ id: existante.id, dejaEnregistree: true, pointVenteId: existante.pointVenteId });
   }
 
+  // Types d'établissement (choix multiple) : le formulaire envoie des NOMS
+  // (typeNoms) ; les anciens formulaires encore en file d'attente hors ligne
+  // envoient un seul typeId. Le premier type reste le "type principal".
+  const typeNoms: string[] = Array.isArray(pointVente.typeNoms)
+    ? pointVente.typeNoms.filter((n: unknown): n is string => typeof n === "string")
+    : [];
+  const typesTrouves = typeNoms.length
+    ? await prisma.typeEtablissement.findMany({ where: { nom: { in: typeNoms } } })
+    : [];
+  const typesOrdonnes = typeNoms
+    .map((nom) => typesTrouves.find((t) => t.nom === nom))
+    .filter((t): t is NonNullable<typeof t> => !!t);
+  const typePrincipalId: string | null = typesOrdonnes[0]?.id ?? (pointVente.typeId || null);
+
   const visite = await prisma.$transaction(async (tx) => {
     const pv = await tx.pointVente.create({
       data: {
         nomEtablissement: pointVente.nomEtablissement,
         nomVendeur: pointVente.nomVendeur || null,
         telVendeur: pointVente.telVendeur || null,
+        nomPatron: pointVente.nomPatron || null,
         telPatron: pointVente.telPatron || null,
         villeId: pointVente.villeId || null,
         quartier: pointVente.quartier || null,
         repereQuartier: pointVente.repereQuartier || null,
-        typeId: pointVente.typeId || null,
+        typeId: typePrincipalId,
         typeAutrePrecision: pointVente.typeAutrePrecision || null,
         latitude: pointVente.latitude ?? null,
         longitude: pointVente.longitude ?? null,
@@ -54,6 +69,13 @@ export async function POST(req: NextRequest) {
         createdById: session.userId,
       },
     });
+
+    if (typesOrdonnes.length > 0) {
+      await tx.pointVenteType.createMany({
+        data: typesOrdonnes.map((t) => ({ pointVenteId: pv.id, typeId: t.id })),
+        skipDuplicates: true,
+      });
+    }
 
     const v = await tx.visite.create({
       data: {
@@ -69,10 +91,16 @@ export async function POST(req: NextRequest) {
         fournisseurMarche: !!offrePotentiel?.fournisseurMarche,
         fournisseurLivraison: !!offrePotentiel?.fournisseurLivraison,
         fournisseurNeSaitPas: !!offrePotentiel?.fournisseurNeSaitPas,
+        fournisseurAutre: !!offrePotentiel?.fournisseurAutre,
+        fournisseurAutrePrecision: offrePotentiel?.fournisseurAutre ? offrePotentiel?.fournisseurAutrePrecision?.trim() || null : null,
+        salleClimatisee: typeof offrePotentiel?.salleClimatisee === "boolean" ? offrePotentiel.salleClimatisee : null,
+        ecranTv: typeof offrePotentiel?.ecranTv === "boolean" ? offrePotentiel.ecranTv : null,
         potentielEstime: qualification?.potentielEstime || null,
         interesseVisiteCommerciale: qualification?.interesseVisiteCommerciale ?? null,
         observations: qualification?.observations || null,
-        repondant: qualification?.repondant || null,
+        repondant: ["PATRON", "GERANT", "GERANT_PATRON", "EMPLOYE", "AUTRE"].includes(qualification?.repondant)
+          ? qualification.repondant
+          : null,
         repondantAutrePrecision: qualification?.repondantAutrePrecision || null,
         veutCommander: qualification?.veutCommander ?? null,
       },
@@ -134,7 +162,7 @@ export async function GET(req: NextRequest) {
       skip: (page - 1) * pageSize,
       take: pageSize,
       include: {
-        pointVente: { include: { ville: true, type: true } },
+        pointVente: { include: { ville: true, type: true, typesLies: { include: { type: true } } } },
         marquesPresentes: { include: { marque: true } },
         photos: true,
       },

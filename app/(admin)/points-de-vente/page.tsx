@@ -5,17 +5,21 @@ import Link from "next/link";
 import { IconStorefront, IconArrowRight, IconCheckCircle, IconAlert, IconGear, IconDownload, IconPrinter } from "@/components/icons";
 import { exporterRapportPdf } from "@/lib/rapportPdf";
 import { NOM_APP } from "@/lib/marque";
+import { libelleTypes } from "@/lib/typesEtablissement";
 
 type PointVente = {
   id: string;
   nomEtablissement: string;
   nomVendeur: string | null;
   telVendeur: string | null;
+  nomPatron?: string | null;
   telPatron: string | null;
   quartier: string | null;
   createdAt: string;
   ville: { nom: string } | null;
   type: { nom: string } | null;
+  typesLies?: { type: { nom: string } }[];
+  typeAutrePrecision?: string | null;
   createdBy: { nom: string; prenom: string };
   _count: { visites: number; commandes: number };
 };
@@ -63,7 +67,7 @@ export default function PointsDeVentePage() {
         ville: p.ville?.nom || "—",
         quartier: p.quartier || "—",
         contacts: [p.telVendeur, p.telPatron].filter(Boolean).join(" / ") || "—",
-        type: p.type?.nom || "—",
+        type: libelleTypes(p),
         visites: p._count.visites,
         commandes: p._count.commandes,
       }));
@@ -254,11 +258,11 @@ export default function PointsDeVentePage() {
                     {p.ville?.nom || "—"}{p.quartier ? ` · ${p.quartier}` : ""}
                   </td>
                   <td className="px-4 py-3 text-ink-muted">
-                    {p.telVendeur && <div>Vendeur : {p.telVendeur}</div>}
-                    {p.telPatron && <div>Patron : {p.telPatron}</div>}
-                    {!p.telVendeur && !p.telPatron && "—"}
+                    {p.telVendeur && <div>Contact : {p.telVendeur}</div>}
+                    {(p.nomPatron || p.telPatron) && <div>Patron : {[p.nomPatron, p.telPatron].filter(Boolean).join(" — ")}</div>}
+                    {!p.telVendeur && !p.telPatron && !p.nomPatron && "—"}
                   </td>
-                  <td className="px-4 py-3 text-ink-muted">{p.type?.nom || "—"}</td>
+                  <td className="px-4 py-3 text-ink-muted">{libelleTypes(p)}</td>
                   <td className="px-4 py-3 text-ink-muted">{p._count.visites}</td>
                   <td className="px-4 py-3 text-ink-muted">{p._count.commandes}</td>
                   <td className="px-4 py-3 text-right">

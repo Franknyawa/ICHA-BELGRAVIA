@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { libelleTypes } from "@/lib/typesEtablissement";
 import { IconStorefront, IconPhone, IconPin, IconReceipt, IconClipboard, IconCamera } from "@/components/icons";
 
 type Ligne = { id: string; quantite: number; prixUnitaire: string; produit: { nom: string } | null };
@@ -29,6 +30,7 @@ type Fiche = {
   nomEtablissement: string;
   nomVendeur: string | null;
   telVendeur: string | null;
+  nomPatron: string | null;
   telPatron: string | null;
   quartier: string | null;
   repereQuartier: string | null;
@@ -37,6 +39,8 @@ type Fiche = {
   longitude: string | null;
   ville: { nom: string } | null;
   type: { nom: string } | null;
+  typesLies?: { type: { nom: string } }[];
+  typeAutrePrecision?: string | null;
   createdBy: { nom: string; prenom: string };
   createdAt: string;
   visites: Visite[];
@@ -82,7 +86,7 @@ export default function FichePointVentePage() {
           {fiche.nomEtablissement}
         </h1>
         <p className="mb-4 text-sm text-ink-muted">
-          {fiche.type?.nom || "Type non renseigné"} · {fiche.ville?.nom || "Ville non renseignée"}
+          {libelleTypes(fiche) === "—" ? "Type non renseigné" : libelleTypes(fiche)} · {fiche.ville?.nom || "Ville non renseignée"}
           {fiche.quartier ? ` · ${fiche.quartier}` : ""}
         </p>
 
@@ -93,8 +97,12 @@ export default function FichePointVentePage() {
               Interlocuteur
             </p>
             <p className="text-sm text-ink">{fiche.nomVendeur || "Non renseigné"}</p>
-            {fiche.telVendeur && <p className="text-sm text-ink-muted">Vendeur : {fiche.telVendeur}</p>}
-            {fiche.telPatron && <p className="text-sm text-ink-muted">Patron : {fiche.telPatron}</p>}
+            {fiche.telVendeur && <p className="text-sm text-ink-muted">Contact : {fiche.telVendeur}</p>}
+            {(fiche.nomPatron || fiche.telPatron) && (
+              <p className="text-sm text-ink-muted">
+                Patron : {[fiche.nomPatron, fiche.telPatron].filter(Boolean).join(" — ")}
+              </p>
+            )}
           </div>
           <div className="rounded-lg bg-bg-elevated p-3">
             <p className="section-eyebrow mb-1">

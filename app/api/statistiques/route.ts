@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { compterParType } from "@/lib/comptageTypes";
 
 export async function GET() {
   const session = await getSession();
@@ -9,7 +10,7 @@ export async function GET() {
   const [total, parPotentiel, parType, parVille, parAgent, interesses, veulentCommander] = await Promise.all([
     prisma.visite.count(),
     prisma.visite.groupBy({ by: ["potentielEstime"], _count: true }),
-    prisma.pointVente.groupBy({ by: ["typeId"], _count: true }),
+    compterParType(),
     prisma.pointVente.groupBy({ by: ["villeId"], _count: true }),
     prisma.visite.groupBy({ by: ["commercialId"], _count: true }),
     prisma.visite.count({ where: { interesseVisiteCommerciale: true } }),
@@ -34,7 +35,7 @@ export async function GET() {
     interesses,
     veulentCommander,
     parPotentiel: parPotentiel.map((p) => ({ label: p.potentielEstime || "Non qualifié", count: p._count })),
-    parType: parType.map((t) => ({ label: nomType(t.typeId), count: t._count })).sort((a, b) => b.count - a.count),
+    parType: parType.map((t) => ({ label: nomType(t.typeId), count: t.count })).sort((a, b) => b.count - a.count),
     parVille: parVille.map((v) => ({ label: nomVille(v.villeId), count: v._count })).sort((a, b) => b.count - a.count),
     parAgent: parAgent.map((a) => ({ label: nomAgent(a.commercialId), count: a._count })).sort((a, b) => b.count - a.count),
   });

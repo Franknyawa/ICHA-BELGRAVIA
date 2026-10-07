@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { libelleTypes, libelleRepondant } from "@/lib/typesEtablissement";
 
 const JOUR_LABEL: Record<string, string> = {
   Lundi: "Lundi", Mardi: "Mardi", Mercredi: "Mercredi", Jeudi: "Jeudi",
@@ -26,7 +27,7 @@ export default async function DetailVisite({ params }: { params: { id: string } 
   const visite = await prisma.visite.findUnique({
     where: { id: params.id },
     include: {
-      pointVente: { include: { ville: true, type: true, createdBy: true } },
+      pointVente: { include: { ville: true, type: true, typesLies: { include: { type: true } }, createdBy: true } },
       marquesPresentes: { include: { marque: true } },
       photos: true,
     },
@@ -58,15 +59,17 @@ export default async function DetailVisite({ params }: { params: { id: string } 
         </div>
       )}
 
-      <Section titre="Point de vente">
+      <Section titre="Point de vente & contact sur place">
         <Grid>
-          <Champ label="Vendeur" valeur={pv.nomVendeur} />
-          <Champ label="Tél. vendeur" valeur={pv.telVendeur} />
-          <Champ label="Tél. patron" valeur={pv.telPatron} />
+          <Champ label="Répondant" valeur={libelleRepondant(visite.repondant, visite.repondantAutrePrecision)} />
+          <Champ label="Nom du contact" valeur={pv.nomVendeur} />
+          <Champ label="Tél. du contact" valeur={pv.telVendeur} />
+          <Champ label="Nom du patron" valeur={pv.nomPatron} />
+          <Champ label="Tél. du patron" valeur={pv.telPatron} />
           <Champ label="Ville" valeur={pv.ville?.nom} />
           <Champ label="Quartier" valeur={pv.quartier} />
           <Champ label="Repère" valeur={pv.repereQuartier} />
-          <Champ label="Type" valeur={pv.type?.nom || pv.typeAutrePrecision} />
+          <Champ label="Type(s) d'établissement" valeur={libelleTypes(pv)} />
           <div>
             <p className="text-xs text-ink-muted">Position GPS</p>
             {pv.latitude && pv.longitude ? (
@@ -90,6 +93,8 @@ export default async function DetailVisite({ params }: { params: { id: string } 
           <Champ label="Vend des spiritueux" valeur={boolLabel(visite.vendSpiritueux)} />
           {visite.proposeCocktails && <Champ label="Propose des cocktails" valeur={visite.proposeCocktails} />}
           <Champ label="Capacité estimée" valeur={visite.capaciteEstimee} />
+          <Champ label="Salle climatisée" valeur={boolLabel(visite.salleClimatisee)} />
+          <Champ label="Écran TV disponible" valeur={boolLabel(visite.ecranTv)} />
           <Champ
             label="Fournisseur actuel"
             valeur={
@@ -97,6 +102,7 @@ export default async function DetailVisite({ params }: { params: { id: string } 
                 visite.fournisseurGrossiste && "Grossiste",
                 visite.fournisseurMarche && "Marché",
                 visite.fournisseurLivraison && "Livraison directe",
+                visite.fournisseurAutre && (visite.fournisseurAutrePrecision ? `Autre (${visite.fournisseurAutrePrecision})` : "Autre"),
                 visite.fournisseurNeSaitPas && "Ne sait pas",
               ].filter(Boolean).join(", ") || undefined
             }
@@ -149,10 +155,6 @@ export default async function DetailVisite({ params }: { params: { id: string } 
         <Grid>
           <Champ label="Potentiel estimé" valeur={visite.potentielEstime} />
           <Champ label="Intéressé par une visite" valeur={boolLabel(visite.interesseVisiteCommerciale)} />
-          <Champ
-            label="Répondant"
-            valeur={visite.repondant === "AUTRE" ? visite.repondantAutrePrecision : visite.repondant}
-          />
           <Champ label="Veut commander" valeur={boolLabel(visite.veutCommander)} />
         </Grid>
         {visite.observations && (

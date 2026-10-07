@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePolling } from "@/lib/usePolling";
+import { libelleTypes } from "@/lib/typesEtablissement";
 import Link from "next/link";
 import { IconDownload, IconStorefront, IconPin } from "@/components/icons";
 
@@ -20,6 +21,8 @@ type Visite = {
     longitude: string | null;
     ville: { nom: string } | null;
     type: { nom: string } | null;
+    typesLies?: { type: { nom: string } }[];
+    typeAutrePrecision?: string | null;
   };
 };
 
@@ -180,7 +183,7 @@ export default function Dashboard() {
                   {v.pointVente.ville?.nom || "—"}{v.pointVente.quartier ? ` · ${v.pointVente.quartier}` : ""}
                 </td>
                 <td className="px-4 py-3 text-ink-muted">{v.pointVente.telVendeur || "—"}</td>
-                <td className="px-4 py-3 text-ink-muted">{v.pointVente.type?.nom || "—"}</td>
+                <td className="px-4 py-3 text-ink-muted">{libelleTypes(v.pointVente)}</td>
                 <td className={`px-4 py-3 font-medium ${v.potentielEstime ? POTENTIEL_STYLE[v.potentielEstime] : "text-ink-muted"}`}>
                   {v.potentielEstime || "—"}
                 </td>

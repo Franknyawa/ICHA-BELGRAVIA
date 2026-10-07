@@ -25,19 +25,27 @@ export async function GET(req: NextRequest) {
   // les lignes correspondant aux filtres, pas seulement la page affichée.
   const toutesLesLignes = searchParams.get("toutesLesLignes") === "1";
 
+  // Deux conditions "OU" indépendantes (type, recherche texte) : on les
+  // combine avec AND pour qu'elles ne s'écrasent pas.
   const where = {
     ...(villeId ? { villeId } : {}),
-    ...(typeId ? { typeId } : {}),
     ...(quartier ? { quartier: { contains: quartier, mode: "insensitive" as const } } : {}),
-    ...(q
-      ? {
-          OR: [
-            { nomEtablissement: { contains: q, mode: "insensitive" as const } },
-            { nomVendeur: { contains: q, mode: "insensitive" as const } },
-            { telVendeur: { contains: q, mode: "insensitive" as const } },
-          ],
-        }
-      : {}),
+    AND: [
+      ...(typeId ? [{ OR: [{ typeId }, { typesLies: { some: { typeId } } }] }] : []),
+      ...(q
+        ? [
+            {
+              OR: [
+                { nomEtablissement: { contains: q, mode: "insensitive" as const } },
+                { nomVendeur: { contains: q, mode: "insensitive" as const } },
+                { telVendeur: { contains: q, mode: "insensitive" as const } },
+                { nomPatron: { contains: q, mode: "insensitive" as const } },
+                { telPatron: { contains: q, mode: "insensitive" as const } },
+              ],
+            },
+          ]
+        : []),
+    ],
   };
 
   const [total, items] = await Promise.all([
@@ -49,6 +57,7 @@ export async function GET(req: NextRequest) {
       include: {
         ville: true,
         type: true,
+        typesLies: { include: { type: true } },
         createdBy: { select: { nom: true, prenom: true } },
         _count: { select: { visites: true, commandes: true } },
       },

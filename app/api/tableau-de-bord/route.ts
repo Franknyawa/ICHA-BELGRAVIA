@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { assurerGammes } from "@/lib/gammes";
+import { compterParType } from "@/lib/comptageTypes";
 
 function debutJournee() {
   const d = new Date();
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
     prisma.visite.count({ where: { interesseVisiteCommerciale: true } }),
     prisma.visite.count(),
     prisma.visite.groupBy({ by: ["potentielEstime"], _count: true }),
-    prisma.pointVente.groupBy({ by: ["typeId"], _count: true }),
+    compterParType(),
     prisma.pointVente.groupBy({ by: ["villeId"], _count: true }),
     prisma.visite.groupBy({ by: ["commercialId"], _count: true }),
     // Agrégation calculée par la base (SQL GROUP BY/SUM), plutôt que de
@@ -88,7 +89,7 @@ export async function GET(req: NextRequest) {
     visitesTotal,
     tauxConversion: visitesTotal ? Math.round((interessesTotal / visitesTotal) * 100) : 0,
     parPotentiel: parPotentiel.map((p) => ({ label: p.potentielEstime || "Non qualifié", valeur: p._count })),
-    parType: parType.map((t) => ({ label: nomType(t.typeId), valeur: t._count })).sort((a, b) => b.valeur - a.valeur).slice(0, 8),
+    parType: parType.map((t) => ({ label: nomType(t.typeId), valeur: t.count })).sort((a, b) => b.valeur - a.valeur).slice(0, 8),
     parVille: parVille.map((v) => ({ label: nomVille(v.villeId), valeur: v._count })).sort((a, b) => b.valeur - a.valeur).slice(0, 8),
     parAgent: parAgentRaw.map((a) => ({ label: nomAgent(a.commercialId), valeur: a._count })).sort((a, b) => b.valeur - a.valeur).slice(0, 8),
     caParProduit: Array.from(caParProduit.entries()).map(([label, valeur]) => ({ label, valeur })).sort((a, b) => b.valeur - a.valeur).slice(0, 8),

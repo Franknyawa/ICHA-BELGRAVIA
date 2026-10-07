@@ -27,7 +27,7 @@ export function construireFiltreVisites(searchParams: URLSearchParams): Prisma.V
     ...(dateFrom || dateTo ? { createdAt } : {}),
     pointVente: {
       ...(villeId ? { villeId } : {}),
-      ...(typeId ? { typeId } : {}),
+      ...(typeId ? { OR: [{ typeId }, { typesLies: { some: { typeId } } }] } : {}),
       ...(q ? { nomEtablissement: { contains: q, mode: "insensitive" as const } } : {}),
     },
   };

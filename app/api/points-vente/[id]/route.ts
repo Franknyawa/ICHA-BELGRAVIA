@@ -27,6 +27,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     include: {
       ville: true,
       type: true,
+      typesLies: { include: { type: true } },
       createdBy: { select: { nom: true, prenom: true } },
       visites: {
         orderBy: { dateVisite: "desc" },

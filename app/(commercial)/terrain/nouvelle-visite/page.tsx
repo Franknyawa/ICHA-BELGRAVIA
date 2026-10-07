@@ -47,15 +47,21 @@ export default function NouvelleVisite() {
 
   // Section 2
   const [nomEtablissement, setNomEtablissement] = useState("");
-  const [nomVendeur, setNomVendeur] = useState("");
-  const [telVendeur, setTelVendeur] = useState("");
+  // Contact sur place : la personne rencontrée (répondant) puis, si ce n'est
+  // pas le patron, le patron lui-même — on garde son numéro dans tous les cas.
+  const [repondant, setRepondant] = useState<string>();
+  const [repondantAutrePrecision, setRepondantAutrePrecision] = useState("");
+  const [nomRepondant, setNomRepondant] = useState("");
+  const [telRepondant, setTelRepondant] = useState("");
+  const [nomPatron, setNomPatron] = useState("");
   const [telPatron, setTelPatron] = useState("");
   const [villeId, setVilleId] = useState("");
   const [villeResolue, setVilleResolue] = useState<string | null>(null);
   const [villeCandidats, setVilleCandidats] = useState<string[]>([]);
   const [quartier, setQuartier] = useState("");
   const [repereQuartier, setRepereQuartier] = useState("");
-  const [typeId, setTypeId] = useState("");
+  // Un établissement peut cumuler plusieurs types (ex. bar + restaurant).
+  const [typesChoisis, setTypesChoisis] = useState<string[]>([]);
   const [typeAutrePrecision, setTypeAutrePrecision] = useState("");
   const [gps, setGps] = useState<{ lat: number; lng: number; precision: number } | null>(null);
   const [gpsEnCours, setGpsEnCours] = useState(false);
@@ -73,20 +79,22 @@ export default function NouvelleVisite() {
   const [libresMousseux, setLibresMousseux] = useState<BoissonLibre[]>(LIBRES_VIDES());
   const [libresRtd, setLibresRtd] = useState<BoissonLibre[]>(LIBRES_VIDES());
   const [capaciteEstimee, setCapaciteEstimee] = useState<string>();
+  const [salleClimatisee, setSalleClimatisee] = useState<boolean>();
+  const [ecranTv, setEcranTv] = useState<boolean>();
   const [affluence, setAffluence] = useState<Affluence>({});
   const [fournisseurs, setFournisseurs] = useState({
     grossiste: false,
     marche: false,
     livraison: false,
+    autre: false,
     neSaitPas: false,
   });
+  const [fournisseurAutrePrecision, setFournisseurAutrePrecision] = useState("");
 
   // Section 4
   const [potentielEstime, setPotentielEstime] = useState<string>();
   const [interesseVisiteCommerciale, setInteresseVisiteCommerciale] = useState<boolean>();
   const [observations, setObservations] = useState("");
-  const [repondant, setRepondant] = useState<string>();
-  const [repondantAutrePrecision, setRepondantAutrePrecision] = useState("");
   const [veutCommander, setVeutCommander] = useState<boolean>();
 
   useEffect(() => {
@@ -199,6 +207,15 @@ export default function NouvelleVisite() {
     return true;
   }, [step, nomEtablissement]);
 
+  // Accès direct à une rubrique depuis les icônes du haut : seul le nom de
+  // l'établissement est indispensable pour dépasser la rubrique "Point de vente".
+  const peutAllerA = (index: number) => index <= 2 || nomEtablissement.trim().length > 0;
+
+  // Chaque changement de rubrique repart du haut de la page.
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [step]);
+
   async function soumettre() {
     setEnvoi(true);
     setErreur(null);
@@ -233,19 +250,27 @@ export default function NouvelleVisite() {
       }
     }
 
+    // Contact sur place : si le répondant est le patron, ses coordonnées sont
+    // aussi le contact principal ; sinon le contact est le répondant et le
+    // patron est enregistré à part.
+    const repondantEstPatron = repondant === "PATRON";
+    const contactNom = repondantEstPatron ? nomPatron : nomRepondant;
+    const contactTel = repondantEstPatron ? telPatron : telRepondant;
+
     const payload = {
       uuidClient: uuidVisite,
       dateVisite: maintenant.toISOString(),
       pointVente: {
         nomEtablissement,
-        nomVendeur,
-        telVendeur,
+        nomVendeur: contactNom,
+        telVendeur: contactTel,
+        nomPatron,
         telPatron,
         villeId: villeId || null,
         quartier,
         repereQuartier,
-        typeId: typeId || null,
-        typeAutrePrecision,
+        typeNoms: typesChoisis,
+        typeAutrePrecision: typesChoisis.includes("Autre") ? typeAutrePrecision : "",
         latitude: gps?.lat,
         longitude: gps?.lng,
         precisionGps: gps?.precision,
@@ -253,10 +278,14 @@ export default function NouvelleVisite() {
       offrePotentiel: {
         vendSpiritueux,
         capaciteEstimee,
+        salleClimatisee,
+        ecranTv,
         affluence: affluenceArray,
         fournisseurGrossiste: fournisseurs.grossiste,
         fournisseurMarche: fournisseurs.marche,
         fournisseurLivraison: fournisseurs.livraison,
+        fournisseurAutre: fournisseurs.autre,
+        fournisseurAutrePrecision: fournisseurs.autre ? fournisseurAutrePrecision : "",
         fournisseurNeSaitPas: fournisseurs.neSaitPas,
       },
       qualification: {
@@ -264,7 +293,7 @@ export default function NouvelleVisite() {
         interesseVisiteCommerciale,
         observations,
         repondant,
-        repondantAutrePrecision,
+        repondantAutrePrecision: repondant === "AUTRE" ? repondantAutrePrecision : "",
         veutCommander,
       },
       marquesPresentes,
@@ -321,7 +350,11 @@ export default function NouvelleVisite() {
 
   return (
     <div className="mx-auto max-w-lg">
-      <StepIndicator step={step} />
+      {/* Reste visible sous l'en-tête pendant le défilement : on change de
+          rubrique d'un appui, sans remonter ni redescendre la page. */}
+      <div className="sticky top-[3.75rem] z-[9] -mx-4 mb-5 border-b border-line/60 bg-bg/95 px-4 pb-1 pt-2 backdrop-blur">
+        <StepIndicator step={step} onSelect={setStep} peutAller={peutAllerA} />
+      </div>
 
       {erreur && (
         <div className="mb-4 rounded-md border border-danger/40 bg-danger/10 px-3.5 py-3 text-sm text-danger">
@@ -363,24 +396,15 @@ export default function NouvelleVisite() {
             <Champ label="Nom de l'établissement" required>
               <input className="field-input" value={nomEtablissement} onChange={(e) => setNomEtablissement(e.target.value)} />
             </Champ>
-            <Champ label="Type d'établissement">
-              <ChoiceGroup
-                options={[
-                  { value: "Cave", label: "Cave" },
-                  { value: "Bar", label: "Bar" },
-                  { value: "Lounge", label: "Lounge" },
-                  { value: "Snack", label: "Snack" },
-                  { value: "Restaurant / Fast Food", label: "Restaurant / Fast Food" },
-                  { value: "Hôtel", label: "Hôtel" },
-                  { value: "Autre", label: "Autre" },
-                ]}
-                value={ref?.types.find((t) => t.id === typeId)?.nom}
-                onChange={(nom) => {
-                  const match = ref?.types.find((t) => t.nom === nom);
-                  setTypeId(match?.id || `libre:${nom}`);
-                }}
+            <Champ label="Type d'établissement (plusieurs choix possibles)">
+              <MultiChoiceGroup
+                options={TYPES_ETABLISSEMENT.map((t) => ({ value: t, label: t }))}
+                values={typesChoisis}
+                onToggle={(nom) =>
+                  setTypesChoisis((prev) => (prev.includes(nom) ? prev.filter((n) => n !== nom) : [...prev, nom]))
+                }
               />
-              {(typeId === "libre:Autre" || ref?.types.find((t) => t.id === typeId)?.nom === "Autre") && (
+              {typesChoisis.includes("Autre") && (
                 <input
                   className="field-input mt-2"
                   placeholder="Précisez le type d'établissement"
@@ -392,17 +416,65 @@ export default function NouvelleVisite() {
           </SousSection>
 
           <SousSection titre="Contact sur place" icon={IconPhone}>
-            <Champ label="Nom du vendeur">
-              <input className="field-input" value={nomVendeur} onChange={(e) => setNomVendeur(e.target.value)} />
+            <Champ label="Qui nous répond ?">
+              <ChoiceGroup
+                options={[
+                  { value: "PATRON", label: "Patron" },
+                  { value: "GERANT", label: "Gérant" },
+                  { value: "EMPLOYE", label: "Employé" },
+                  { value: "AUTRE", label: "Autre" },
+                ]}
+                value={repondant}
+                onChange={setRepondant}
+              />
             </Champ>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Champ label="Tél. vendeur">
-                <input className="field-input" inputMode="tel" value={telVendeur} onChange={(e) => setTelVendeur(e.target.value)} />
-              </Champ>
-              <Champ label="Tél. patron (si différent)">
-                <input className="field-input" inputMode="tel" value={telPatron} onChange={(e) => setTelPatron(e.target.value)} />
-              </Champ>
-            </div>
+
+            {repondant && (
+              <div className="space-y-3 rounded-md border border-line/70 bg-bg-elevated/60 p-3">
+                {repondant === "AUTRE" && (
+                  <Champ label="Fonction du répondant">
+                    <input
+                      className="field-input"
+                      placeholder="Ex. serveur, voisin, comptable…"
+                      value={repondantAutrePrecision}
+                      onChange={(e) => setRepondantAutrePrecision(e.target.value)}
+                    />
+                  </Champ>
+                )}
+
+                {repondant === "PATRON" ? (
+                  <ContactChamps
+                    nomLabel="Nom du patron"
+                    telLabel="Tél. du patron"
+                    nom={nomPatron}
+                    tel={telPatron}
+                    onNom={setNomPatron}
+                    onTel={setTelPatron}
+                  />
+                ) : (
+                  <>
+                    <ContactChamps
+                      nomLabel={`Nom ${articleRepondant(repondant)}`}
+                      telLabel={`Tél. ${articleRepondant(repondant)}`}
+                      nom={nomRepondant}
+                      tel={telRepondant}
+                      onNom={setNomRepondant}
+                      onTel={setTelRepondant}
+                    />
+                    <div className="border-t border-line/70 pt-3">
+                      <ContactChamps
+                        nomLabel="Nom du patron"
+                        telLabel="Tél. du patron"
+                        nom={nomPatron}
+                        tel={telPatron}
+                        onNom={setNomPatron}
+                        onTel={setTelPatron}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </SousSection>
 
           <SousSection titre="Localisation" icon={IconPin}>
@@ -548,6 +620,23 @@ export default function NouvelleVisite() {
               />
             </Champ>
 
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Champ label="Salle climatisée ?">
+                <ChoiceGroup
+                  options={[{ value: "oui", label: "Oui" }, { value: "non", label: "Non" }]}
+                  value={salleClimatisee === undefined ? undefined : salleClimatisee ? "oui" : "non"}
+                  onChange={(v) => setSalleClimatisee(v === "oui")}
+                />
+              </Champ>
+              <Champ label="Écran TV disponible ?">
+                <ChoiceGroup
+                  options={[{ value: "oui", label: "Oui" }, { value: "non", label: "Non" }]}
+                  value={ecranTv === undefined ? undefined : ecranTv ? "oui" : "non"}
+                  onChange={(v) => setEcranTv(v === "oui")}
+                />
+              </Champ>
+            </div>
+
             <Champ label="Jours / heures d'affluence">
               <AffluenceGrid value={affluence} onChange={setAffluence} />
             </Champ>
@@ -558,6 +647,7 @@ export default function NouvelleVisite() {
                   { value: "grossiste", label: "Grossiste" },
                   { value: "marche", label: "Marché" },
                   { value: "livraison", label: "Livraison directe" },
+                  { value: "autre", label: "Autre" },
                   { value: "neSaitPas", label: "Ne sait pas" },
                 ]}
                 values={Object.entries(fournisseurs)
@@ -565,6 +655,14 @@ export default function NouvelleVisite() {
                   .map(([k]) => k)}
                 onToggle={(k) => setFournisseurs((prev) => ({ ...prev, [k]: !prev[k as keyof typeof prev] }))}
               />
+              {fournisseurs.autre && (
+                <input
+                  className="field-input mt-2"
+                  placeholder="Précisez le fournisseur"
+                  value={fournisseurAutrePrecision}
+                  onChange={(e) => setFournisseurAutrePrecision(e.target.value)}
+                />
+              )}
             </Champ>
           </SousSection>
         </section>
@@ -595,25 +693,6 @@ export default function NouvelleVisite() {
               />
             </Champ>
 
-            <Champ label="Répondant">
-              <ChoiceGroup
-                options={[
-                  { value: "GERANT_PATRON", label: "Gérant / patron" },
-                  { value: "EMPLOYE", label: "Employé" },
-                  { value: "AUTRE", label: "Autre" },
-                ]}
-                value={repondant}
-                onChange={setRepondant}
-              />
-              {repondant === "AUTRE" && (
-                <input
-                  className="field-input mt-2"
-                  placeholder="Précisez"
-                  value={repondantAutrePrecision}
-                  onChange={(e) => setRepondantAutrePrecision(e.target.value)}
-                />
-              )}
-            </Champ>
           </SousSection>
 
           <SousSection titre="Suite à donner" icon={IconClipboard}>
@@ -658,6 +737,47 @@ export default function NouvelleVisite() {
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+const TYPES_ETABLISSEMENT = ["Cave", "Bar", "Lounge", "Snack", "Restaurant / Fast Food", "Hôtel", "Autre"];
+
+/** "du gérant" / "de l'employé" / "du répondant" — pour les libellés dynamiques. */
+function articleRepondant(repondant: string | undefined): string {
+  switch (repondant) {
+    case "GERANT":
+      return "du gérant";
+    case "EMPLOYE":
+      return "de l'employé";
+    default:
+      return "du répondant";
+  }
+}
+
+function ContactChamps({
+  nomLabel,
+  telLabel,
+  nom,
+  tel,
+  onNom,
+  onTel,
+}: {
+  nomLabel: string;
+  telLabel: string;
+  nom: string;
+  tel: string;
+  onNom: (v: string) => void;
+  onTel: (v: string) => void;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <Champ label={nomLabel}>
+        <input className="field-input" autoComplete="off" value={nom} onChange={(e) => onNom(e.target.value)} />
+      </Champ>
+      <Champ label={telLabel}>
+        <input className="field-input" inputMode="tel" autoComplete="off" value={tel} onChange={(e) => onTel(e.target.value)} />
+      </Champ>
     </div>
   );
 }
