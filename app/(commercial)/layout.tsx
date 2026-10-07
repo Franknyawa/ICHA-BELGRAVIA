@@ -30,7 +30,7 @@ export default async function CommercialLayout({ children }: { children: React.R
         </div>
       </header>
       <main className="px-4 pb-10 pt-4">
-        <SyncBanner />
+        <SyncBanner userId={session.userId} />
         <NotificationBanner />
         {children}
       </main>

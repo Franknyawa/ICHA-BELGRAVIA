@@ -4,8 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { v4 as uuid } from "uuid";
 import { IconStorefront, IconGlass, IconReceipt, IconClipboard, IconDownload, IconPin } from "@/components/icons";
-import { enqueuerCommande } from "@/lib/offlineQueue";
-import { envoyerCommande } from "@/lib/envoyerCommande";
+import { soumettre as soumettreSynchro } from "@/lib/syncEngine";
 import { ErreurEnvoi } from "@/lib/erreurEnvoi";
 import { calculerCommande, calculerPaiement, MODES_PAIEMENT, type ModePaiementValue, type PalierPrix } from "@/lib/pricing";
 import { genererFacturePdf } from "@/lib/facturePdf";
@@ -216,7 +215,12 @@ function NouvelleCommandeInner() {
     };
 
     try {
-      const resultat = await envoyerCommande(payload);
+      const resultat = await soumettreSynchro<{ numero?: string }>({
+        id: uuidCommande,
+        type: "COMMANDE",
+        titre: client.nomEtablissement,
+        payload,
+      });
       // La facture est générée immédiatement après l'enregistrement réussi,
       // avec le numéro attribué par le serveur (8 premiers caractères de
       // l'id, en majuscules — cohérent avec la liste admin des factures).
@@ -230,37 +234,29 @@ function NouvelleCommandeInner() {
       }
       router.push("/terrain");
     } catch (e) {
-      // Voir le même correctif dans app/(commercial)/terrain/nouvelle-visite/page.tsx :
-      // on distingue une vraie coupure réseau d'une erreur serveur, pour ne
-      // plus afficher "pas de connexion" quand ce n'est pas le problème.
-      const erreurServeur = e instanceof ErreurEnvoi && !e.estErreurReseau;
-      if (erreurServeur) console.error("[nouvelle-commande] échec serveur :", e);
-
-      try {
-        await enqueuerCommande({ id: uuidCommande, payload, createdAt: Date.now() });
-        if (erreurServeur) {
-          setErreur(
-            `L'enregistrement a échoué côté serveur (${(e as ErreurEnvoi).message}). La commande est conservée sur l'appareil et sera réessayée automatiquement, mais tant que cette erreur persiste elle ne partira pas — signale ce message à l'administrateur.`
-          );
-          setMessageInfo(null);
-        } else {
-          // Hors-ligne : le prix affiché ici vient du même barème que le
-          // serveur appliquera à la synchronisation (voir lib/pricing.ts),
-          // donc la facture générée maintenant sera la bonne dans l'immense
-          // majorité des cas — sauf si le barème est modifié entre-temps.
-          try {
-            await genererFacture(uuidCommande.slice(0, 8).toUpperCase(), new Date());
-          } catch {
-            /* voir commentaire équivalent ci-dessus */
-          }
-          setErreur(null);
-          setMessageInfo(
-            "Pas de connexion : la commande a été enregistrée sur l'appareil et sera envoyée automatiquement dès le retour du réseau."
-          );
-          setTimeout(() => router.push("/terrain"), 1800);
+      const err = e instanceof ErreurEnvoi ? e : null;
+      if (!err || err.genre === "PERMANENTE") {
+        setMessageInfo(null);
+        setErreur(`${err ? err.message : "Échec de l'enregistrement."} Vérifie la commande puis réessaie.`);
+      } else if (err.genre === "AUTH") {
+        setErreur(null);
+        setMessageInfo("Session expirée : la commande est gardée sur l'appareil. Reconnecte-toi, elle partira automatiquement.");
+        setTimeout(() => router.push("/login"), 2500);
+      } else {
+        // Hors-ligne ou serveur indisponible : la commande est déjà sauvegardée sur l'appareil.
+        // Le prix affiché vient du même barème que celui du serveur (lib/pricing.ts).
+        try {
+          await genererFacture(uuidCommande.slice(0, 8).toUpperCase(), new Date());
+        } catch {
+          /* la facture reste régénérable depuis l'admin */
         }
-      } catch {
-        setErreur("Échec de l'enregistrement, y compris en local. Réessayez.");
+        setErreur(null);
+        setMessageInfo(
+          err.genre === "RESEAU"
+            ? "Pas de connexion : la commande est enregistrée sur l'appareil et partira automatiquement au retour du réseau."
+            : `Le serveur est momentanément indisponible (${err.message}) : la commande est enregistrée sur l'appareil et sera réessayée automatiquement.`
+        );
+        setTimeout(() => router.push("/terrain"), 2200);
       }
     } finally {
       setEnvoi(false);

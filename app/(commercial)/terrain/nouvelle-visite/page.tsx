@@ -8,8 +8,7 @@ import { ChoiceGroup, MultiChoiceGroup } from "@/components/form/ChoiceGroup";
 import AffluenceGrid, { type Affluence } from "@/components/form/AffluenceGrid";
 import BlocBoissons, { type ValeurBoisson, type BoissonLibre } from "@/components/form/BlocBoissons";
 import { resolveVilleDepuisCoordonnees, matchVille } from "@/lib/reverseGeocode";
-import { enqueuerVisite } from "@/lib/offlineQueue";
-import { envoyerVisite } from "@/lib/envoyerVisite";
+import { soumettre as soumettreSynchro } from "@/lib/syncEngine";
 import { ErreurEnvoi } from "@/lib/erreurEnvoi";
 import { compresserImage } from "@/lib/compresserImage";
 import { IconStorefront, IconPhone, IconPin, IconCamera, IconGlass, IconClock, IconCheckCircle, IconClipboard } from "@/components/icons";
@@ -178,7 +177,7 @@ export default function NouvelleVisite() {
       // Upload optimiste immédiat : accélère l'envoi final si le réseau est
       // disponible. En cas d'échec (hors-ligne), la photo reste en data URL
       // dans l'état local et sera uploadée au moment de la synchronisation
-      // (voir lib/envoyerVisite.ts) — la capture elle-même n'est jamais bloquée.
+      // (voir lib/syncEngine.ts) — la capture elle-même n'est jamais bloquée.
       try {
         const res = await fetch("/api/photos/upload", {
           method: "POST",
@@ -307,42 +306,42 @@ export default function NouvelleVisite() {
     })).filter((p) => p.dataUrl);
 
     try {
-      const resultat = await envoyerVisite(payload, photosPayload);
+      const resultat = await soumettreSynchro<{ pointVenteId: string }>({
+        id: uuidVisite,
+        type: "VISITE",
+        titre: nomEtablissement,
+        payload,
+        photos: photosPayload,
+      });
       if (veutCommander) {
         router.push(`/terrain/nouvelle-commande?pointVenteId=${resultat.pointVenteId}`);
       } else {
         router.push("/terrain");
       }
     } catch (e) {
-      // Deux cas bien distincts (voir lib/erreurEnvoi.ts) :
-      // - vraie coupure réseau : comportement normal, message rassurant.
-      // - erreur serveur (session expirée, FTP, base de données…) : ce
-      //   n'est PAS un problème de connexion — on le dit clairement, sinon
-      //   la visite reste indéfiniment "en attente" sans que personne ne
-      //   sache pourquoi, en la resynchronisant en boucle vers un échec
-      //   identique. Dans les deux cas la visite n'est jamais perdue :
-      //   elle est conservée localement et retentée automatiquement.
-      const erreurServeur = e instanceof ErreurEnvoi && !e.estErreurReseau;
-      if (erreurServeur) console.error("[nouvelle-visite] échec serveur :", e);
-
-      try {
-        await enqueuerVisite({ id: uuidVisite, payload, photos: photosPayload, createdAt: Date.now() });
-        if (erreurServeur) {
-          setErreur(
-            `L'enregistrement a échoué côté serveur (${(e as ErreurEnvoi).message}). La visite est conservée sur l'appareil et sera réessayée automatiquement, mais tant que cette erreur persiste elle ne partira pas — signale ce message à l'administrateur.`
-          );
-          setMessageInfo(null);
-        } else {
-          setErreur(null);
-          setMessageInfo(
-            veutCommander
-              ? "Pas de connexion : la visite a été enregistrée sur l'appareil et sera envoyée automatiquement dès le retour du réseau. Pense à saisir la commande manuellement (bouton \"Nouvelle commande\") une fois la visite synchronisée."
-              : "Pas de connexion : la visite a été enregistrée sur l'appareil et sera envoyée automatiquement dès le retour du réseau."
-          );
-          setTimeout(() => router.push("/terrain"), veutCommander ? 3200 : 1800);
-        }
-      } catch {
-        setErreur("Échec de l'enregistrement, y compris en local. Réessayez.");
+      // La visite est écrite sur l'appareil AVANT l'envoi (lib/syncEngine.ts) :
+      // sauf refus définitif du serveur, elle est conservée et réessayée seule.
+      const err = e instanceof ErreurEnvoi ? e : null;
+      if (!err || err.genre === "PERMANENTE") {
+        setMessageInfo(null);
+        setErreur(
+          `${err ? err.message : "Échec de l'enregistrement."} Corrige le formulaire puis réessaie.`
+        );
+      } else if (err.genre === "AUTH") {
+        setErreur(null);
+        setMessageInfo("Session expirée : la visite est gardée sur l'appareil. Reconnecte-toi, elle partira automatiquement.");
+        setTimeout(() => router.push("/login"), 2500);
+      } else {
+        setErreur(null);
+        const suite = veutCommander
+          ? " Pense à saisir la commande (bouton \"Nouvelle commande\") une fois la visite synchronisée."
+          : "";
+        setMessageInfo(
+          (err.genre === "RESEAU"
+            ? "Pas de connexion : la visite est enregistrée sur l'appareil et partira automatiquement au retour du réseau."
+            : `Le serveur est momentanément indisponible (${err.message}) : la visite est enregistrée sur l'appareil et sera réessayée automatiquement.`) + suite
+        );
+        setTimeout(() => router.push("/terrain"), veutCommander ? 3200 : 2200);
       }
     } finally {
       setEnvoi(false);
