@@ -6,6 +6,7 @@ import { IconReceipt, IconCheckCircle, IconClock, IconDownload, IconStorefront, 
 import { genererBonLivraisonPdf } from "@/lib/bonLivraisonPdf";
 import GammeTabs from "@/components/GammeTabs";
 import { libelleGamme, styleBadgeGamme, type GammeInfo } from "@/lib/gammesClient";
+import { Spinner, ChargementPage } from "@/components/Spinner";
 
 type Ligne = { id: string; quantite: number; prixUnitaire: string; produit: { nom: string } | null; libelleLibre: string | null };
 type Commande = {
@@ -231,13 +232,7 @@ export default function CommandesPage() {
         </p>
       )}
 
-      {chargement && (
-        <div className="space-y-3">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="field-card h-28 animate-pulse bg-bg-elevated/60" />
-          ))}
-        </div>
-      )}
+      {chargement && <ChargementPage compact label="Chargement des commandes…" />}
 
       <div className="space-y-3">
         {!chargement &&
@@ -277,7 +272,7 @@ export default function CommandesPage() {
                         onClick={() => changerStatut(c.id, "EN_COURS_LIVRAISON", c)}
                       >
                         <IconCheckCircle className="h-4 w-4" />
-                        {enCours === c.id ? "…" : "Valider"}
+                        {enCours === c.id ? <Spinner className="h-4 w-4" /> : "Valider"}
                       </button>
                     )}
                     {c.statut === "EN_COURS_LIVRAISON" && (
@@ -287,7 +282,7 @@ export default function CommandesPage() {
                         onClick={() => changerStatut(c.id, "LIVREE", c)}
                       >
                         <IconClock className="h-4 w-4" />
-                        {enCours === c.id ? "…" : "Marquer livrée"}
+                        {enCours === c.id ? <Spinner className="h-4 w-4" /> : "Marquer livrée"}
                       </button>
                     )}
                     {c.statut === "LIVREE" && (

@@ -6,6 +6,7 @@ import { IconStorefront, IconArrowRight, IconCheckCircle, IconAlert, IconGear, I
 import { exporterRapportPdf } from "@/lib/rapportPdf";
 import { NOM_APP } from "@/lib/marque";
 import { libelleTypes } from "@/lib/typesEtablissement";
+import { Spinner, ChargementPage } from "@/components/Spinner";
 
 type PointVente = {
   id: string;
@@ -145,6 +146,7 @@ export default function PointsDeVentePage() {
         <div className="flex gap-2">
           <button className="btn-secondary" disabled={exportEnCours} onClick={exporterPdf}>
             <IconDownload className="h-4 w-4" />
+            {exportEnCours && <Spinner className="h-4 w-4" />}
             {exportEnCours ? "Export…" : "Télécharger PDF"}
           </button>
           <button className="btn-secondary" onClick={() => window.print()}>
@@ -230,14 +232,13 @@ export default function PointsDeVentePage() {
             </tr>
           </thead>
           <tbody>
-            {chargement &&
-              [0, 1, 2, 3, 4].map((i) => (
-                <tr key={i} className="border-t border-line">
-                  <td colSpan={7} className="px-4 py-3">
-                    <div className="h-5 animate-pulse rounded bg-bg-elevated" />
-                  </td>
-                </tr>
-              ))}
+            {chargement && (
+              <tr>
+                <td colSpan={7}>
+                  <ChargementPage compact label="Chargement des points de vente…" />
+                </td>
+              </tr>
+            )}
             {!chargement &&
               items.map((p) => (
                 <tr key={p.id} className="border-t border-line transition-colors hover:bg-bg-elevated">

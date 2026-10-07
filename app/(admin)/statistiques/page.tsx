@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { IconDownload, IconStorefront, IconCheckCircle, IconClipboard, IconTrend, IconChart } from "@/components/icons";
+import { Spinner, ChargementPage } from "@/components/Spinner";
 
 const CarteBelgravia = dynamic(() => import("@/components/CarteBelgravia"), {
   ssr: false,
-  loading: () => <div className="flex h-[480px] items-center justify-center text-sm text-ink-muted">Chargement de la carte…</div>,
+  loading: () => <ChargementPage compact label="Chargement de la carte…" />,
 });
 
 type Repartition = { label: string; count: number };

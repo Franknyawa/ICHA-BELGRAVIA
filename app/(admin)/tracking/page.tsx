@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { IconRoute, IconRadio, IconPin } from "@/components/icons";
 import type { PointTracking } from "@/components/CarteTracking";
+import { Spinner, ChargementPage } from "@/components/Spinner";
 
 const CarteTracking = dynamic(() => import("@/components/CarteTracking"), {
   ssr: false,
-  loading: () => <div className="flex h-[320px] items-center justify-center text-sm text-ink-muted sm:h-[480px]">Chargement de la carte…</div>,
+  loading: () => <ChargementPage compact label="Chargement de la carte…" />,
 });
 
 type Agent = { id: string; nom: string; prenom: string };
@@ -76,7 +77,7 @@ export default function TrackingPage() {
 
       <div className="field-card">
         {points === null ? (
-          <div className="flex h-[320px] items-center justify-center text-sm text-ink-muted sm:h-[480px]">Chargement…</div>
+          <ChargementPage compact />
         ) : points.length === 0 ? (
           <div className="flex h-[320px] flex-col items-center justify-center gap-2 text-sm text-ink-muted sm:h-[480px]">
             <IconPin className="h-6 w-6" />

@@ -13,6 +13,7 @@ import { envoyerVisite } from "@/lib/envoyerVisite";
 import { ErreurEnvoi } from "@/lib/erreurEnvoi";
 import { compresserImage } from "@/lib/compresserImage";
 import { IconStorefront, IconPhone, IconPin, IconCamera, IconGlass, IconClock, IconCheckCircle, IconClipboard } from "@/components/icons";
+import { Spinner, ChargementPage } from "@/components/Spinner";
 
 type Referentiels = {
   villes: { id: string; nom: string }[];
@@ -485,7 +486,7 @@ export default function NouvelleVisite() {
                 disabled={gpsEnCours}
                 className="btn-secondary w-full"
               >
-                <IconPin className="h-4 w-4" />
+                {gpsEnCours ? <Spinner className="h-4 w-4" /> : <IconPin className="h-4 w-4" />}
                 {gpsEnCours ? "Localisation en cours…" : gps ? "Recapturer la position" : "Capturer la position GPS"}
               </button>
               <div className="field-input mt-2 flex min-h-[52px] items-center text-sm">
@@ -733,6 +734,7 @@ export default function NouvelleVisite() {
         )}
         {step === 4 && (
           <button type="button" className="btn-primary flex-1" onClick={soumettre} disabled={envoi}>
+            {envoi && <Spinner className="h-4 w-4" />}
             {envoi ? "Enregistrement…" : "Enregistrer la visite"}
           </button>
         )}

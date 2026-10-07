@@ -11,6 +11,7 @@ import { calculerCommande, calculerPaiement, MODES_PAIEMENT, type ModePaiementVa
 import { genererFacturePdf } from "@/lib/facturePdf";
 import GammeTabs from "@/components/GammeTabs";
 import { libelleGamme, type GammeInfo } from "@/lib/gammesClient";
+import { Spinner, ChargementPage } from "@/components/Spinner";
 
 type Produit = { id: string; nom: string; volumeMl: number; gammeId: string | null };
 type PalierGamme = PalierPrix & { gammeId: string | null };
@@ -549,6 +550,7 @@ function NouvelleCommandeInner() {
 
       <button type="button" className="btn-primary w-full py-4" onClick={soumettre} disabled={!peutEnregistrer || envoi}>
         <IconClipboard className="h-4 w-4" />
+        {envoi && <Spinner className="h-4 w-4" />}
         {envoi ? "Enregistrement…" : "Enregistrer la commande"}
       </button>
       <p className="flex items-center justify-center gap-1.5 text-center text-xs text-ink-muted">

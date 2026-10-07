@@ -5,6 +5,7 @@ import { IconTrend, IconUsers, IconStorefront, IconMap, IconPin, IconReceipt, Ic
 import { exporterRapportPdf } from "@/lib/rapportPdf";
 import { libelleGamme, type GammeInfo } from "@/lib/gammesClient";
 import { NOM_APP } from "@/lib/marque";
+import { Spinner, ChargementPage } from "@/components/Spinner";
 
 type Colonne = { cle: string; label: string; droite?: boolean; montant?: boolean };
 type Rapport = {
@@ -195,6 +196,7 @@ export default function RapportsPage() {
         <div className="ml-auto flex gap-2">
           <button className="btn-secondary" onClick={exporterPdf} disabled={export_ || !rapport}>
             <IconDownload className="h-4 w-4" />
+            {export_ && <Spinner className="h-4 w-4" />}
             {export_ ? "Export…" : "Télécharger PDF"}
           </button>
           <button className="btn-secondary" onClick={() => window.print()}>
@@ -256,13 +258,7 @@ export default function RapportsPage() {
         </div>
       )}
 
-      {chargement && (
-        <div className="space-y-2">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-10 animate-pulse rounded-lg bg-bg-elevated" />
-          ))}
-        </div>
-      )}
+      {chargement && <ChargementPage compact label="Génération du rapport…" />}
 
       {!chargement && rapport && (
         <div className="overflow-x-auto rounded-lg border border-line">

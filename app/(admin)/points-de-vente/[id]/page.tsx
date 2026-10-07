@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { libelleTypes } from "@/lib/typesEtablissement";
 import { IconStorefront, IconPhone, IconPin, IconReceipt, IconClipboard, IconCamera } from "@/components/icons";
+import { Spinner, ChargementPage } from "@/components/Spinner";
 
 type Ligne = { id: string; quantite: number; prixUnitaire: string; produit: { nom: string } | null };
 type Commande = {
@@ -68,7 +69,7 @@ export default function FichePointVentePage() {
       .finally(() => setChargement(false));
   }, [id]);
 
-  if (chargement) return <p className="text-sm text-ink-muted">Chargement…</p>;
+  if (chargement) return <ChargementPage label="Chargement de la fiche…" />;
   if (!fiche) return <p className="text-sm text-danger">Fiche introuvable.</p>;
 
   const montantTotalCommandes = fiche.commandes.reduce((s, c) => s + Number(c.montantTotal), 0);

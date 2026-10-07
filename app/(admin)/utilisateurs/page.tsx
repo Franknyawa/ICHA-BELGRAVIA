@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { IconUsers, IconPlus, IconPencil, IconKey, IconTrash, IconShield, IconUser, IconSmartphone } from "@/components/icons";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { Spinner, ChargementPage } from "@/components/Spinner";
 
 type Utilisateur = {
   id: string;
@@ -204,6 +205,7 @@ export default function UtilisateursPage() {
           <input className="field-input col-span-2" placeholder="Téléphone" value={champs.telephone} onChange={(e) => setChamps({ ...champs, telephone: e.target.value })} />
           {erreur && <p className="col-span-2 text-sm text-danger">{erreur}</p>}
           <button className="btn-primary col-span-2" disabled={enCours}>
+            {enCours && <Spinner className="h-4 w-4" />}
             {enCours ? "Création…" : "Créer le compte"}
           </button>
         </form>
@@ -305,7 +307,7 @@ export default function UtilisateursPage() {
             </p>
 
             {sessionsChargement ? (
-              <p className="text-sm text-ink-muted">Chargement…</p>
+              <ChargementPage compact label="Chargement des sessions…" />
             ) : sessionsListe.length === 0 ? (
               <p className="text-sm text-ink-muted">Aucune session active.</p>
             ) : (

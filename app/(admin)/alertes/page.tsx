@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { IconAlert, IconRefresh, IconCheckCircle, IconList, IconClock, IconReceipt } from "@/components/icons";
+import { Spinner, ChargementPage } from "@/components/Spinner";
 
 type Alerte = {
   id: string;
@@ -71,6 +72,7 @@ export default function AlertesPage() {
         </div>
         <button className="btn-secondary" onClick={generer} disabled={generation}>
           <IconRefresh className={`h-4 w-4 ${generation ? "animate-spin" : ""}`} />
+          {generation && <Spinner className="h-4 w-4" />}
           {generation ? "Génération…" : "Générer maintenant"}
         </button>
       </div>
@@ -90,7 +92,7 @@ export default function AlertesPage() {
         })}
       </div>
 
-      {chargement && <p className="text-sm text-ink-muted">Chargement…</p>}
+      {chargement && <ChargementPage compact />}
 
       {!chargement && alertes.length === 0 && (
         <div className="field-card flex flex-col items-center gap-2 py-12 text-center">

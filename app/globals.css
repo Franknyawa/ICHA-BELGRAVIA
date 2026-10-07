@@ -97,6 +97,14 @@
   .bulle { animation: none; }
 }
 
+/* Spinner de chargement : tourne en continu ; plus lentement si la personne
+   préfère moins d'animations (il doit rester visible pour signaler l'attente). */
+@keyframes tourne { to { transform: rotate(360deg); } }
+.spinner-anneau { animation: tourne 0.8s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .spinner-anneau { animation-duration: 2.4s; }
+}
+
 /* Impression — utilisé par la page Rapports (bouton "Imprimer") : masque
    la navigation admin et les contrôles interactifs, ne garde que le
    contenu du rapport en pleine largeur. */

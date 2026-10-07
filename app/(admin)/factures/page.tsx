@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { IconReceipt } from "@/components/icons";
 import FactureButton from "@/components/FactureButton";
 import { libelleModePaiement, MODES_PAIEMENT } from "@/lib/pricing";
+import { Spinner, ChargementPage } from "@/components/Spinner";
 
 type Ligne = { id: string; quantite: number; prixUnitaire: string; sousTotal: string; produit: { nom: string } | null };
 type Commande = {
@@ -135,6 +136,7 @@ export default function FacturesPage() {
             )}
           </div>
         ))}
+        {chargement && commandes.length === 0 && <ChargementPage compact label="Chargement des factures…" />}
         {!chargement && commandes.length === 0 && (
           <p className="field-card text-center text-sm text-ink-muted">Aucune facture ne correspond à ces filtres.</p>
         )}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { IconList, IconAlert, IconPlus, IconCheckCircle, IconGlass } from "@/components/icons";
 import GammeTabs from "@/components/GammeTabs";
 import { styleBadgeGamme, libelleGamme, type GammeInfo } from "@/lib/gammesClient";
+import { Spinner, ChargementPage } from "@/components/Spinner";
 
 type StockItem = {
   produitId: string;
@@ -190,6 +191,13 @@ export default function StockPage() {
                 </td>
               </tr>
             ))}
+            {chargement && itemsAffiches.length === 0 && (
+              <tr>
+                <td colSpan={6}>
+                  <ChargementPage compact label="Chargement du stock…" />
+                </td>
+              </tr>
+            )}
             {!chargement && itemsAffiches.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-ink-muted">

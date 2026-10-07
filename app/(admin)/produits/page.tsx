@@ -5,6 +5,7 @@ import { IconGlass, IconPlus, IconTrash } from "@/components/icons";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import GammeTabs from "@/components/GammeTabs";
 import { libelleGamme, styleBadgeGamme, type GammeInfo } from "@/lib/gammesClient";
+import { Spinner, ChargementPage } from "@/components/Spinner";
 
 type Produit = {
   id: string;
@@ -154,6 +155,7 @@ export default function ProduitsPage() {
           <input className="field-input" type="number" step="0.01" placeholder="Prix de référence" value={prix} onChange={(e) => setPrix(e.target.value)} required />
           {erreur && <p className="col-span-full text-sm text-danger">{erreur}</p>}
           <button className="btn-primary col-span-full" disabled={enCours}>
+            {enCours && <Spinner className="h-4 w-4" />}
             {enCours ? "Création…" : "Créer le produit"}
           </button>
         </form>

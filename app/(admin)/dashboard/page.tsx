@@ -5,6 +5,7 @@ import { usePolling } from "@/lib/usePolling";
 import { libelleTypes } from "@/lib/typesEtablissement";
 import Link from "next/link";
 import { IconDownload, IconStorefront, IconPin } from "@/components/icons";
+import { Spinner, ChargementPage } from "@/components/Spinner";
 
 type Visite = {
   id: string;
@@ -112,7 +113,10 @@ export default function Dashboard() {
             <IconStorefront className="h-5 w-5 text-brass" />
             Visites terrain
           </h1>
-          <p className="text-sm text-ink-muted">{total} point(s) de vente recensé(s)</p>
+          <p className="flex items-center gap-2 text-sm text-ink-muted">
+            {total} point(s) de vente recensé(s)
+            {chargement && <Spinner className="h-3.5 w-3.5 text-brass" />}
+          </p>
         </div>
         {nouveaux > 0 && (
           <button onClick={rafraichir} className="btn-primary">
@@ -206,6 +210,13 @@ export default function Dashboard() {
                 </td>
               </tr>
             ))}
+            {chargement && visites.length === 0 && (
+              <tr>
+                <td colSpan={8}>
+                  <ChargementPage compact label="Chargement des visites…" />
+                </td>
+              </tr>
+            )}
             {!chargement && visites.length === 0 && (
               <tr>
                 <td colSpan={8} className="px-4 py-8 text-center text-ink-muted">

@@ -7,6 +7,7 @@ import ChampagneScene from "@/components/ChampagneScene";
 import GoldRule from "@/components/GoldRule";
 import InstallButton from "@/components/InstallButton";
 import { IconUser, IconLock } from "@/components/icons";
+import { Spinner, ChargementPage } from "@/components/Spinner";
 
 // useSearchParams() (lecture de ?motif=inactivite, voir InactivityLogout)
 // oblige Next.js à isoler le composant qui l'utilise dans un <Suspense> —
@@ -210,6 +211,7 @@ function LoginForm() {
               className="btn-primary w-full !bg-gradient-to-b !from-[#E6CC9A] !to-[#B8893F] !py-3.5 !text-[#2A1020] shadow-[0_10px_24px_-10px_rgb(184_137_63/0.9)]"
               disabled={enCours}
             >
+              {enCours && <Spinner className="h-4 w-4" />}
               {enCours ? "Connexion…" : "Se connecter"}
             </button>
             <span aria-hidden className="absolute inset-x-8 top-0 !m-0 h-px bg-gradient-to-r from-transparent via-[#D9B45E] to-transparent" />
