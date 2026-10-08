@@ -7,6 +7,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import InstallButton from "@/components/InstallButton";
 import LocationHeartbeat from "@/components/LocationHeartbeat";
 import InactivityLogout from "@/components/InactivityLogout";
+import HorsLigneInit from "@/components/HorsLigneInit";
 
 export default async function CommercialLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -16,6 +17,7 @@ export default async function CommercialLayout({ children }: { children: React.R
     <div className="min-h-screen">
       <LocationHeartbeat />
       <InactivityLogout />
+      <HorsLigneInit userId={session.userId} />
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-bg/95 px-4 py-3 backdrop-blur">
         <div>
           <p className="font-display italic text-lg leading-none text-ink">Belgravia / VDV</p>

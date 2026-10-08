@@ -105,8 +105,31 @@ function NouvelleCommandeInner() {
     setRechercheEnCours(true);
     const t = setTimeout(() => {
       fetch(`/api/points-vente/recherche?q=${encodeURIComponent(recherche)}`)
-        .then((r) => r.json())
+        .then((r) => {
+          if (!r.ok) throw new Error("recherche");
+          return r.json();
+        })
         .then((data) => setResultats(data.points || []))
+        .catch(async () => {
+          // Hors-ligne : recherche dans la liste des points de vente gardée sur l'appareil.
+          try {
+            const r = await fetch("/api/points-vente/hors-ligne");
+            if (!r.ok) throw new Error("cache");
+            const data = await r.json();
+            const mot = recherche.trim().toLowerCase();
+            setResultats(
+              (data.points || [])
+                .filter((p: any) =>
+                  [p.nomEtablissement, p.quartier, p.repereQuartier, p.ville].some((v) =>
+                    typeof v === "string" && v.toLowerCase().includes(mot)
+                  )
+                )
+                .slice(0, 8)
+            );
+          } catch {
+            setResultats([]);
+          }
+        })
         .finally(() => setRechercheEnCours(false));
     }, 300);
     return () => clearTimeout(t);

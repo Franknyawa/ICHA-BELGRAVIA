@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle";
 import ChampagneScene from "@/components/ChampagneScene";
@@ -8,6 +8,8 @@ import GoldRule from "@/components/GoldRule";
 import InstallButton from "@/components/InstallButton";
 import { IconUser, IconLock } from "@/components/icons";
 import { Spinner, ChargementPage } from "@/components/Spinner";
+import { deverrouiller, effacerVerrou, enregistrerVerrou, resumeVerrou, DUREE_MAX_JOURS } from "@/lib/verrouLocal";
+import { viderCachesHorsLigne } from "@/lib/horsLigne";
 
 // useSearchParams() (lecture de ?motif=inactivite, voir InactivityLogout)
 // oblige Next.js à isoler le composant qui l'utilise dans un <Suspense> —
@@ -31,24 +33,111 @@ function LoginForm() {
   );
   const [enCours, setEnCours] = useState(false);
 
+  const [infoHorsLigne, setInfoHorsLigne] = useState<string | null>(null);
+
+  // Mode hors-ligne : si un accès local existe sur cet appareil, on l'annonce et on pré-remplit l'identifiant.
+  useEffect(() => {
+    let annule = false;
+    async function verifier() {
+      if (navigator.onLine) {
+        setInfoHorsLigne(null);
+        return;
+      }
+      const verrou = await resumeVerrou();
+      if (annule) return;
+      if (verrou) {
+        setIdentifiant((v) => v || verrou.identifiant);
+        setInfoHorsLigne(
+          `Pas de connexion. ${verrou.prenom}, saisis ton mot de passe pour rouvrir l'application hors-ligne (valable jusqu'au ${new Date(verrou.expireLe).toLocaleDateString("fr-FR")}).`
+        );
+      } else {
+        setInfoHorsLigne(
+          "Pas de connexion, et aucun accès hors-ligne n'est enregistré sur cet appareil : connecte-toi une première fois avec internet."
+        );
+      }
+    }
+    verifier();
+    window.addEventListener("online", verifier);
+    window.addEventListener("offline", verifier);
+    return () => {
+      annule = true;
+      window.removeEventListener("online", verifier);
+      window.removeEventListener("offline", verifier);
+    };
+  }, []);
+
+  async function deverrouillerLocalement() {
+    const r = await deverrouiller(identifiant, motDePasse);
+    if (r.statut === "OK") {
+      // Navigation complète : la page est servie depuis le cache du service worker.
+      window.location.assign("/terrain");
+      return;
+    }
+    if (r.statut === "MAUVAIS") {
+      setErreur(`Identifiants incorrects. Il te reste ${r.essaisRestants} essai${r.essaisRestants > 1 ? "s" : ""} hors-ligne.`);
+    } else if (r.statut === "BLOQUE") {
+      const min = Math.floor(r.secondes / 60);
+      setErreur(`Trop d'essais. Réessaie dans ${min > 0 ? `${min} min ${r.secondes % 60} s` : `${r.secondes} s`}.`);
+    } else if (r.statut === "EXPIRE") {
+      setErreur(`L'accès hors-ligne a expiré (${DUREE_MAX_JOURS} jours sans connexion). Connecte-toi une fois avec internet.`);
+    } else if (r.statut === "ABSENT") {
+      setErreur("Pas de connexion, et aucun accès hors-ligne n'est enregistré sur cet appareil. Connecte-toi une première fois avec internet.");
+    } else {
+      setErreur("Le mode hors-ligne n'est pas disponible sur cet appareil.");
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErreur(null);
     setEnCours(true);
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ identifiant, motDePasse }),
-    });
-    setEnCours(false);
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      setErreur(data.error || "Identifiants incorrects.");
-      return;
+    try {
+      if (!navigator.onLine) {
+        await deverrouillerLocalement();
+        return;
+      }
+
+      // Délai maximum : sur un réseau qui "pend" (zone mal couverte), on bascule sur l'accès local.
+      const controleur = new AbortController();
+      const minuteur = setTimeout(() => controleur.abort(), 10000);
+      let res: Response;
+      try {
+        res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ identifiant, motDePasse }),
+          signal: controleur.signal,
+        });
+      } catch {
+        await deverrouillerLocalement();
+        return;
+      } finally {
+        clearTimeout(minuteur);
+      }
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setErreur(data.error || "Identifiants incorrects.");
+        return;
+      }
+      const { role, userId, nom, prenom } = await res.json();
+
+      // Nouvelle connexion en ligne : on repart d'un cache propre (pas de données d'un autre compte),
+      // puis, pour un commercial, on enregistre l'accès hors-ligne sur cet appareil.
+      await viderCachesHorsLigne();
+      await effacerVerrou();
+      if (role === "COMMERCIAL") {
+        try {
+          await enregistrerVerrou(identifiant, motDePasse, { userId, nom, prenom });
+        } catch {
+          /* le mode hors-ligne sera simplement indisponible */
+        }
+      }
+      router.push(role === "ADMIN" ? "/tableau-de-bord" : "/terrain");
+      router.refresh();
+    } finally {
+      setEnCours(false);
     }
-    const { role } = await res.json();
-    router.push(role === "ADMIN" ? "/tableau-de-bord" : "/terrain");
-    router.refresh();
   }
 
   return (
@@ -200,6 +289,12 @@ function LoginForm() {
               </div>
             </div>
 
+            {infoHorsLigne && (
+              <p role="status" className="rounded-md border border-brass/30 bg-brass/10 px-3 py-2 text-sm text-ink">
+                {infoHorsLigne}
+              </p>
+            )}
+
             {erreur && (
               <p role="alert" className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
                 {erreur}
@@ -212,7 +307,7 @@ function LoginForm() {
               disabled={enCours}
             >
               {enCours && <Spinner className="h-4 w-4" />}
-              {enCours ? "Connexion…" : "Se connecter"}
+              {enCours ? "Connexion…" : infoHorsLigne ? "Ouvrir hors-ligne" : "Se connecter"}
             </button>
             <span aria-hidden className="absolute inset-x-8 top-0 !m-0 h-px bg-gradient-to-r from-transparent via-[#D9B45E] to-transparent" />
           </form>

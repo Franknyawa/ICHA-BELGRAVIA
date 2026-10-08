@@ -51,5 +51,5 @@ export async function POST(req: NextRequest) {
 
   await createSession(user.id, user.role, user.nom, user.prenom, req.headers.get("user-agent"));
 
-  return NextResponse.json({ role: user.role });
+  return NextResponse.json({ role: user.role, userId: user.id, nom: user.nom, prenom: user.prenom });
 }
