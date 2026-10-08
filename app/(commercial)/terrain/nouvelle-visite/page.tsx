@@ -9,6 +9,7 @@ import AffluenceGrid, { type Affluence } from "@/components/form/AffluenceGrid";
 import BlocBoissons, { type ValeurBoisson, type BoissonLibre } from "@/components/form/BlocBoissons";
 import { resolveVilleDepuisCoordonnees, matchVille } from "@/lib/reverseGeocode";
 import { soumettre as soumettreSynchro } from "@/lib/syncEngine";
+import ConfirmationEnregistrement from "@/components/ConfirmationEnregistrement";
 import { ErreurEnvoi } from "@/lib/erreurEnvoi";
 import { compresserImage } from "@/lib/compresserImage";
 import { IconStorefront, IconPhone, IconPin, IconCamera, IconGlass, IconClock, IconCheckCircle, IconClipboard } from "@/components/icons";
@@ -44,6 +45,7 @@ export default function NouvelleVisite() {
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [messageInfo, setMessageInfo] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<{ variante: "succes" | "local"; suite: string; detail: string } | null>(null);
 
   // Section 2
   const [nomEtablissement, setNomEtablissement] = useState("");
@@ -313,11 +315,14 @@ export default function NouvelleVisite() {
         payload,
         photos: photosPayload,
       });
-      if (veutCommander) {
-        router.push(`/terrain/nouvelle-commande?pointVenteId=${resultat.pointVenteId}`);
-      } else {
-        router.push("/terrain");
-      }
+      // Confirmation visible : l'agent voit que la visite est bien arrivée avant d'être redirigé.
+      setConfirmation({
+        variante: "succes",
+        suite: veutCommander ? `/terrain/nouvelle-commande?pointVenteId=${resultat.pointVenteId}` : "/terrain",
+        detail: veutCommander
+          ? `${nomEtablissement} est enregistré. Place à la commande.`
+          : `${nomEtablissement} est enregistré et envoyé.`,
+      });
     } catch (e) {
       // La visite est écrite sur l'appareil AVANT l'envoi (lib/syncEngine.ts) :
       // sauf refus définitif du serveur, elle est conservée et réessayée seule.
@@ -336,12 +341,14 @@ export default function NouvelleVisite() {
         const suite = veutCommander
           ? " Pense à saisir la commande (bouton \"Nouvelle commande\") une fois la visite synchronisée."
           : "";
-        setMessageInfo(
-          (err.genre === "RESEAU"
-            ? "Pas de connexion : la visite est enregistrée sur l'appareil et partira automatiquement au retour du réseau."
-            : `Le serveur est momentanément indisponible (${err.message}) : la visite est enregistrée sur l'appareil et sera réessayée automatiquement.`) + suite
-        );
-        setTimeout(() => router.push("/terrain"), veutCommander ? 3200 : 2200);
+        setConfirmation({
+          variante: "local",
+          suite: "/terrain",
+          detail:
+            (err.genre === "RESEAU"
+              ? "Pas de connexion : elle est gardée sur l'appareil et partira automatiquement au retour du réseau."
+              : `Le serveur est momentanément indisponible (${err.message}) : elle est gardée sur l'appareil et sera réessayée automatiquement.`) + suite,
+        });
       }
     } finally {
       setEnvoi(false);
@@ -350,6 +357,16 @@ export default function NouvelleVisite() {
 
   return (
     <div className="mx-auto max-w-lg">
+      {confirmation && (
+        <ConfirmationEnregistrement
+          variante={confirmation.variante}
+          titre={confirmation.variante === "succes" ? "Visite enregistrée" : "Visite gardée sur l'appareil"}
+          detail={confirmation.detail}
+          libelleBouton={confirmation.suite === "/terrain" ? "Retour à l'accueil" : "Saisir la commande"}
+          delaiAuto={confirmation.variante === "local" ? 4500 : 2600}
+          onContinuer={() => router.push(confirmation.suite)}
+        />
+      )}
       {/* Reste visible sous l'en-tête pendant le défilement : on change de
           rubrique d'un appui, sans remonter ni redescendre la page. */}
       <div className="sticky top-[3.75rem] z-[9] -mx-4 mb-5 border-b border-line/60 bg-bg/95 px-4 pb-1 pt-2 backdrop-blur">
