@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { genererRapport, type GroupBy } from "@/lib/rapports";
 
-const GROUPES_VALIDES: GroupBy[] = ["commercial", "pointVente", "ville", "quartier", "vente"];
+const GROUPES_VALIDES: GroupBy[] = ["commercial", "pointVente", "ville", "quartier", "vente", "produit", "historique"];
 
 /**
  * Rapports admin — un seul endpoint, paramétré par `groupBy`, pour les 5

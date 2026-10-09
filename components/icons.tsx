@@ -305,3 +305,21 @@ export function IconPrinter({ className }: Props) {
     </svg>
   );
 }
+
+export function IconBox({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M12 3.5 20 7.8v8.4L12 20.5 4 16.2V7.8z" />
+      <path d="M4 7.8 12 12l8-4.2M12 12v8.5" />
+    </svg>
+  );
+}
+
+export function IconCalendar({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <rect x="4" y="5.5" width="16" height="14.5" rx="2" />
+      <path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" />
+    </svg>
+  );
+}

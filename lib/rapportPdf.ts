@@ -45,10 +45,12 @@ export async function exporterRapportPdf(data: ExportRapportData) {
   doc.setTextColor(...COULEUR_TEXTE_ATT);
   doc.setFontSize(9);
   doc.text(data.sousTitre || "Toutes périodes, tous filtres", 14, 33);
+  if (data.colonnes.length > 10) doc.text("Montants en FCFA", largeur / 2, 33, { align: "center" });
   doc.text(`Généré le ${new Date().toLocaleDateString("fr-FR")}`, largeur - 14, 33, { align: "right" });
 
   const formatCell = (colonne: Colonne, valeur: string | number) => {
-    if (colonne.montant) return `${formaterMontant(Number(valeur))} FCFA`;
+    if (colonne.montant) return data.colonnes.length > 10 ? formaterMontant(Number(valeur)) : `${formaterMontant(Number(valeur))} FCFA`;
+    if (colonne.pourcentage) return `${Number(valeur).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`;
     return String(valeur ?? "—") || "—";
   };
 
@@ -63,7 +65,7 @@ export async function exporterRapportPdf(data: ExportRapportData) {
         return "";
       }),
     ],
-    styles: { fontSize: 8.5, textColor: COULEUR_ENCRE },
+    styles: { fontSize: data.colonnes.length > 10 ? 6 : 8.5, cellPadding: data.colonnes.length > 10 ? 1.4 : undefined, textColor: COULEUR_ENCRE },
     headStyles: { fillColor: COULEUR_EMERAUDE, textColor: COULEUR_IVOIRE, fontStyle: "bold" },
     footStyles: { fillColor: [240, 234, 218], textColor: COULEUR_ENCRE, fontStyle: "bold" },
     columnStyles: Object.fromEntries(

@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { IconTrend, IconUsers, IconStorefront, IconMap, IconPin, IconReceipt, IconDownload, IconPrinter } from "@/components/icons";
+import { IconTrend, IconUsers, IconStorefront, IconMap, IconPin, IconReceipt, IconDownload, IconPrinter, IconBox, IconCalendar } from "@/components/icons";
 import { exporterRapportPdf } from "@/lib/rapportPdf";
 import { libelleGamme, type GammeInfo } from "@/lib/gammesClient";
 import { NOM_APP } from "@/lib/marque";
 import { Spinner, ChargementPage } from "@/components/Spinner";
 
-type Colonne = { cle: string; label: string; droite?: boolean; montant?: boolean };
+type Colonne = { cle: string; label: string; droite?: boolean; montant?: boolean; pourcentage?: boolean };
 type Rapport = {
   groupBy: string;
   colonnes: Colonne[];
@@ -28,6 +28,8 @@ const CATEGORIES: { valeur: string; label: string; icon: typeof IconUsers }[] = 
   { valeur: "ville", label: "Par ville", icon: IconMap },
   { valeur: "quartier", label: "Par quartier", icon: IconPin },
   { valeur: "vente", label: "Détail des ventes", icon: IconReceipt },
+  { valeur: "produit", label: "Par produit", icon: IconBox },
+  { valeur: "historique", label: "Historique 12 mois", icon: IconCalendar },
 ];
 
 const LABEL_CATEGORIE: Record<string, string> = {
@@ -36,10 +38,13 @@ const LABEL_CATEGORIE: Record<string, string> = {
   ville: "Rapport par ville",
   quartier: "Rapport par quartier",
   vente: "Détail des ventes",
+  produit: "Ventes par produit",
+  historique: "Historique des ventes sur 12 mois par point de vente",
 };
 
 function formaterCellule(colonne: Colonne, valeur: string | number) {
   if (colonne.montant) return `${Number(valeur).toLocaleString("fr-FR")} FCFA`;
+  if (colonne.pourcentage) return `${Number(valeur).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`;
   return valeur === "" || valeur === null || valeur === undefined ? "—" : String(valeur);
 }
 
@@ -121,6 +126,28 @@ export default function RapportsPage() {
     }
   }
 
+  function exporterCsv() {
+    if (!rapport) return;
+    const cellule = (c: Colonne, v: string | number) => {
+      const brut = c.montant || c.pourcentage ? String(Math.round(Number(v || 0) * 10) / 10).replace(".", ",") : String(v ?? "");
+      return `"${brut.replace(/"/g, '""')}"`;
+    };
+    const lignes = [
+      rapport.colonnes.map((c) => `"${c.label.replace(/"/g, '""')}"`).join(";"),
+      ...rapport.lignes.map((l) => rapport.colonnes.map((c) => cellule(c, l[c.cle])).join(";")),
+      rapport.colonnes.map((c, i) => (i === 0 ? '"Total"' : c.cle in rapport.totaux ? cellule(c, rapport.totaux[c.cle]) : '""')).join(";"),
+    ];
+    // BOM + point-virgule : s'ouvre correctement dans Excel en français.
+    const blob = new Blob(["\ufeff" + lignes.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `rapport-${categorie}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  const estHistorique = categorie === "historique";
+
   return (
     <div>
       <div className="no-print mb-5">
@@ -129,7 +156,7 @@ export default function RapportsPage() {
           Rapports
         </h1>
         <p className="text-sm text-ink-muted">
-          Performance par commercial, point de vente, ville ou quartier — et détail ligne par ligne des ventes.
+          Performance et chiffre d'affaires par commercial, produit, point de vente, ville ou quartier — historique sur 12 mois et détail des ventes.
         </p>
       </div>
 
@@ -159,11 +186,11 @@ export default function RapportsPage() {
       <div className="no-print field-card mb-6 flex flex-wrap items-end gap-2">
         <div>
           <label className="mb-1 block text-xs text-ink-muted">Du</label>
-          <input type="date" className="field-input max-w-[150px]" value={filtres.dateFrom} onChange={(e) => setFiltres({ ...filtres, dateFrom: e.target.value })} />
+          <input type="date" disabled={estHistorique} className="field-input max-w-[150px] disabled:opacity-40" value={filtres.dateFrom} onChange={(e) => setFiltres({ ...filtres, dateFrom: e.target.value })} />
         </div>
         <div>
           <label className="mb-1 block text-xs text-ink-muted">Au</label>
-          <input type="date" className="field-input max-w-[150px]" value={filtres.dateTo} onChange={(e) => setFiltres({ ...filtres, dateTo: e.target.value })} />
+          <input type="date" disabled={estHistorique} className="field-input max-w-[150px] disabled:opacity-40" value={filtres.dateTo} onChange={(e) => setFiltres({ ...filtres, dateTo: e.target.value })} />
         </div>
         <div>
           <label className="mb-1 block text-xs text-ink-muted">Commercial</label>
@@ -199,6 +226,10 @@ export default function RapportsPage() {
             {export_ && <Spinner className="h-4 w-4" />}
             {export_ ? "Export…" : "Télécharger PDF"}
           </button>
+          <button className="btn-secondary" onClick={exporterCsv} disabled={!rapport}>
+            <IconDownload className="h-4 w-4" />
+            Excel (CSV)
+          </button>
           <button className="btn-secondary" onClick={() => window.print()}>
             <IconPrinter className="h-4 w-4" />
             Imprimer
@@ -213,6 +244,13 @@ export default function RapportsPage() {
         </p>
       )}
 
+      {estHistorique && (
+        <p className="no-print -mt-3 mb-5 text-xs text-ink-muted">
+          Cet historique couvre toujours les 12 derniers mois (mois en cours inclus) : le filtre de période ne s'applique pas.
+          Seuls les points de vente ayant commandé sur la période apparaissent.
+        </p>
+      )}
+
       {/* En-tête visible seulement à l'impression/dans le PDF — pour situer
           le rapport une fois la nav masquée. */}
       <div className="mb-4 hidden print:block">
@@ -220,7 +258,7 @@ export default function RapportsPage() {
         <p className="text-sm text-ink-muted">{resumeFiltres()}</p>
       </div>
 
-      {rapport && rapport.groupBy !== "vente" && (
+      {rapport && !["vente", "produit", "historique"].includes(rapport.groupBy) && (
         <div className="mb-5 grid gap-3 sm:grid-cols-4">
           <div className="field-card text-center">
             <p className="font-display text-2xl text-ink">{rapport.totaux.pointsVenteRecenses ?? 0}</p>
@@ -236,7 +274,41 @@ export default function RapportsPage() {
           </div>
           <div className="field-card text-center">
             <p className="font-display text-2xl text-ink">{Number(rapport.totaux.montantTotal || 0).toLocaleString("fr-FR")}</p>
-            <p className="text-xs text-ink-muted">Total vendu (FCFA)</p>
+            <p className="text-xs text-ink-muted">Chiffre d'affaires (FCFA)</p>
+          </div>
+        </div>
+      )}
+
+      {rapport && rapport.groupBy === "produit" && (
+        <div className="mb-5 grid gap-3 sm:grid-cols-3">
+          <div className="field-card text-center">
+            <p className="font-display text-2xl text-ink">{Number(rapport.totaux.cartons || 0).toLocaleString("fr-FR")}</p>
+            <p className="text-xs text-ink-muted">Cartons vendus</p>
+          </div>
+          <div className="field-card text-center">
+            <p className="font-display text-2xl text-ink">{Number(rapport.totaux.montantTotal || 0).toLocaleString("fr-FR")}</p>
+            <p className="text-xs text-ink-muted">Chiffre d'affaires (FCFA)</p>
+          </div>
+          <div className="field-card text-center">
+            <p className="font-display text-2xl text-ink">{Number(rapport.totaux.prixMoyen || 0).toLocaleString("fr-FR")}</p>
+            <p className="text-xs text-ink-muted">Prix moyen / carton (FCFA)</p>
+          </div>
+        </div>
+      )}
+
+      {rapport && rapport.groupBy === "historique" && (
+        <div className="mb-5 grid gap-3 sm:grid-cols-3">
+          <div className="field-card text-center">
+            <p className="font-display text-2xl text-ink">{rapport.lignes.length}</p>
+            <p className="text-xs text-ink-muted">Points de vente actifs</p>
+          </div>
+          <div className="field-card text-center">
+            <p className="font-display text-2xl text-ink">{Number(rapport.totaux.commandes || 0).toLocaleString("fr-FR")}</p>
+            <p className="text-xs text-ink-muted">Commandes sur 12 mois</p>
+          </div>
+          <div className="field-card text-center">
+            <p className="font-display text-2xl text-ink">{Number(rapport.totaux.total || 0).toLocaleString("fr-FR")}</p>
+            <p className="text-xs text-ink-muted">Chiffre d'affaires 12 mois (FCFA)</p>
           </div>
         </div>
       )}
@@ -278,7 +350,7 @@ export default function RapportsPage() {
                   {rapport.colonnes.map((c) => (
                     <td
                       key={c.cle}
-                      className={`px-4 py-3 ${c.droite ? "text-right" : ""} ${
+                      className={`px-4 py-3 ${estHistorique ? "whitespace-nowrap" : ""} ${c.droite ? "text-right" : ""} ${
                         c.cle === "label" ? "font-medium text-ink" : "text-ink-muted"
                       } ${c.cle === "resteAPayer" && Number(ligne[c.cle]) > 0 ? "font-medium text-danger" : ""}`}
                     >
