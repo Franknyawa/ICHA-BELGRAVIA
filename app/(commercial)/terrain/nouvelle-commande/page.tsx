@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { v4 as uuid } from "uuid";
 import { IconStorefront, IconGlass, IconReceipt, IconClipboard, IconDownload, IconPin } from "@/components/icons";
 import { soumettre as soumettreSynchro } from "@/lib/syncEngine";
+import ConfirmationEnregistrement from "@/components/ConfirmationEnregistrement";
 import { ErreurEnvoi } from "@/lib/erreurEnvoi";
 import { calculerCommande, calculerPaiement, MODES_PAIEMENT, type ModePaiementValue, type PalierPrix } from "@/lib/pricing";
 import { genererFacturePdf } from "@/lib/facturePdf";
@@ -67,6 +68,7 @@ function NouvelleCommandeInner() {
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [messageInfo, setMessageInfo] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<{ variante: "succes" | "local"; detail: string } | null>(null);
 
   useEffect(() => {
     fetch("/api/referentiels")
@@ -247,15 +249,21 @@ function NouvelleCommandeInner() {
       // La facture est générée immédiatement après l'enregistrement réussi,
       // avec le numéro attribué par le serveur (8 premiers caractères de
       // l'id, en majuscules — cohérent avec la liste admin des factures).
+      let factureOk = false;
       try {
         await genererFacture((resultat as any).numero || uuidCommande.slice(0, 8).toUpperCase(), new Date());
+        factureOk = true;
       } catch {
         // La commande est déjà enregistrée : un échec de génération du PDF
         // (rare, ex. navigateur qui bloque le téléchargement) ne doit pas
         // bloquer le retour à l'accueil — la facture reste régénérable
         // depuis l'admin (onglet Factures).
       }
-      router.push("/terrain");
+      const numero = (resultat as any).numero as string | undefined;
+      setConfirmation({
+        variante: "succes",
+        detail: `${client.nomEtablissement}${numero ? ` · n° ${numero}` : ""} · ${montantTotal.toLocaleString("fr-FR")} FCFA.${factureOk ? " La facture a été téléchargée." : " La facture reste disponible depuis l'administration."}`,
+      });
     } catch (e) {
       const err = e instanceof ErreurEnvoi ? e : null;
       if (!err || err.genre === "PERMANENTE") {
@@ -268,18 +276,22 @@ function NouvelleCommandeInner() {
       } else {
         // Hors-ligne ou serveur indisponible : la commande est déjà sauvegardée sur l'appareil.
         // Le prix affiché vient du même barème que celui du serveur (lib/pricing.ts).
+        let factureOk = false;
         try {
           await genererFacture(uuidCommande.slice(0, 8).toUpperCase(), new Date());
+          factureOk = true;
         } catch {
           /* la facture reste régénérable depuis l'admin */
         }
+        const noteFacture = factureOk ? " La facture a été téléchargée." : "";
         setErreur(null);
-        setMessageInfo(
-          err.genre === "RESEAU"
-            ? "Pas de connexion : la commande est enregistrée sur l'appareil et partira automatiquement au retour du réseau."
-            : `Le serveur est momentanément indisponible (${err.message}) : la commande est enregistrée sur l'appareil et sera réessayée automatiquement.`
-        );
-        setTimeout(() => router.push("/terrain"), 2200);
+        setConfirmation({
+          variante: "local",
+          detail:
+            err.genre === "RESEAU"
+              ? `Pas de connexion : elle est gardée sur l'appareil et partira automatiquement au retour du réseau.${noteFacture}`
+              : `Le serveur est momentanément indisponible (${err.message}) : elle est gardée sur l'appareil et sera réessayée automatiquement.${noteFacture}`,
+        });
       }
     } finally {
       setEnvoi(false);
@@ -288,6 +300,16 @@ function NouvelleCommandeInner() {
 
   return (
     <div className="mx-auto max-w-lg space-y-5">
+      {confirmation && (
+        <ConfirmationEnregistrement
+          variante={confirmation.variante}
+          titre={confirmation.variante === "succes" ? "Commande enregistrée" : "Commande gardée sur l'appareil"}
+          detail={confirmation.detail}
+          libelleBouton="Retour à l'accueil"
+          delaiAuto={confirmation.variante === "local" ? 4500 : 3200}
+          onContinuer={() => router.push("/terrain")}
+        />
+      )}
       <h1 className="font-display text-2xl text-ink">Nouvelle commande</h1>
 
       {erreur && (
