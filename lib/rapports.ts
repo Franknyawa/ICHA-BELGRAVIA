@@ -27,6 +27,8 @@ export type FiltresRapport = {
   quartier?: string;
   /** Filtre de gamme : ne concerne que les commandes / le CA (visites et recensements ne sont pas rattachés à une gamme). */
   gammeId?: string;
+  /** Filtre d'un produit : seules les lignes de ce produit comptent (cartons et CA). */
+  produitId?: string;
 };
 
 export type Colonne = { cle: string; label: string; droite?: boolean; montant?: boolean; pourcentage?: boolean };
@@ -37,7 +39,7 @@ export type RapportResultat = {
   totaux: Record<string, number>;
 };
 
-function dateFilter(f: FiltresRapport) {
+export function dateFilter(f: FiltresRapport) {
   if (!f.dateFrom && !f.dateTo) return undefined;
   return {
     ...(f.dateFrom ? { gte: new Date(f.dateFrom) } : {}),
@@ -45,12 +47,37 @@ function dateFilter(f: FiltresRapport) {
   };
 }
 
-function filtrePointVente(f: FiltresRapport) {
+export function filtrePointVente(f: FiltresRapport) {
   if (!f.villeId && !f.quartier) return undefined;
   return {
     ...(f.villeId ? { villeId: f.villeId } : {}),
     ...(f.quartier ? { quartier: { contains: f.quartier, mode: "insensitive" as const } } : {}),
   };
+}
+
+type Mesurable = {
+  montantTotal: unknown;
+  resteAPayer: unknown;
+  lignes: { produitId: string | null; quantite: number; sousTotal: unknown }[];
+};
+
+/**
+ * Mesures d'une commande selon le filtre produit : sans filtre, la commande
+ * entière ; avec filtre, uniquement les lignes du produit (le reste à payer
+ * n'a alors plus de sens, il porte sur la commande entière).
+ */
+export function mesures(f: Pick<FiltresRapport, "produitId">) {
+  const lignesDe = (c: Mesurable) => (f.produitId ? c.lignes.filter((l) => l.produitId === f.produitId) : c.lignes);
+  return {
+    montantDe: (c: Mesurable) =>
+      f.produitId ? lignesDe(c).reduce((t, l) => t + Number(l.sousTotal), 0) : Number(c.montantTotal),
+    cartonsDe: (c: Mesurable) => lignesDe(c).reduce((t, l) => t + l.quantite, 0),
+    resteDe: (c: Mesurable) => (f.produitId ? 0 : Number(c.resteAPayer)),
+  };
+}
+
+export function whereProduit(f: Pick<FiltresRapport, "produitId">) {
+  return f.produitId ? { lignes: { some: { produitId: f.produitId } } } : {};
 }
 
 export async function genererRapport(groupBy: GroupBy, f: FiltresRapport): Promise<RapportResultat> {
@@ -62,6 +89,7 @@ export async function genererRapport(groupBy: GroupBy, f: FiltresRapport): Promi
     ...(df ? { createdAt: df } : {}),
     ...(f.commercialId ? { commercialId: f.commercialId } : {}),
     ...(f.gammeId ? { gammeId: f.gammeId } : {}),
+    ...whereProduit(f),
     ...(pv ? { pointVente: pv } : {}),
   };
   const whereVisite = {
@@ -78,6 +106,7 @@ export async function genererRapport(groupBy: GroupBy, f: FiltresRapport): Promi
   if (groupBy === "produit") return rapportParProduit(f, whereCommande);
   if (groupBy === "historique") return rapportHistorique12Mois(f);
 
+  const { montantDe, cartonsDe, resteDe } = mesures(f);
   const [commandes, visites, recensements] = await Promise.all([
     prisma.commande.findMany({
       where: whereCommande,
@@ -91,7 +120,7 @@ export async function genererRapport(groupBy: GroupBy, f: FiltresRapport): Promi
         commercialId: true,
         commercial: { select: { nom: true, prenom: true } },
         gamme: { select: { code: true, nom: true } },
-        lignes: { select: { quantite: true } },
+        lignes: { select: { produitId: true, quantite: true, sousTotal: true } },
         pointVenteId: true,
         pointVente: { select: { nomEtablissement: true, quartier: true, villeId: true, ville: { select: { nom: true } } } },
       },
@@ -122,8 +151,9 @@ export async function genererRapport(groupBy: GroupBy, f: FiltresRapport): Promi
       commercial: `${c.commercial.prenom} ${c.commercial.nom}`,
       gamme: c.gamme ? libelleGamme(c.gamme) : "—",
       modePaiement: c.modePaiement,
-      montantTotal: Number(c.montantTotal),
-      resteAPayer: Number(c.resteAPayer),
+      cartons: cartonsDe(c),
+      montantTotal: montantDe(c),
+      resteAPayer: resteDe(c),
       statut: c.statut,
     }));
     return {
@@ -136,12 +166,14 @@ export async function genererRapport(groupBy: GroupBy, f: FiltresRapport): Promi
         { cle: "commercial", label: "Commercial" },
         { cle: "gamme", label: "Gamme" },
         { cle: "modePaiement", label: "Paiement" },
+        { cle: "cartons", label: "Cartons", droite: true },
         { cle: "montantTotal", label: "Montant", droite: true, montant: true },
-        { cle: "resteAPayer", label: "Reste à payer", droite: true, montant: true },
+        ...(f.produitId ? [] : [{ cle: "resteAPayer", label: "Reste à payer", droite: true, montant: true }]),
         { cle: "statut", label: "Statut" },
       ],
       lignes,
       totaux: {
+        cartons: lignes.reduce((s, l) => s + l.cartons, 0),
         montantTotal: lignes.reduce((s, l) => s + l.montantTotal, 0),
         resteAPayer: lignes.reduce((s, l) => s + l.resteAPayer, 0),
       },
@@ -222,9 +254,9 @@ export async function genererRapport(groupBy: GroupBy, f: FiltresRapport): Promi
   for (const c of commandes) {
     const l = ligne(cleCommande(c));
     l.commandes += 1;
-    l.cartons += c.lignes.reduce((t, x) => t + x.quantite, 0);
-    l.montantTotal += Number(c.montantTotal);
-    l.resteAPayer += Number(c.resteAPayer);
+    l.cartons += cartonsDe(c);
+    l.montantTotal += montantDe(c);
+    l.resteAPayer += resteDe(c);
 
     // Renseigne le libellé lisible à la première occurrence rencontrée —
     // les commandes ont toujours les relations nécessaires chargées.
@@ -291,7 +323,7 @@ export async function genererRapport(groupBy: GroupBy, f: FiltresRapport): Promi
     { cle: "cartons", label: "Cartons vendus", droite: true },
     { cle: "montantTotal", label: "Chiffre d'affaires", droite: true, montant: true },
     { cle: "partCA", label: "% du CA", droite: true, pourcentage: true },
-    { cle: "resteAPayer", label: "Reste à payer", droite: true, montant: true },
+    ...(f.produitId ? [] : [{ cle: "resteAPayer", label: "Reste à payer", droite: true, montant: true }]),
   ];
   const caTotal = lignesTriees.reduce((s, l) => s + l.montantTotal, 0);
 
@@ -333,7 +365,7 @@ type WhereCommande = Parameters<typeof prisma.commande.findMany>[0] extends infe
 async function rapportParProduit(f: FiltresRapport, whereCommande: WhereCommande): Promise<RapportResultat> {
   const [lignesCmd, produitsActifs] = await Promise.all([
     prisma.ligneCommande.findMany({
-      where: { commande: whereCommande },
+      where: { commande: whereCommande, ...(f.produitId ? { produitId: f.produitId } : {}) },
       select: {
         commandeId: true,
         produitId: true,
@@ -347,7 +379,7 @@ async function rapportParProduit(f: FiltresRapport, whereCommande: WhereCommande
     // Les produits actifs sans aucune vente apparaissent aussi (ligne à 0) :
     // on voit tout de suite ce qui ne se vend pas.
     prisma.produit.findMany({
-      where: { actif: true, ...(f.gammeId ? { gammeId: f.gammeId } : {}) },
+      where: { actif: true, ...(f.gammeId ? { gammeId: f.gammeId } : {}), ...(f.produitId ? { id: f.produitId } : {}) },
       select: { id: true, nom: true, gamme: { select: { code: true, nom: true } } },
     }),
   ]);
@@ -442,16 +474,20 @@ async function rapportHistorique12Mois(f: FiltresRapport): Promise<RapportResult
       createdAt: { gte: debut },
       ...(f.commercialId ? { commercialId: f.commercialId } : {}),
       ...(f.gammeId ? { gammeId: f.gammeId } : {}),
+      ...whereProduit(f),
       ...(pv ? { pointVente: pv } : {}),
     },
     select: {
       createdAt: true,
       montantTotal: true,
+      resteAPayer: true,
+      lignes: { select: { produitId: true, quantite: true, sousTotal: true } },
       pointVenteId: true,
       pointVente: { select: { nomEtablissement: true, quartier: true, ville: { select: { nom: true } } } },
     },
   });
 
+  const { montantDe } = mesures(f);
   type L = { id: string; label: string; sousLabel: string; parMois: Record<string, number>; commandes: number; total: number };
   const parPv = new Map<string, L>();
   for (const c of commandes) {
@@ -468,7 +504,7 @@ async function rapportHistorique12Mois(f: FiltresRapport): Promise<RapportResult
       parPv.set(c.pointVenteId, l);
     }
     const cle = moisDe(c.createdAt);
-    const m = Number(c.montantTotal);
+    const m = montantDe(c);
     l.parMois[cle] = (l.parMois[cle] || 0) + m;
     l.commandes += 1;
     l.total += m;
@@ -502,8 +538,8 @@ async function rapportHistorique12Mois(f: FiltresRapport): Promise<RapportResult
       { cle: "label", label: "Point de vente" },
       { cle: "sousLabel", label: "Ville / Quartier" },
       ...mois.map((m) => ({ cle: `m_${m.cle}`, label: m.label, droite: true, montant: true })),
+      { cle: "commandes", label: "Cmd.", droite: true },
       { cle: "total", label: "Total 12 mois", droite: true, montant: true },
-      { cle: "commandes", label: "Commandes", droite: true },
     ],
     lignes,
     totaux,

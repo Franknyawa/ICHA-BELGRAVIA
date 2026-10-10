@@ -27,7 +27,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!session || session.role !== "ADMIN") redirect("/login");
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[230px_1fr]">
+    <div className="min-h-screen lg:grid lg:grid-cols-[230px_minmax(0,1fr)]">
       <InactivityLogout />
       <aside className="no-print border-b border-line bg-bg-elevated px-5 py-5 lg:min-h-screen lg:border-b-0 lg:border-r">
         <p className="font-display italic text-2xl text-ink">Belgravia / VDV</p>

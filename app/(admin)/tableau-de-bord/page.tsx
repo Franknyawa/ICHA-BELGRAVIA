@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import BarreGraphique from "@/components/BarreGraphique";
 import GammeTabs from "@/components/GammeTabs";
+import VentesProduits from "@/components/VentesProduits";
 import type { GammeInfo } from "@/lib/gammesClient";
 import {
   IconChart,
@@ -91,13 +92,14 @@ export default function TableauDeBordPage() {
             <Kpi icon={IconStorefront} label="Visites au total" valeur={data.visitesTotal} />
           </div>
 
+          <VentesProduits gammeId={gammeId} />
+
           <p className="section-eyebrow mb-3">Répartitions</p>
           <div className="grid gap-4 md:grid-cols-2">
             <BarreGraphique titre="Potentiel estimé" data={data.parPotentiel} />
             <BarreGraphique titre="Par type d'établissement" data={data.parType} />
             <BarreGraphique titre="Par ville" data={data.parVille} />
             <BarreGraphique titre="Visites par agent" data={data.parAgent} />
-            <BarreGraphique titre="Chiffre d'affaires par produit" data={data.caParProduit} formatValeur={formatMontant} />
           </div>
         </>
       )}

@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { genererRapport, type GroupBy } from "@/lib/rapports";
+import type { GroupBy } from "@/lib/rapports";
+import { detailRapport } from "@/lib/rapportDetail";
 
 const GROUPES_VALIDES: GroupBy[] = ["commercial", "pointVente", "ville", "quartier", "vente", "produit", "historique"];
 
-/**
- * Rapports admin — un seul endpoint, paramétré par `groupBy`, pour les 5
- * vues (par commercial / point de vente / ville / quartier / détail des
- * ventes) avec les mêmes filtres communs (période, agent, ville, quartier)
- * — voir lib/rapports.ts pour la logique de regroupement.
- */
+/** Détail d'une ligne de rapport (aperçu + impression individuelle). */
 export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") {
@@ -17,12 +13,13 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const groupByParam = searchParams.get("groupBy") || "commercial";
-  if (!GROUPES_VALIDES.includes(groupByParam as GroupBy)) {
-    return NextResponse.json({ error: "Catégorie de rapport invalide." }, { status: 400 });
+  const groupBy = searchParams.get("groupBy") as GroupBy;
+  const id = searchParams.get("id");
+  if (!GROUPES_VALIDES.includes(groupBy) || !id) {
+    return NextResponse.json({ error: "Paramètres invalides." }, { status: 400 });
   }
 
-  const resultat = await genererRapport(groupByParam as GroupBy, {
+  const detail = await detailRapport(groupBy, id, {
     dateFrom: searchParams.get("dateFrom") || undefined,
     dateTo: searchParams.get("dateTo") || undefined,
     commercialId: searchParams.get("commercialId") || undefined,
@@ -31,6 +28,6 @@ export async function GET(req: NextRequest) {
     gammeId: searchParams.get("gammeId") || undefined,
     produitId: searchParams.get("produitId") || undefined,
   });
-
-  return NextResponse.json(resultat);
+  if (!detail) return NextResponse.json({ error: "Introuvable." }, { status: 404 });
+  return NextResponse.json(detail);
 }

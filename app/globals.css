@@ -128,3 +128,39 @@
     padding: 0 !important;
   }
 }
+
+/* Impression d'UNE ligne de rapport (aperçu ouvert depuis la page Rapports) :
+   tout ce qui n'est pas l'aperçu disparaît, et l'aperçu passe en thème clair
+   pour sortir lisible sur papier même si l'écran est en thème sombre. */
+@media print {
+  body.imprimer-apercu > *:not(.apercu-racine) {
+    display: none !important;
+  }
+  body.imprimer-apercu .apercu-racine {
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    background: white !important;
+    --color-bg: 255 255 255;
+    --color-bg-elevated: 247 244 236;
+    --color-bg-card: 255 255 255;
+    --color-line: 214 205 184;
+    --color-ink: 28 27 23;
+    --color-ink-muted: 98 92 78;
+    --color-brass: 166 121 30;
+  }
+  body.imprimer-apercu .apercu-feuille {
+    max-width: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+  }
+  body.imprimer-apercu .bloc-impression,
+  body.imprimer-apercu tr {
+    break-inside: avoid;
+  }
+}
+
+/* Graphiques recharts : pas de cadre de focus du navigateur après un clic sur une barre. */
+.recharts-wrapper, .recharts-wrapper *:focus { outline: none; }

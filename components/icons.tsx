@@ -323,3 +323,11 @@ export function IconCalendar({ className }: Props) {
     </svg>
   );
 }
+
+export function IconClose({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M6 6l12 12M18 6 6 18" />
+    </svg>
+  );
+}
