@@ -5,5 +5,5 @@
  * Veuve du Vernay (VDV).
  */
 export const NOM_APP = "BELGRAVIA / VDV";
-export const NOM_APP_COMPLET = "BELGRAVIA / VDV by ICHA IMPORT";
-export const SIGNATURE_APP = "by ICHA IMPORT";
+export const NOM_APP_COMPLET = "BELGRAVIA / VDV by SIRI IMPORT";
+export const SIGNATURE_APP = "by SIRI IMPORT";

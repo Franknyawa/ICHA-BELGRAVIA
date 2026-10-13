@@ -1,0 +1,380 @@
+{
+  "comptes": [],
+  "visites": [
+    {
+      "id": "f6fd8bd4-cab6-4e75-848a-33157a02da6e",
+      "uuidClient": "038eb3f8-b532-431c-8f30-5a9e6243cca0",
+      "pointVenteId": "b8658b75-3878-4dab-b00e-739e00cc4ae5",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:54:36.862Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "MOINS_20",
+      "affluence": [
+        {
+          "jour": "Lundi",
+          "creneaux": [
+            "MATIN"
+          ]
+        },
+        {
+          "jour": "Mardi",
+          "creneaux": [
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "MATIN"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "MATIN",
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "SOIR"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": true,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": null,
+      "interesseVisiteCommerciale": null,
+      "observations": "bonne acceuille",
+      "repondant": "PATRON",
+      "repondantAutrePrecision": null,
+      "veutCommander": true,
+      "createdAt": "2026-10-10T19:13:04.869Z"
+    },
+    {
+      "id": "0e27aa5d-5fd6-46ff-bbf1-f8c640b9f7f7",
+      "uuidClient": "75be7202-32e6-477f-9a2a-a5494429b952",
+      "pointVenteId": "450d4272-3056-4cd5-be31-8882ad60d83d",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-11T07:27:16.068Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "DE_20_A_50",
+      "affluence": [
+        {
+          "jour": "Lundi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Mardi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "NUIT"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": true,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "MOYEN",
+      "interesseVisiteCommerciale": true,
+      "observations": "accueil chaleureux du patron. bonne courtoisie et bonne séparation sur rendez -vous.\n",
+      "repondant": "PATRON",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-11T08:16:34.312Z"
+    }
+  ],
+  "pointsVente": [
+    {
+      "id": "b8658b75-3878-4dab-b00e-739e00cc4ae5",
+      "nomEtablissement": "Titanic",
+      "nomVendeur": "arnord",
+      "telVendeur": "675159820",
+      "nomPatron": "arnord",
+      "telPatron": "675159820",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Bonamoussadi",
+      "repereQuartier": "face istama",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478297",
+      "longitude": "9.730305",
+      "precisionGps": "23.6",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-10T19:13:04.558Z"
+    },
+    {
+      "id": "450d4272-3056-4cd5-be31-8882ad60d83d",
+      "nomEtablissement": "Savana",
+      "nomVendeur": "Mr Jean",
+      "telVendeur": "678162233",
+      "nomPatron": "Mr Jean",
+      "telPatron": "678162233",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Bonamoussadi",
+      "repereQuartier": "au saint james",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63",
+      "typeAutrePrecision": null,
+      "latitude": "4.080354",
+      "longitude": "9.7300604",
+      "precisionGps": "100",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-11T08:16:33.997Z"
+    }
+  ],
+  "pointVenteTypes": [
+    {
+      "pointVenteId": "b8658b75-3878-4dab-b00e-739e00cc4ae5",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    },
+    {
+      "pointVenteId": "450d4272-3056-4cd5-be31-8882ad60d83d",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    }
+  ],
+  "photos": [
+    {
+      "id": "65e1e4a0-ae3f-4830-9e09-f2a35598b57a",
+      "uuidClient": "9d966129-da72-424b-90cf-307cfe9fa457",
+      "pointVenteId": "b8658b75-3878-4dab-b00e-739e00cc4ae5",
+      "visiteId": "f6fd8bd4-cab6-4e75-848a-33157a02da6e",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/554660b8-00c7-4da8-badf-a5ed53891d92.jpg",
+      "createdAt": "2026-10-10T19:13:05.464Z"
+    },
+    {
+      "id": "183b24d0-a099-4fe8-916b-c286f3331b03",
+      "uuidClient": "4d3fe7cd-3608-4588-a0fe-f403977c3aee",
+      "pointVenteId": "b8658b75-3878-4dab-b00e-739e00cc4ae5",
+      "visiteId": "f6fd8bd4-cab6-4e75-848a-33157a02da6e",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/09eadf98-ccc4-463e-9ff1-4b634ba6f812.jpg",
+      "createdAt": "2026-10-10T19:13:05.464Z"
+    },
+    {
+      "id": "1feb52cb-37aa-4ae8-9660-b3d6855a4703",
+      "uuidClient": "70c2ee0c-7742-455b-9d55-2457382de341",
+      "pointVenteId": "450d4272-3056-4cd5-be31-8882ad60d83d",
+      "visiteId": "0e27aa5d-5fd6-46ff-bbf1-f8c640b9f7f7",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/0a015787-a2e2-48dd-a8f2-2145805a14f6.jpg",
+      "createdAt": "2026-10-11T08:16:34.765Z"
+    },
+    {
+      "id": "d930cea3-68b3-44be-a663-93a22002aedb",
+      "uuidClient": "2ad473fd-aa8c-4155-9fdd-dcba79e12b0d",
+      "pointVenteId": "450d4272-3056-4cd5-be31-8882ad60d83d",
+      "visiteId": "0e27aa5d-5fd6-46ff-bbf1-f8c640b9f7f7",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/82b3c274-10dc-4cb4-b9a5-db01b1245185.jpg",
+      "createdAt": "2026-10-11T08:16:34.765Z"
+    }
+  ],
+  "marquesPresentes": [
+    {
+      "id": "e8897941-ba6f-45cc-959f-c3eee34a620e",
+      "visiteId": "f6fd8bd4-cab6-4e75-848a-33157a02da6e",
+      "marqueId": "e45fcc23-ef5d-4d7f-9f33-0b9cd1490a42",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "1a8740e6-4b28-4285-8bf8-d4b2b7989a6e",
+      "visiteId": "f6fd8bd4-cab6-4e75-848a-33157a02da6e",
+      "marqueId": "aa2dcc25-ab25-4da4-bf04-d17928ef6b79",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1500"
+    },
+    {
+      "id": "c4c8851e-c019-469b-a4f5-a005a46c1b3b",
+      "visiteId": "f6fd8bd4-cab6-4e75-848a-33157a02da6e",
+      "marqueId": "7f35ae27-c26e-4cbd-b58f-a82aae67ec72",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "3509ce3a-d675-44db-a075-3faba4afeffa",
+      "visiteId": "f6fd8bd4-cab6-4e75-848a-33157a02da6e",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "8685eb6c-b83e-49ff-8039-1fa35decd661",
+      "visiteId": "f6fd8bd4-cab6-4e75-848a-33157a02da6e",
+      "marqueId": null,
+      "libelleLibre": "Renard",
+      "categorie": "MOUSSEUX",
+      "prix": null
+    },
+    {
+      "id": "ff235ac1-d1eb-4a54-aa53-6a955a08b60a",
+      "visiteId": "f6fd8bd4-cab6-4e75-848a-33157a02da6e",
+      "marqueId": null,
+      "libelleLibre": "Rolux noir",
+      "categorie": "MOUSSEUX",
+      "prix": null
+    },
+    {
+      "id": "16b4303d-fbb5-4f52-be07-2dd560805236",
+      "visiteId": "f6fd8bd4-cab6-4e75-848a-33157a02da6e",
+      "marqueId": null,
+      "libelleLibre": "Versaille",
+      "categorie": "MOUSSEUX",
+      "prix": null
+    },
+    {
+      "id": "197a9db5-97fd-4207-b8e3-1c660c48f9c6",
+      "visiteId": "0e27aa5d-5fd6-46ff-bbf1-f8c640b9f7f7",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": "10000"
+    },
+    {
+      "id": "9242f5c3-d388-423b-ac41-b472d1a791f4",
+      "visiteId": "0e27aa5d-5fd6-46ff-bbf1-f8c640b9f7f7",
+      "marqueId": "7f35ae27-c26e-4cbd-b58f-a82aae67ec72",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "8ca3daca-97ff-4f69-a5d2-7fb8b6efbf5a",
+      "visiteId": "0e27aa5d-5fd6-46ff-bbf1-f8c640b9f7f7",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    }
+  ],
+  "commandes": [],
+  "lignes": [],
+  "mouvements": [
+    {
+      "id": "819a4cc4-f010-4f4a-baec-40848b3e0bdd",
+      "produitId": "318b5845-8339-42eb-8346-ed615536ee67",
+      "type": "AJUSTEMENT",
+      "quantiteCartons": 35,
+      "referenceType": "AJUSTEMENT",
+      "referenceId": null,
+      "note": null,
+      "createdAt": "2026-09-30T12:20:49.228Z"
+    },
+    {
+      "id": "3650f54c-c803-4f6c-964b-0d25028589f0",
+      "produitId": "f99739be-5628-4246-a7c4-33e2b0e274dc",
+      "type": "ENTREE",
+      "quantiteCartons": 655,
+      "referenceType": "AJUSTEMENT",
+      "referenceId": null,
+      "note": null,
+      "createdAt": "2026-10-07T10:55:56.798Z"
+    }
+  ],
+  "notifications": [],
+  "alertes": [],
+  "stocks": [
+    {
+      "id": "f3a223a0-2d65-43b8-8450-7993723e30a3",
+      "produitId": "91243044-4107-459c-930f-033dbc7b59a5",
+      "quantiteCartons": 0,
+      "seuilAlerte": 20,
+      "updatedAt": "2026-09-30T11:25:11.373Z"
+    },
+    {
+      "id": "dd56ecc3-db21-4115-a3dd-87beffbe8a08",
+      "produitId": "21e5f4fd-b62d-4a7a-81c8-02ed36478fe1",
+      "quantiteCartons": 0,
+      "seuilAlerte": 20,
+      "updatedAt": "2026-09-30T11:25:13.091Z"
+    },
+    {
+      "id": "2460feae-f281-4eea-a39b-fb1f6a0a40f2",
+      "produitId": "318b5845-8339-42eb-8346-ed615536ee67",
+      "quantiteCartons": 35,
+      "seuilAlerte": 20,
+      "updatedAt": "2026-10-10T13:54:51.411Z"
+    },
+    {
+      "id": "883c5863-4a3d-463a-b87c-cd74a5f3c8f5",
+      "produitId": "55c7e67e-401f-473e-b0c0-91caddaad2cc",
+      "quantiteCartons": 0,
+      "seuilAlerte": 20,
+      "updatedAt": "2026-10-10T13:54:51.874Z"
+    },
+    {
+      "id": "2ea85892-0329-465f-8075-b0a2310dc373",
+      "produitId": "d6c15435-0414-4613-84e2-195978e46582",
+      "quantiteCartons": 0,
+      "seuilAlerte": 20,
+      "updatedAt": "2026-10-10T13:54:52.251Z"
+    },
+    {
+      "id": "d08c8849-44ae-4679-91d8-9cb2f26351d0",
+      "produitId": "f99739be-5628-4246-a7c4-33e2b0e274dc",
+      "quantiteCartons": 655,
+      "seuilAlerte": 20,
+      "updatedAt": "2026-10-10T13:54:52.744Z"
+    }
+  ]
+}

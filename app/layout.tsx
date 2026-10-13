@@ -17,8 +17,8 @@ const jost = Jost({
 });
 
 export const metadata: Metadata = {
-  title: "BELGRAVIA / VDV by ICHA IMPORT",
-  description: "Gestion des boissons ICHA IMPORT : recensement terrain, commandes, stock et rapports BELGRAVIA (cocktails RTD) et VDV (Veuve du Vernay)",
+  title: "BELGRAVIA / VDV by SIRI IMPORT",
+  description: "Gestion des boissons SIRI IMPORT : recensement terrain, commandes, stock et rapports BELGRAVIA (cocktails RTD) et VDV (Veuve du Vernay)",
   manifest: "/manifest.json",
   icons: {
     icon: [{ url: "/icon-192.png", sizes: "192x192", type: "image/png" }],
@@ -58,4 +58,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-

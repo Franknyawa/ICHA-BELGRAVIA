@@ -1,0 +1,4282 @@
+{
+  "comptes": [],
+  "visites": [
+    {
+      "id": "9d6d0c85-7202-451e-9807-87a36e3eb53b",
+      "uuidClient": "abb5c296-2914-44ea-afa1-1c6a7e1652c9",
+      "pointVenteId": "b1a83a9d-80ed-4c2a-8b06-4034f2173515",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-09-16T17:08:13.481Z",
+      "vendSpiritueux": null,
+      "proposeCocktails": null,
+      "capaciteEstimee": null,
+      "affluence": [
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "APRES_MIDI"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": null,
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": null,
+      "repondantAutrePrecision": null,
+      "veutCommander": true,
+      "createdAt": "2026-09-16T17:09:40.567Z"
+    },
+    {
+      "id": "659531e1-3bb2-4961-b210-f69e86026c46",
+      "uuidClient": "0f78258c-f909-4181-9340-8421fe3ac19f",
+      "pointVenteId": "70dbf19d-4c8e-4997-b696-b203fe014093",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-09-16T15:06:59.637Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": "OUI",
+      "capaciteEstimee": "PLUS_100",
+      "affluence": [
+        {
+          "jour": "Lundi",
+          "creneaux": [
+            "APRES_MIDI"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": null,
+      "observations": "Juhhhv",
+      "repondant": "EMPLOYE",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-09-28T17:58:53.423Z"
+    },
+    {
+      "id": "ff38b135-aab7-4cf9-a1e1-35fbadfc9961",
+      "uuidClient": "2664e148-b418-4140-ba3e-05842b6b55c6",
+      "pointVenteId": "33ebf567-6f77-459a-86d5-e325017ed20a",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-09-28T15:16:58.387Z",
+      "vendSpiritueux": null,
+      "proposeCocktails": null,
+      "capaciteEstimee": null,
+      "affluence": [
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "APRES_MIDI",
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "APRES_MIDI",
+            "SOIR"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": true,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": null,
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "EMPLOYE",
+      "repondantAutrePrecision": null,
+      "veutCommander": true,
+      "createdAt": "2026-09-28T17:59:01.117Z"
+    },
+    {
+      "id": "962ce2cc-c93d-4a2b-a529-a3f22b49d18b",
+      "uuidClient": "7d5ff47b-d858-4f51-a933-04b32c4af0c0",
+      "pointVenteId": "318c4b17-4a34-4e18-9d9a-d140457bd214",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-09-28T15:19:13.382Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": "NON",
+      "capaciteEstimee": null,
+      "affluence": [
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "APRES_MIDI",
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "SOIR",
+            "APRES_MIDI"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": true,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": "MOYEN",
+      "interesseVisiteCommerciale": false,
+      "observations": "Test observations ",
+      "repondant": "GERANT_PATRON",
+      "repondantAutrePrecision": null,
+      "veutCommander": true,
+      "createdAt": "2026-09-28T17:59:19.925Z"
+    },
+    {
+      "id": "34962f5d-f52f-4be5-92e6-a6a0cddbe98a",
+      "uuidClient": "827209a5-aeb3-43c6-85bf-5431572d0198",
+      "pointVenteId": "71635588-0df5-45e7-a8ab-358124fc8c8c",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-09-28T18:12:02.107Z",
+      "vendSpiritueux": null,
+      "proposeCocktails": null,
+      "capaciteEstimee": null,
+      "affluence": [
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "MATIN"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "SOIR",
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "APRES_MIDI",
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "APRES_MIDI",
+            "SOIR"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "GERANT_PATRON",
+      "repondantAutrePrecision": null,
+      "veutCommander": true,
+      "createdAt": "2026-09-28T18:13:08.768Z"
+    },
+    {
+      "id": "313e77a1-4d83-4828-a965-b10c0f53e19d",
+      "uuidClient": "41e65a28-4a89-4fa9-9c4e-8a4bcb7034d5",
+      "pointVenteId": "2b479205-dc46-499b-8489-444efea5de9d",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-06T12:16:54.837Z",
+      "vendSpiritueux": null,
+      "proposeCocktails": null,
+      "capaciteEstimee": null,
+      "affluence": [],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": null,
+      "interesseVisiteCommerciale": null,
+      "observations": null,
+      "repondant": null,
+      "repondantAutrePrecision": null,
+      "veutCommander": null,
+      "createdAt": "2026-10-06T12:18:26.364Z"
+    },
+    {
+      "id": "0ef3f661-843a-4d39-b456-7ae3f9766893",
+      "uuidClient": "87c48f36-707c-469f-a698-0f1f4bcaa0a4",
+      "pointVenteId": "0d396f86-cfb1-4b44-8bbd-250f7abf1bbf",
+      "commercialId": "f25aecf5-b07b-4210-bd6e-bfe7f7ae3038",
+      "dateVisite": "2026-10-06T15:20:40.242Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "PLUS_100",
+      "affluence": [
+        {
+          "jour": "Mardi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Lundi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "SOIR"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": true,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": true,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": "FAIBLE",
+      "interesseVisiteCommerciale": true,
+      "observations": "Demandes de repasser car saturé ",
+      "repondant": "EMPLOYE",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-06T15:35:49.755Z"
+    },
+    {
+      "id": "9c60136e-39c9-4387-9080-b34112559dd3",
+      "uuidClient": "12b818c6-7b68-4c76-a20b-1421e788171f",
+      "pointVenteId": "4128b23c-c89f-48fc-b2bc-42db481f4e83",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-07T10:28:32.547Z",
+      "vendSpiritueux": null,
+      "proposeCocktails": null,
+      "capaciteEstimee": null,
+      "affluence": [
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "MATIN"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "SOIR",
+            "MATIN"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "APRES_MIDI"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": true,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "GERANT_PATRON",
+      "repondantAutrePrecision": null,
+      "veutCommander": true,
+      "createdAt": "2026-10-07T10:28:52.881Z"
+    },
+    {
+      "id": "1d01a7c5-022c-447a-a524-96bb738ac317",
+      "uuidClient": "c9ea7634-1a8b-48f3-86b2-bddc6da5747b",
+      "pointVenteId": "cd8f5bbb-bb59-477a-af2f-fa7fd1557521",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-07T13:33:53.104Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "DE_50_A_100",
+      "affluence": [
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "MATIN",
+            "APRES_MIDI",
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "NUIT",
+            "SOIR",
+            "APRES_MIDI",
+            "MATIN"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": true,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": null,
+      "observations": null,
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-07T13:34:54.112Z"
+    },
+    {
+      "id": "b43b6794-5a5f-4aa0-a18d-64fab96e4cc6",
+      "uuidClient": "a33ad5c4-f4f6-4dc4-a3f6-a59294ced1c0",
+      "pointVenteId": "6269e301-0b9f-4135-800f-fae30c0755ce",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-09-28T15:15:09.048Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": "NON",
+      "capaciteEstimee": "DE_50_A_100",
+      "affluence": [
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "APRES_MIDI",
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "SOIR",
+            "APRES_MIDI"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": true,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "EMPLOYE",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-07T13:48:08.887Z"
+    },
+    {
+      "id": "bbca37e3-68d0-40af-86db-72d25d72b1aa",
+      "uuidClient": "c3660a62-d588-4898-b229-c695709664b5",
+      "pointVenteId": "69762bef-f90d-4a2e-a1b1-0132e36b822f",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-09-28T17:58:55.833Z",
+      "vendSpiritueux": null,
+      "proposeCocktails": null,
+      "capaciteEstimee": null,
+      "affluence": [
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "APRES_MIDI",
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "SOIR",
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "SOIR",
+            "APRES_MIDI"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": true,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "GERANT_PATRON",
+      "repondantAutrePrecision": null,
+      "veutCommander": true,
+      "createdAt": "2026-10-07T13:48:19.457Z"
+    },
+    {
+      "id": "929591df-fb3f-4bc6-8ee3-eb0085b62888",
+      "uuidClient": "0429bdf2-056a-45fd-a66c-a03d196d1dc6",
+      "pointVenteId": "fadbd14a-a5d6-4069-a989-8f64f8670dcf",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-07T09:22:18.526Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": null,
+      "affluence": [],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": null,
+      "interesseVisiteCommerciale": null,
+      "observations": null,
+      "repondant": null,
+      "repondantAutrePrecision": null,
+      "veutCommander": true,
+      "createdAt": "2026-10-07T13:48:21.572Z"
+    },
+    {
+      "id": "1eb831d5-5b09-45d1-9cd8-3c6b283023f9",
+      "uuidClient": "23cbf3b6-ae9e-43bb-8fd4-02cb1fb94e54",
+      "pointVenteId": "081fb9d3-a0d1-4c61-b481-1e9914ac40e1",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-08T12:21:05.715Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "PLUS_100",
+      "affluence": [],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": null,
+      "interesseVisiteCommerciale": null,
+      "observations": null,
+      "repondant": null,
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-08T12:21:44.769Z"
+    },
+    {
+      "id": "c841c35c-6c6f-4364-b69f-582e4091a782",
+      "uuidClient": "5374f6b5-81c8-4c73-b610-e342da5047e1",
+      "pointVenteId": "9e068ef5-e57a-48ab-8a21-7bd21ac267a8",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-08T14:28:52.080Z",
+      "vendSpiritueux": null,
+      "proposeCocktails": null,
+      "capaciteEstimee": "DE_20_A_50",
+      "affluence": [],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": null,
+      "interesseVisiteCommerciale": null,
+      "observations": null,
+      "repondant": "EMPLOYE",
+      "repondantAutrePrecision": null,
+      "veutCommander": null,
+      "createdAt": "2026-10-08T14:29:15.726Z"
+    },
+    {
+      "id": "2567b8fc-bd18-440a-afd7-0731fb86afe3",
+      "uuidClient": "92e0071c-37f2-43e0-907b-87bb2ec09230",
+      "pointVenteId": "887849e3-fa28-4897-a92d-6cd963a76d32",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T09:54:50.087Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "PLUS_100",
+      "affluence": [
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "NUIT",
+            "SOIR"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": true,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": "Il est réceptif ",
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T10:00:00.789Z"
+    },
+    {
+      "id": "62936588-62cd-4745-bfb8-d49f857d94ba",
+      "uuidClient": "f2f7553a-413f-4b9d-ab6d-7311432973cc",
+      "pointVenteId": "a6fca96a-47ee-47c5-be68-80e7a982fcc7",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:23.321Z",
+      "vendSpiritueux": false,
+      "proposeCocktails": null,
+      "capaciteEstimee": "MOINS_20",
+      "affluence": [
+        {
+          "jour": "Lundi",
+          "creneaux": [
+            "APRES_MIDI",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Mardi",
+          "creneaux": [
+            "APRES_MIDI",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "APRES_MIDI",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "APRES_MIDI",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "APRES_MIDI",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "APRES_MIDI",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "APRES_MIDI",
+            "NUIT"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": true,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "MOYEN",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": true,
+      "createdAt": "2026-10-09T12:47:43.147Z"
+    },
+    {
+      "id": "d98514b7-c40f-49d3-8c59-88d0d6fe8dbe",
+      "uuidClient": "4a785c3c-337c-483e-88ad-b6a8f715405e",
+      "pointVenteId": "701ec826-069f-4634-bb99-118b1a66f8a1",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:20.105Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "PLUS_100",
+      "affluence": [
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Lundi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "SOIR"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": true,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": "Très méchant ",
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T12:50:37.312Z"
+    },
+    {
+      "id": "25e45e11-cb68-4077-a807-1e0200d7e674",
+      "uuidClient": "1c8fcdfa-af3b-4401-b986-031e802e253e",
+      "pointVenteId": "06d9262b-e855-4b89-860d-8bf5b7227797",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:19.919Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": null,
+      "affluence": [
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "NUIT",
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "SOIR",
+            "APRES_MIDI"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": true,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": null,
+      "interesseVisiteCommerciale": null,
+      "observations": null,
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": null,
+      "createdAt": "2026-10-09T12:50:43.260Z"
+    },
+    {
+      "id": "a92d7c02-11df-44af-84e1-2d397f78894a",
+      "uuidClient": "d7e21149-b314-4ab0-a6ad-dcc1172c433c",
+      "pointVenteId": "2416860f-20a4-406d-b9ef-cb43e245a97b",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:24.529Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "MOINS_20",
+      "affluence": [
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "MATIN",
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "MATIN",
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "MATIN",
+            "SOIR",
+            "NUIT"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": true,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": "Très accueillant",
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T12:50:47.131Z"
+    },
+    {
+      "id": "dfe96f22-f53b-4f59-aada-da9f93b8382b",
+      "uuidClient": "74a71da1-989c-4793-8e51-d600451dcb8c",
+      "pointVenteId": "b6453734-4eed-4a6c-a80f-52e3b6d5c545",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:23.153Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "DE_20_A_50",
+      "affluence": [
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "MATIN",
+            "APRES_MIDI",
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "APRES_MIDI",
+            "NUIT",
+            "SOIR",
+            "MATIN"
+          ]
+        },
+        {
+          "jour": "Mardi",
+          "creneaux": [
+            "APRES_MIDI",
+            "SOIR",
+            "NUIT",
+            "MATIN"
+          ]
+        },
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "APRES_MIDI",
+            "SOIR",
+            "MATIN",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "NUIT",
+            "SOIR",
+            "APRES_MIDI",
+            "MATIN"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "MATIN",
+            "APRES_MIDI",
+            "SOIR",
+            "NUIT"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": true,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "MOYEN",
+      "interesseVisiteCommerciale": true,
+      "observations": "Bien reçu ",
+      "repondant": "PATRON",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T12:50:46.066Z"
+    },
+    {
+      "id": "12f14e43-7b2c-49a4-a565-c85ac4592141",
+      "uuidClient": "2d1c4d84-9374-4931-850b-d41f84fca363",
+      "pointVenteId": "8d2ef449-2704-436b-942f-8e118be65ccb",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:23.551Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "PLUS_100",
+      "affluence": [],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": true,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "PATRON",
+      "repondantAutrePrecision": null,
+      "veutCommander": true,
+      "createdAt": "2026-10-09T12:50:47.280Z"
+    },
+    {
+      "id": "7cac3877-d014-48f3-907a-584d98ef5bc0",
+      "uuidClient": "fd532c39-50b3-47e3-b88e-bc5fca0807b9",
+      "pointVenteId": "8fbc3e5b-3eab-493d-afcd-8367aef77a1f",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:20.031Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "DE_20_A_50",
+      "affluence": [
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "SOIR"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": true,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": null,
+      "observations": null,
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T12:50:48.905Z"
+    },
+    {
+      "id": "96b567e3-5e41-4fc9-a459-9a5e2c103b96",
+      "uuidClient": "c94c0f9a-0869-4793-b951-ec6bbfcfe81d",
+      "pointVenteId": "ca8aabbf-eadd-42b4-b8b7-1cdd4f73d907",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:40:24.522Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "PLUS_100",
+      "affluence": [
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Lundi",
+          "creneaux": [
+            "APRES_MIDI",
+            "SOIR"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": true,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "PATRON",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T12:50:49.366Z"
+    },
+    {
+      "id": "0714683a-9aec-484d-8e7c-cc3cdf2a4bd9",
+      "uuidClient": "8e1ffba5-68c9-4afc-a187-03053004b493",
+      "pointVenteId": "451a981e-a8c2-4f37-9a4c-0cae0e679782",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:23.393Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "MOINS_20",
+      "affluence": [
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "SOIR",
+            "APRES_MIDI",
+            "NUIT"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": true,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "EMPLOYE",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T12:50:49.819Z"
+    },
+    {
+      "id": "57331258-e6c1-4f0f-954a-931cedaaec83",
+      "uuidClient": "4a9b68af-26b1-4200-a10b-434ec7036e84",
+      "pointVenteId": "5d341ee5-7862-450e-b0b5-73667a46810f",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:39:28.316Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "DE_50_A_100",
+      "affluence": [],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": true,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "MOYEN",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T12:50:50.045Z"
+    },
+    {
+      "id": "ee2adf4d-16aa-4cb5-a64c-6ca8e71aeb7d",
+      "uuidClient": "d0831802-bbc9-47b7-bed9-c837cd112bbd",
+      "pointVenteId": "906d7475-48f6-43f3-af58-1dd10f95eccd",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:20.770Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "DE_20_A_50",
+      "affluence": [
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "NUIT"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": true,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": "Très accueillant ",
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T12:50:50.581Z"
+    },
+    {
+      "id": "7240dcf0-a9c4-4c60-9c7d-52105e0779cf",
+      "uuidClient": "5d8a35a6-2084-4c23-8355-4a52ce028b4e",
+      "pointVenteId": "be50c2b9-3742-41f0-b1be-f6040d2207f7",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:20.789Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "DE_20_A_50",
+      "affluence": [],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "MOYEN",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T12:50:51.235Z"
+    },
+    {
+      "id": "9bdf6559-cd28-499d-bf13-afb5b595dccb",
+      "uuidClient": "f181d047-03e0-4375-9f57-990793bc7d33",
+      "pointVenteId": "5455c81f-a077-4a9d-bc7f-4c1358d27f03",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:23.037Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "DE_20_A_50",
+      "affluence": [
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Lundi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Mardi",
+          "creneaux": [
+            "MATIN"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "SOIR"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "EMPLOYE",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T12:50:57.772Z"
+    },
+    {
+      "id": "11f13ec0-0caa-4b42-8230-117a4e00e391",
+      "uuidClient": "a56510c9-e2cf-4630-b0bc-c8223fbb2af2",
+      "pointVenteId": "1de505c4-4f23-400b-9610-e175f2a19bc0",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:19.243Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "MOINS_20",
+      "affluence": [
+        {
+          "jour": "Lundi",
+          "creneaux": [
+            "MATIN",
+            "APRES_MIDI",
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Mardi",
+          "creneaux": [
+            "APRES_MIDI",
+            "SOIR",
+            "MATIN"
+          ]
+        },
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "APRES_MIDI",
+            "SOIR",
+            "MATIN"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "MATIN",
+            "APRES_MIDI",
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "MATIN",
+            "APRES_MIDI",
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "MATIN",
+            "APRES_MIDI",
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "APRES_MIDI",
+            "SOIR",
+            "NUIT"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": true,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": false,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": "les vendeurs étaient accueillants..etc",
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T12:51:02.394Z"
+    },
+    {
+      "id": "78c03ee4-4ab8-4c61-8c2c-b7a1bf966010",
+      "uuidClient": "84f105f6-aecc-486f-bfe7-4eb8069d879a",
+      "pointVenteId": "054823c3-5545-46c0-9b1d-4b4c19194aad",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:17.992Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "DE_50_A_100",
+      "affluence": [
+        {
+          "jour": "Lundi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Mardi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "SOIR",
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "SOIR",
+            "NUIT",
+            "APRES_MIDI",
+            "MATIN"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": true,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": "Point de vente très bien situé et surtout très accueillant et réceptif pour la communication ",
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T12:51:13.757Z"
+    },
+    {
+      "id": "7a7b75b9-bd98-46d4-a5de-5d1d4485518e",
+      "uuidClient": "e0a23cee-a210-419b-a84f-fb14951ca83e",
+      "pointVenteId": "cc714584-305f-49be-a37c-2404d21e93dc",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:21.942Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": null,
+      "affluence": [],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": null,
+      "interesseVisiteCommerciale": null,
+      "observations": null,
+      "repondant": "PATRON",
+      "repondantAutrePrecision": null,
+      "veutCommander": null,
+      "createdAt": "2026-10-09T12:51:14.125Z"
+    },
+    {
+      "id": "365cc2b8-a75f-46cb-b3ab-cca8e25e5921",
+      "uuidClient": "2d9e67f5-cb92-49c1-9577-e0450db28f59",
+      "pointVenteId": "ac4f9f05-53c4-4c68-907c-36ae6a7dcf93",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:22.865Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "PLUS_100",
+      "affluence": [
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "NUIT",
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "NUIT",
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "NUIT",
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "SOIR"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": true,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": true,
+      "createdAt": "2026-10-09T12:51:26.708Z"
+    },
+    {
+      "id": "bd39d8e0-5560-43f2-9561-cb767825017c",
+      "uuidClient": "9d31c5bd-a132-4f6d-a843-780b9b23ffaa",
+      "pointVenteId": "56e1edf2-b050-4080-8b57-7d94512add06",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:24.035Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": null,
+      "affluence": [],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": null,
+      "interesseVisiteCommerciale": null,
+      "observations": null,
+      "repondant": "PATRON",
+      "repondantAutrePrecision": null,
+      "veutCommander": null,
+      "createdAt": "2026-10-09T12:51:46.418Z"
+    },
+    {
+      "id": "35c052bd-cb7e-483f-a654-538dad094d15",
+      "uuidClient": "27d14b77-7487-4f99-baf6-2da71eb26ad2",
+      "pointVenteId": "4d44b6c7-48bd-40dc-ab4c-7bbec36db35a",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:27.000Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "DE_20_A_50",
+      "affluence": [
+        {
+          "jour": "Lundi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Mardi",
+          "creneaux": [
+            "MATIN"
+          ]
+        },
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "MATIN"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "MATIN",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "SOIR"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": true,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "MOYEN",
+      "interesseVisiteCommerciale": true,
+      "observations": "le responsable des achats a été accueillant et respectueux vis a vis de notre presence",
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T12:52:06.078Z"
+    },
+    {
+      "id": "9bd93d74-009c-453f-998b-8a5b3883a053",
+      "uuidClient": "8d20a353-1919-4008-a765-29d79584e65d",
+      "pointVenteId": "3357ef93-d080-44b9-a66b-e89bb688f016",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:54:18.230Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "MOINS_20",
+      "affluence": [
+        {
+          "jour": "Lundi",
+          "creneaux": [
+            "MATIN",
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Mardi",
+          "creneaux": [
+            "APRES_MIDI",
+            "MATIN"
+          ]
+        },
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "MATIN",
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "MATIN",
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "MATIN",
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "SOIR",
+            "NUIT",
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "SOIR",
+            "NUIT",
+            "APRES_MIDI"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": true,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": null,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T12:59:41.878Z"
+    },
+    {
+      "id": "d4d8001b-75c0-4bf9-94bd-f45f9149d8e3",
+      "uuidClient": "ac438269-fd83-4d9a-9b6b-6a1585459140",
+      "pointVenteId": "1681b6a3-eaeb-4bf0-bea2-bdbbf4d3a9b2",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T13:00:03.324Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "DE_20_A_50",
+      "affluence": [
+        {
+          "jour": "Lundi",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": true,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": null,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "PATRON",
+      "repondantAutrePrecision": null,
+      "veutCommander": true,
+      "createdAt": "2026-10-09T13:03:07.125Z"
+    },
+    {
+      "id": "95c7c4ee-6c0a-4d82-ae33-5e70977142cb",
+      "uuidClient": "2c3ea05d-bfb8-4135-bda8-7d3cca398a82",
+      "pointVenteId": "19d28a05-64e0-409b-b5d2-e6b7716312c5",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T12:36:02.017Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "PLUS_100",
+      "affluence": [
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "NUIT",
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": true,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": false,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": "Ils ont été réceptif ",
+      "repondant": "GERANT",
+      "repondantAutrePrecision": null,
+      "veutCommander": false,
+      "createdAt": "2026-10-09T12:51:26.624Z"
+    },
+    {
+      "id": "2206f1e7-0445-49ad-94f1-9fc7de92e4e8",
+      "uuidClient": "d80c72f0-d4cc-4a79-b2f6-73eb691dc20b",
+      "pointVenteId": "ff732539-4392-4130-97b4-28944d1d469c",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T13:00:03.158Z",
+      "vendSpiritueux": false,
+      "proposeCocktails": null,
+      "capaciteEstimee": "DE_20_A_50",
+      "affluence": [
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "SOIR",
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "SOIR",
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "SOIR",
+            "APRES_MIDI"
+          ]
+        },
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "APRES_MIDI",
+            "SOIR"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": true,
+      "fournisseurNeSaitPas": false,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": true,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "EMPLOYE",
+      "repondantAutrePrecision": null,
+      "veutCommander": null,
+      "createdAt": "2026-10-09T13:03:22.077Z"
+    },
+    {
+      "id": "f49cc804-e53b-4863-9bdd-e1fe444962ff",
+      "uuidClient": "0724eacb-f982-4335-9663-56e2a7c77466",
+      "pointVenteId": "88c4585b-a0b4-4f16-b4e2-5243746ee231",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateVisite": "2026-10-09T13:00:00.710Z",
+      "vendSpiritueux": true,
+      "proposeCocktails": null,
+      "capaciteEstimee": "DE_20_A_50",
+      "affluence": [
+        {
+          "jour": "Dimanche",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Samedi",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Vendredi",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Jeudi",
+          "creneaux": [
+            "SOIR",
+            "NUIT"
+          ]
+        },
+        {
+          "jour": "Lundi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Mardi",
+          "creneaux": [
+            "SOIR"
+          ]
+        },
+        {
+          "jour": "Mercredi",
+          "creneaux": [
+            "SOIR"
+          ]
+        }
+      ],
+      "fournisseurGrossiste": false,
+      "fournisseurMarche": false,
+      "fournisseurLivraison": false,
+      "fournisseurNeSaitPas": true,
+      "fournisseurAutre": false,
+      "fournisseurAutrePrecision": null,
+      "salleClimatisee": null,
+      "ecranTv": true,
+      "potentielEstime": "FORT",
+      "interesseVisiteCommerciale": true,
+      "observations": null,
+      "repondant": "EMPLOYE",
+      "repondantAutrePrecision": null,
+      "veutCommander": true,
+      "createdAt": "2026-10-09T13:03:24.193Z"
+    }
+  ],
+  "pointsVente": [
+    {
+      "id": "b1a83a9d-80ed-4c2a-8b06-4034f2173515",
+      "nomEtablissement": "Nyawa",
+      "nomVendeur": "Nyawa",
+      "telVendeur": "693103785",
+      "nomPatron": null,
+      "telPatron": "693103785",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": null,
+      "repereQuartier": null,
+      "typeId": "a291e9ec-15c5-45bb-8252-796e2c80c255",
+      "typeAutrePrecision": null,
+      "latitude": "4.047893",
+      "longitude": "9.730335",
+      "precisionGps": "19.45",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-09-16T17:09:40.405Z"
+    },
+    {
+      "id": "70dbf19d-4c8e-4997-b696-b203fe014093",
+      "nomEtablissement": "Cave shop",
+      "nomVendeur": "Nyawa",
+      "telVendeur": "693103785",
+      "nomPatron": null,
+      "telPatron": "693103785",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Ndogbong ",
+      "repereQuartier": "Citadelle ",
+      "typeId": "a291e9ec-15c5-45bb-8252-796e2c80c255",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478895",
+      "longitude": "9.7303361",
+      "precisionGps": "6.04",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-09-28T17:58:53.267Z"
+    },
+    {
+      "id": "33ebf567-6f77-459a-86d5-e325017ed20a",
+      "nomEtablissement": "Chez lynn",
+      "nomVendeur": "Lyne lyne",
+      "telVendeur": "693103785",
+      "nomPatron": null,
+      "telPatron": "693103785",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Ndogbong ",
+      "repereQuartier": "Iut",
+      "typeId": "9a678318-fbff-44ed-bf86-41d316e5aa3b",
+      "typeAutrePrecision": null,
+      "latitude": "4.047848",
+      "longitude": "9.7302631",
+      "precisionGps": "8.95",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-09-28T17:59:00.973Z"
+    },
+    {
+      "id": "318c4b17-4a34-4e18-9d9a-d140457bd214",
+      "nomEtablissement": "Véranda bar",
+      "nomVendeur": "Nyawa",
+      "telVendeur": "693103785",
+      "nomPatron": null,
+      "telPatron": "693103785",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Ange Raphaël ",
+      "repereQuartier": "Carrefour ",
+      "typeId": "9a678318-fbff-44ed-bf86-41d316e5aa3b",
+      "typeAutrePrecision": null,
+      "latitude": "4.047848",
+      "longitude": "9.7302631",
+      "precisionGps": "7.79",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-09-28T17:59:19.784Z"
+    },
+    {
+      "id": "71635588-0df5-45e7-a8ab-358124fc8c8c",
+      "nomEtablissement": "Ets ets",
+      "nomVendeur": "Emmanuel ",
+      "telVendeur": "693103785",
+      "nomPatron": null,
+      "telPatron": "693103785",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Bp cité ",
+      "repereQuartier": "Boulangerie ",
+      "typeId": "9a678318-fbff-44ed-bf86-41d316e5aa3b",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478711",
+      "longitude": "9.7302693",
+      "precisionGps": "7.83",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-09-28T18:13:08.611Z"
+    },
+    {
+      "id": "2b479205-dc46-499b-8489-444efea5de9d",
+      "nomEtablissement": "Test",
+      "nomVendeur": "Test",
+      "telVendeur": "2222",
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": null,
+      "repereQuartier": null,
+      "typeId": "9a678318-fbff-44ed-bf86-41d316e5aa3b",
+      "typeAutrePrecision": null,
+      "latitude": null,
+      "longitude": null,
+      "precisionGps": null,
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-06T12:18:26.208Z"
+    },
+    {
+      "id": "0d396f86-cfb1-4b44-8bbd-250f7abf1bbf",
+      "nomEtablissement": "Snack bar lounge First T Bonamoussadi ",
+      "nomVendeur": "Firmin",
+      "telVendeur": "699882115",
+      "nomPatron": null,
+      "telPatron": "699880388",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Bonamoussadi ",
+      "repereQuartier": "A mi parcours entre carrefour Etoo et carrefour maçon ",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478852",
+      "longitude": "9.7303631",
+      "precisionGps": "15.74",
+      "statut": "OUVERT",
+      "createdById": "f25aecf5-b07b-4210-bd6e-bfe7f7ae3038",
+      "createdAt": "2026-10-06T15:35:49.575Z"
+    },
+    {
+      "id": "4128b23c-c89f-48fc-b2bc-42db481f4e83",
+      "nomEtablissement": "Test nom établissement ",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": null,
+      "quartier": null,
+      "repereQuartier": null,
+      "typeId": null,
+      "typeAutrePrecision": null,
+      "latitude": "4.0479001",
+      "longitude": "9.7302684",
+      "precisionGps": "10.4",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-07T10:28:52.734Z"
+    },
+    {
+      "id": "cd8f5bbb-bb59-477a-af2f-fa7fd1557521",
+      "nomEtablissement": "Test",
+      "nomVendeur": "Talla",
+      "telVendeur": "53618",
+      "nomPatron": "Nana ",
+      "telPatron": "818181",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": null,
+      "repereQuartier": null,
+      "typeId": "a291e9ec-15c5-45bb-8252-796e2c80c255",
+      "typeAutrePrecision": null,
+      "latitude": "4.0479103",
+      "longitude": "9.7302725",
+      "precisionGps": "13.79",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-07T13:34:53.817Z"
+    },
+    {
+      "id": "6269e301-0b9f-4135-800f-fae30c0755ce",
+      "nomEtablissement": "Ets kwasa kwasa",
+      "nomVendeur": "Achille ",
+      "telVendeur": "693103785",
+      "nomPatron": null,
+      "telPatron": "693103785",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Nyalla",
+      "repereQuartier": "Rail",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478479",
+      "longitude": "9.730263",
+      "precisionGps": "13.46",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-07T13:48:08.743Z"
+    },
+    {
+      "id": "69762bef-f90d-4a2e-a1b1-0132e36b822f",
+      "nomEtablissement": "Teste 2",
+      "nomVendeur": "Nyawa",
+      "telVendeur": "693103785",
+      "nomPatron": null,
+      "telPatron": "693103785",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Yassa",
+      "repereQuartier": "Yassa",
+      "typeId": "9a678318-fbff-44ed-bf86-41d316e5aa3b",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478711",
+      "longitude": "9.7302693",
+      "precisionGps": "7.24",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-07T13:48:19.315Z"
+    },
+    {
+      "id": "fadbd14a-a5d6-4069-a989-8f64f8670dcf",
+      "nomEtablissement": "Jhhh",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": null,
+      "repereQuartier": null,
+      "typeId": "a9807c95-1223-497d-9fca-be0b22b2d773",
+      "typeAutrePrecision": null,
+      "latitude": "4.0479001",
+      "longitude": "9.7302684",
+      "precisionGps": "14.63",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-07T13:48:21.431Z"
+    },
+    {
+      "id": "081fb9d3-a0d1-4c61-b481-1e9914ac40e1",
+      "nomEtablissement": "Test",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": null,
+      "quartier": null,
+      "repereQuartier": null,
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552",
+      "typeAutrePrecision": null,
+      "latitude": "4.04785",
+      "longitude": "9.7302429",
+      "precisionGps": "8.79",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-08T12:21:44.482Z"
+    },
+    {
+      "id": "9e068ef5-e57a-48ab-8a21-7bd21ac267a8",
+      "nomEtablissement": "Test validation ",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": null,
+      "repereQuartier": null,
+      "typeId": "73fd09a4-a803-43f6-bae4-3ad1c73be882",
+      "typeAutrePrecision": null,
+      "latitude": "4.047938",
+      "longitude": "9.7302809",
+      "precisionGps": "13.75",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-08T14:29:15.436Z"
+    },
+    {
+      "id": "887849e3-fa28-4897-a92d-6cd963a76d32",
+      "nomEtablissement": "KF Shop",
+      "nomVendeur": "Nom gérant ",
+      "telVendeur": "693103785",
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Bp cité",
+      "repereQuartier": "Ancien chococam ",
+      "typeId": "a291e9ec-15c5-45bb-8252-796e2c80c255",
+      "typeAutrePrecision": null,
+      "latitude": "4.0479364",
+      "longitude": "9.7302821",
+      "precisionGps": "9.92",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T10:00:00.495Z"
+    },
+    {
+      "id": "a6fca96a-47ee-47c5-be68-80e7a982fcc7",
+      "nomEtablissement": "Yapaki prestige ",
+      "nomVendeur": "Mr Frank ",
+      "telVendeur": "652510467",
+      "nomPatron": "Mr Scott",
+      "telPatron": "692656254",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Bonamoussadi ",
+      "repereQuartier": null,
+      "typeId": "9a678318-fbff-44ed-bf86-41d316e5aa3b",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478033",
+      "longitude": "9.7302868",
+      "precisionGps": "11.16",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:47:42.855Z"
+    },
+    {
+      "id": "701ec826-069f-4634-bb99-118b1a66f8a1",
+      "nomEtablissement": "Opium gold",
+      "nomVendeur": "Albert",
+      "telVendeur": "682524178",
+      "nomPatron": "Vincent",
+      "telPatron": "696523485",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Bonamousadi ",
+      "repereQuartier": "Face résidence marima",
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552",
+      "typeAutrePrecision": null,
+      "latitude": "4.0477949",
+      "longitude": "9.7302794",
+      "precisionGps": "5.74",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:50:37.028Z"
+    },
+    {
+      "id": "06d9262b-e855-4b89-860d-8bf5b7227797",
+      "nomEtablissement": "Test",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": null,
+      "repereQuartier": null,
+      "typeId": "73fd09a4-a803-43f6-bae4-3ad1c73be882",
+      "typeAutrePrecision": null,
+      "latitude": "4.047801",
+      "longitude": "9.7302897",
+      "precisionGps": "9.76",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:50:42.979Z"
+    },
+    {
+      "id": "b6453734-4eed-4a6c-a80f-52e3b6d5c545",
+      "nomEtablissement": "Yapaki prestige ",
+      "nomVendeur": "Jordan",
+      "telVendeur": "657582695",
+      "nomPatron": "Jordan",
+      "telPatron": "657582695",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": null,
+      "repereQuartier": "Makepe Rhône Poulenc en face de la pharmacie ",
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478173",
+      "longitude": "9.730291",
+      "precisionGps": "16.33",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:50:45.783Z"
+    },
+    {
+      "id": "2416860f-20a4-406d-b9ef-cb43e245a97b",
+      "nomEtablissement": "Yapaki prestige ",
+      "nomVendeur": "Mme Émilie ",
+      "telVendeur": "697987370",
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Cité des palmiers ",
+      "repereQuartier": "La pharmacie ",
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478519",
+      "longitude": "9.7303416",
+      "precisionGps": "9.59",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:50:46.852Z"
+    },
+    {
+      "id": "8d2ef449-2704-436b-942f-8e118be65ccb",
+      "nomEtablissement": "Padma ",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Yassa",
+      "repereQuartier": "Face santa Lucia ",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63",
+      "typeAutrePrecision": null,
+      "latitude": "4.0479107",
+      "longitude": "9.7303525",
+      "precisionGps": "40.71",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:50:47.000Z"
+    },
+    {
+      "id": "8fbc3e5b-3eab-493d-afcd-8367aef77a1f",
+      "nomEtablissement": "100 papier ",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Bonamoussadi ",
+      "repereQuartier": null,
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63",
+      "typeAutrePrecision": null,
+      "latitude": "4.047836",
+      "longitude": "9.7303247",
+      "precisionGps": "12.57",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:50:48.623Z"
+    },
+    {
+      "id": "ca8aabbf-eadd-42b4-b8b7-1cdd4f73d907",
+      "nomEtablissement": "Squares ",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Logbessou ",
+      "repereQuartier": "A côté de la station Nickel oil ",
+      "typeId": "9a678318-fbff-44ed-bf86-41d316e5aa3b",
+      "typeAutrePrecision": null,
+      "latitude": "4.0477873",
+      "longitude": "9.7302711",
+      "precisionGps": "21.02",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:50:49.086Z"
+    },
+    {
+      "id": "451a981e-a8c2-4f37-9a4c-0cae0e679782",
+      "nomEtablissement": "Midi",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Yassa",
+      "repereQuartier": "Face agence de voyage ",
+      "typeId": "73fd09a4-a803-43f6-bae4-3ad1c73be882",
+      "typeAutrePrecision": null,
+      "latitude": null,
+      "longitude": null,
+      "precisionGps": null,
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:50:49.537Z"
+    },
+    {
+      "id": "5d341ee5-7862-450e-b0b5-73667a46810f",
+      "nomEtablissement": "Opium ",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Makèpè",
+      "repereQuartier": "En face de la pharmacie ",
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552",
+      "typeAutrePrecision": null,
+      "latitude": "4.0477951",
+      "longitude": "9.7302815",
+      "precisionGps": "21.1",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:50:49.762Z"
+    },
+    {
+      "id": "906d7475-48f6-43f3-af58-1dd10f95eccd",
+      "nomEtablissement": "Yapaki prestige ",
+      "nomVendeur": "Mr abessolo ",
+      "telVendeur": "694808170",
+      "nomPatron": "Mr Nya ",
+      "telPatron": "657552829",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Bonamoussadi ",
+      "repereQuartier": "En face ",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478592",
+      "longitude": "9.7303279",
+      "precisionGps": "9.91",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:50:50.296Z"
+    },
+    {
+      "id": "be50c2b9-3742-41f0-b1be-f6040d2207f7",
+      "nomEtablissement": "L’entrée ",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Ange Raphael ",
+      "repereQuartier": "Non loin de Santa lucia",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63",
+      "typeAutrePrecision": null,
+      "latitude": "4.0473997",
+      "longitude": "9.7303769",
+      "precisionGps": "1414",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:50:50.954Z"
+    },
+    {
+      "id": "5455c81f-a077-4a9d-bc7f-4c1358d27f03",
+      "nomEtablissement": "Gucci",
+      "nomVendeur": "Ericca",
+      "telVendeur": "686118140",
+      "nomPatron": "Elisabeth ",
+      "telPatron": "677917527",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Village",
+      "repereQuartier": null,
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63",
+      "typeAutrePrecision": null,
+      "latitude": "4.047898",
+      "longitude": "9.7303294",
+      "precisionGps": "52.4",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:50:57.490Z"
+    },
+    {
+      "id": "1de505c4-4f23-400b-9610-e175f2a19bc0",
+      "nomEtablissement": "Bling-Lounge",
+      "nomVendeur": "TAKALA GILBERT",
+      "telVendeur": "+237697015019",
+      "nomPatron": "MABONDO GERARD",
+      "telPatron": "+237697698532",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Japoma",
+      "repereQuartier": "Boulangerie Yop",
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478363",
+      "longitude": "9.7303214",
+      "precisionGps": "11.5",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:51:02.113Z"
+    },
+    {
+      "id": "cc714584-305f-49be-a37c-2404d21e93dc",
+      "nomEtablissement": "Yapaki ",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": null,
+      "repereQuartier": null,
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63",
+      "typeAutrePrecision": null,
+      "latitude": "4.0477755",
+      "longitude": "9.7302714",
+      "precisionGps": "10.88",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:51:13.843Z"
+    },
+    {
+      "id": "054823c3-5545-46c0-9b1d-4b4c19194aad",
+      "nomEtablissement": "Libanais club",
+      "nomVendeur": "Bavien",
+      "telVendeur": "656853692",
+      "nomPatron": "Samy",
+      "telPatron": "656851236",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Pk12",
+      "repereQuartier": "Pk12 avant le marché ",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63",
+      "typeAutrePrecision": null,
+      "latitude": null,
+      "longitude": null,
+      "precisionGps": null,
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:51:13.470Z"
+    },
+    {
+      "id": "ac4f9f05-53c4-4c68-907c-36ae6a7dcf93",
+      "nomEtablissement": "Mermo",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Bonamoussadi ",
+      "repereQuartier": "A 100 m de sabra lucia",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63",
+      "typeAutrePrecision": null,
+      "latitude": "4.0477943",
+      "longitude": "9.7302824",
+      "precisionGps": "24.08",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:51:26.427Z"
+    },
+    {
+      "id": "19d28a05-64e0-409b-b5d2-e6b7716312c5",
+      "nomEtablissement": "Switch night club ",
+      "nomVendeur": "Sybil",
+      "telVendeur": "690852369",
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Bonanjo",
+      "repereQuartier": "Non loin du midnight club ",
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478024",
+      "longitude": "9.7302871",
+      "precisionGps": "11.62",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:51:26.342Z"
+    },
+    {
+      "id": "56e1edf2-b050-4080-8b57-7d94512add06",
+      "nomEtablissement": "Paki prestige ",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Makepé",
+      "repereQuartier": "rond Poulin en face de la pharmacie ",
+      "typeId": "a291e9ec-15c5-45bb-8252-796e2c80c255",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478188",
+      "longitude": "9.7303007",
+      "precisionGps": "12.94",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:51:46.134Z"
+    },
+    {
+      "id": "4d44b6c7-48bd-40dc-ab4c-7bbec36db35a",
+      "nomEtablissement": "LE TITANIC",
+      "nomVendeur": "Mr junior djeutsac",
+      "telVendeur": "656759819",
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "logbessou",
+      "repereQuartier": "avant le marché",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478268",
+      "longitude": "9.7303133",
+      "precisionGps": "12.65",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:52:05.794Z"
+    },
+    {
+      "id": "3357ef93-d080-44b9-a66b-e89bb688f016",
+      "nomEtablissement": "GOPE",
+      "nomVendeur": "JEOD",
+      "telVendeur": "+237695385655",
+      "nomPatron": "Goodff",
+      "telPatron": "+23795656565",
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "JAPOMA",
+      "repereQuartier": "Boulevard50",
+      "typeId": "9a678318-fbff-44ed-bf86-41d316e5aa3b",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478489",
+      "longitude": "9.7303354",
+      "precisionGps": "17.1",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T12:59:41.586Z"
+    },
+    {
+      "id": "1681b6a3-eaeb-4bf0-bea2-bdbbf4d3a9b2",
+      "nomEtablissement": "Dream ",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Ange Raphael ",
+      "repereQuartier": "En face du stade ",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63",
+      "typeAutrePrecision": null,
+      "latitude": "4.0475233",
+      "longitude": "9.7303525",
+      "precisionGps": "1414",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T13:03:06.835Z"
+    },
+    {
+      "id": "ff732539-4392-4130-97b4-28944d1d469c",
+      "nomEtablissement": "Okoku",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Bonamoussadi ",
+      "repereQuartier": null,
+      "typeId": "ed5faa2d-0a8d-46d6-9800-03676aaa5b62",
+      "typeAutrePrecision": null,
+      "latitude": "4.0477903",
+      "longitude": "9.730275",
+      "precisionGps": "26.36",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T13:03:21.792Z"
+    },
+    {
+      "id": "88c4585b-a0b4-4f16-b4e2-5243746ee231",
+      "nomEtablissement": "opium gold",
+      "nomVendeur": null,
+      "telVendeur": null,
+      "nomPatron": null,
+      "telPatron": null,
+      "villeId": "f9dfbb5c-8731-439c-bef4-72a69a2cc1e2",
+      "quartier": "Japoma",
+      "repereQuartier": null,
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552",
+      "typeAutrePrecision": null,
+      "latitude": "4.0478567",
+      "longitude": "9.730338",
+      "precisionGps": "14.6",
+      "statut": "OUVERT",
+      "createdById": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "createdAt": "2026-10-09T13:03:23.910Z"
+    }
+  ],
+  "pointVenteTypes": [
+    {
+      "pointVenteId": "cd8f5bbb-bb59-477a-af2f-fa7fd1557521",
+      "typeId": "a291e9ec-15c5-45bb-8252-796e2c80c255"
+    },
+    {
+      "pointVenteId": "081fb9d3-a0d1-4c61-b481-1e9914ac40e1",
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552"
+    },
+    {
+      "pointVenteId": "9e068ef5-e57a-48ab-8a21-7bd21ac267a8",
+      "typeId": "73fd09a4-a803-43f6-bae4-3ad1c73be882"
+    },
+    {
+      "pointVenteId": "887849e3-fa28-4897-a92d-6cd963a76d32",
+      "typeId": "a291e9ec-15c5-45bb-8252-796e2c80c255"
+    },
+    {
+      "pointVenteId": "887849e3-fa28-4897-a92d-6cd963a76d32",
+      "typeId": "9a678318-fbff-44ed-bf86-41d316e5aa3b"
+    },
+    {
+      "pointVenteId": "a6fca96a-47ee-47c5-be68-80e7a982fcc7",
+      "typeId": "9a678318-fbff-44ed-bf86-41d316e5aa3b"
+    },
+    {
+      "pointVenteId": "a6fca96a-47ee-47c5-be68-80e7a982fcc7",
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552"
+    },
+    {
+      "pointVenteId": "a6fca96a-47ee-47c5-be68-80e7a982fcc7",
+      "typeId": "ed5faa2d-0a8d-46d6-9800-03676aaa5b62"
+    },
+    {
+      "pointVenteId": "a6fca96a-47ee-47c5-be68-80e7a982fcc7",
+      "typeId": "73fd09a4-a803-43f6-bae4-3ad1c73be882"
+    },
+    {
+      "pointVenteId": "a6fca96a-47ee-47c5-be68-80e7a982fcc7",
+      "typeId": "a291e9ec-15c5-45bb-8252-796e2c80c255"
+    },
+    {
+      "pointVenteId": "701ec826-069f-4634-bb99-118b1a66f8a1",
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552"
+    },
+    {
+      "pointVenteId": "06d9262b-e855-4b89-860d-8bf5b7227797",
+      "typeId": "73fd09a4-a803-43f6-bae4-3ad1c73be882"
+    },
+    {
+      "pointVenteId": "06d9262b-e855-4b89-860d-8bf5b7227797",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    },
+    {
+      "pointVenteId": "06d9262b-e855-4b89-860d-8bf5b7227797",
+      "typeId": "a9807c95-1223-497d-9fca-be0b22b2d773"
+    },
+    {
+      "pointVenteId": "b6453734-4eed-4a6c-a80f-52e3b6d5c545",
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552"
+    },
+    {
+      "pointVenteId": "2416860f-20a4-406d-b9ef-cb43e245a97b",
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552"
+    },
+    {
+      "pointVenteId": "8d2ef449-2704-436b-942f-8e118be65ccb",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    },
+    {
+      "pointVenteId": "8fbc3e5b-3eab-493d-afcd-8367aef77a1f",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    },
+    {
+      "pointVenteId": "8fbc3e5b-3eab-493d-afcd-8367aef77a1f",
+      "typeId": "9a678318-fbff-44ed-bf86-41d316e5aa3b"
+    },
+    {
+      "pointVenteId": "ca8aabbf-eadd-42b4-b8b7-1cdd4f73d907",
+      "typeId": "9a678318-fbff-44ed-bf86-41d316e5aa3b"
+    },
+    {
+      "pointVenteId": "ca8aabbf-eadd-42b4-b8b7-1cdd4f73d907",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    },
+    {
+      "pointVenteId": "451a981e-a8c2-4f37-9a4c-0cae0e679782",
+      "typeId": "73fd09a4-a803-43f6-bae4-3ad1c73be882"
+    },
+    {
+      "pointVenteId": "451a981e-a8c2-4f37-9a4c-0cae0e679782",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    },
+    {
+      "pointVenteId": "5d341ee5-7862-450e-b0b5-73667a46810f",
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552"
+    },
+    {
+      "pointVenteId": "906d7475-48f6-43f3-af58-1dd10f95eccd",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    },
+    {
+      "pointVenteId": "be50c2b9-3742-41f0-b1be-f6040d2207f7",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    },
+    {
+      "pointVenteId": "5455c81f-a077-4a9d-bc7f-4c1358d27f03",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    },
+    {
+      "pointVenteId": "1de505c4-4f23-400b-9610-e175f2a19bc0",
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552"
+    },
+    {
+      "pointVenteId": "054823c3-5545-46c0-9b1d-4b4c19194aad",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    },
+    {
+      "pointVenteId": "054823c3-5545-46c0-9b1d-4b4c19194aad",
+      "typeId": "73fd09a4-a803-43f6-bae4-3ad1c73be882"
+    },
+    {
+      "pointVenteId": "cc714584-305f-49be-a37c-2404d21e93dc",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    },
+    {
+      "pointVenteId": "19d28a05-64e0-409b-b5d2-e6b7716312c5",
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552"
+    },
+    {
+      "pointVenteId": "ac4f9f05-53c4-4c68-907c-36ae6a7dcf93",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    },
+    {
+      "pointVenteId": "ac4f9f05-53c4-4c68-907c-36ae6a7dcf93",
+      "typeId": "a9807c95-1223-497d-9fca-be0b22b2d773"
+    },
+    {
+      "pointVenteId": "56e1edf2-b050-4080-8b57-7d94512add06",
+      "typeId": "a291e9ec-15c5-45bb-8252-796e2c80c255"
+    },
+    {
+      "pointVenteId": "4d44b6c7-48bd-40dc-ab4c-7bbec36db35a",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    },
+    {
+      "pointVenteId": "3357ef93-d080-44b9-a66b-e89bb688f016",
+      "typeId": "9a678318-fbff-44ed-bf86-41d316e5aa3b"
+    },
+    {
+      "pointVenteId": "1681b6a3-eaeb-4bf0-bea2-bdbbf4d3a9b2",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    },
+    {
+      "pointVenteId": "ff732539-4392-4130-97b4-28944d1d469c",
+      "typeId": "ed5faa2d-0a8d-46d6-9800-03676aaa5b62"
+    },
+    {
+      "pointVenteId": "88c4585b-a0b4-4f16-b4e2-5243746ee231",
+      "typeId": "b9078310-9d6f-47aa-b19a-430aa0221552"
+    },
+    {
+      "pointVenteId": "88c4585b-a0b4-4f16-b4e2-5243746ee231",
+      "typeId": "9a678318-fbff-44ed-bf86-41d316e5aa3b"
+    },
+    {
+      "pointVenteId": "88c4585b-a0b4-4f16-b4e2-5243746ee231",
+      "typeId": "9666e023-6fe9-434f-ac79-33604d95fb63"
+    }
+  ],
+  "photos": [
+    {
+      "id": "6c4c484f-6e37-4adf-84a9-2d95e8a9b831",
+      "uuidClient": "faa8fbf3-13f3-4683-9102-a5b1e1ab1302",
+      "pointVenteId": "70dbf19d-4c8e-4997-b696-b203fe014093",
+      "visiteId": "659531e1-3bb2-4961-b210-f69e86026c46",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/47e08408-8f03-4e09-b7cb-7f4726c94d07.jpg",
+      "createdAt": "2026-09-28T17:58:53.738Z"
+    },
+    {
+      "id": "ea79ecd5-e2c0-4b2a-be9f-c92ac5b1b048",
+      "uuidClient": "a8376089-e881-4b08-83a6-96a71987df06",
+      "pointVenteId": "70dbf19d-4c8e-4997-b696-b203fe014093",
+      "visiteId": "659531e1-3bb2-4961-b210-f69e86026c46",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/8f8b6835-5bd2-4ec1-a42e-d722e2a8259d.jpg",
+      "createdAt": "2026-09-28T17:58:53.738Z"
+    },
+    {
+      "id": "0db6d973-3561-4b40-89b1-b1be149e19dd",
+      "uuidClient": "e0d1f30c-713b-43a2-bf56-be8c9f287c7a",
+      "pointVenteId": "33ebf567-6f77-459a-86d5-e325017ed20a",
+      "visiteId": "ff38b135-aab7-4cf9-a1e1-35fbadfc9961",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/e184eed8-be35-4617-8185-0e3bbd021f46.jpg",
+      "createdAt": "2026-09-28T17:59:01.682Z"
+    },
+    {
+      "id": "fb6da072-ab91-41ed-ab9b-b4e90810ec6d",
+      "uuidClient": "0a9c44fe-bf76-4465-826c-347d96cb5152",
+      "pointVenteId": "318c4b17-4a34-4e18-9d9a-d140457bd214",
+      "visiteId": "962ce2cc-c93d-4a2b-a529-a3f22b49d18b",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/02d911c5-effe-4fed-9b83-beedbe77958a.jpg",
+      "createdAt": "2026-09-28T17:59:20.349Z"
+    },
+    {
+      "id": "d7f4f285-d8d7-4ba1-9fd5-009f5824aa8b",
+      "uuidClient": "03130f6e-f1be-46b6-915b-b06252600f28",
+      "pointVenteId": "71635588-0df5-45e7-a8ab-358124fc8c8c",
+      "visiteId": "34962f5d-f52f-4be5-92e6-a6a0cddbe98a",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/9ec9669d-030d-4c9d-85de-1d2c0137b16a.jpg",
+      "createdAt": "2026-09-28T18:13:09.201Z"
+    },
+    {
+      "id": "ad965e1b-ea3a-4e93-b181-6ede8dd384e8",
+      "uuidClient": "06e338cf-3154-4749-9b6c-23bfba82cb4b",
+      "pointVenteId": "71635588-0df5-45e7-a8ab-358124fc8c8c",
+      "visiteId": "34962f5d-f52f-4be5-92e6-a6a0cddbe98a",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/eb708e53-25eb-43c3-bb30-6afe5e7a5c5c.jpg",
+      "createdAt": "2026-09-28T18:13:09.201Z"
+    },
+    {
+      "id": "81a17e13-348f-4cbd-9827-8c096abcfcfc",
+      "uuidClient": "185796f7-1530-4418-a32c-8394a6ecd704",
+      "pointVenteId": "cd8f5bbb-bb59-477a-af2f-fa7fd1557521",
+      "visiteId": "1d01a7c5-022c-447a-a524-96bb738ac317",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/073b6b08-d33d-4067-8fef-4d39b95bff09.jpg",
+      "createdAt": "2026-10-07T13:34:54.548Z"
+    },
+    {
+      "id": "2ef0d58c-61e6-4944-8105-cba1883b5f51",
+      "uuidClient": "a8efd028-e851-40da-bdee-c3c58baa51d5",
+      "pointVenteId": "6269e301-0b9f-4135-800f-fae30c0755ce",
+      "visiteId": "b43b6794-5a5f-4aa0-a18d-64fab96e4cc6",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/162c2a31-9ae2-42b3-9f2a-66f0ab981d0a.jpg",
+      "createdAt": "2026-10-07T13:48:09.313Z"
+    },
+    {
+      "id": "a142652e-986f-48ab-bc65-0df8d93785f1",
+      "uuidClient": "6bee95db-7413-4490-a909-031f0e77c66a",
+      "pointVenteId": "887849e3-fa28-4897-a92d-6cd963a76d32",
+      "visiteId": "2567b8fc-bd18-440a-afd7-0731fb86afe3",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/a2df88d5-0388-4ff4-815b-043acd0065bf.jpg",
+      "createdAt": "2026-10-09T10:00:01.229Z"
+    },
+    {
+      "id": "b5bbf020-15d6-4694-a470-47319409554c",
+      "uuidClient": "32bbc5fe-6e97-4b95-978d-a46542f5c520",
+      "pointVenteId": "887849e3-fa28-4897-a92d-6cd963a76d32",
+      "visiteId": "2567b8fc-bd18-440a-afd7-0731fb86afe3",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/5162fd11-ecb9-4cef-b041-9f9d1a890157.jpg",
+      "createdAt": "2026-10-09T10:00:01.229Z"
+    },
+    {
+      "id": "5f7e7160-66c4-4edb-abfc-c15c9dca53f4",
+      "uuidClient": "5ccf3175-3474-4c3b-b61c-a5fc2cbb2464",
+      "pointVenteId": "701ec826-069f-4634-bb99-118b1a66f8a1",
+      "visiteId": "d98514b7-c40f-49d3-8c59-88d0d6fe8dbe",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/90e37f41-3253-44ea-be40-c36abc13c949.jpg",
+      "createdAt": "2026-10-09T12:50:37.737Z"
+    },
+    {
+      "id": "7b535400-553e-43cb-9984-37db0ce6c6d3",
+      "uuidClient": "5e91b70d-3f81-4d97-ad9c-4dc16993cc52",
+      "pointVenteId": "701ec826-069f-4634-bb99-118b1a66f8a1",
+      "visiteId": "d98514b7-c40f-49d3-8c59-88d0d6fe8dbe",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/48669b51-aa6a-4346-bab9-ea1175eb452a.jpg",
+      "createdAt": "2026-10-09T12:50:37.737Z"
+    },
+    {
+      "id": "9c223645-33a4-4adf-b441-654c67676d96",
+      "uuidClient": "711f3883-e5f4-4296-b146-b0d7880b6e8b",
+      "pointVenteId": "06d9262b-e855-4b89-860d-8bf5b7227797",
+      "visiteId": "25e45e11-cb68-4077-a807-1e0200d7e674",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/9b5e09eb-fdaa-4dde-86e1-6c6e03beabc1.jpg",
+      "createdAt": "2026-10-09T12:50:43.957Z"
+    },
+    {
+      "id": "4b51a532-1afe-4b09-ae1a-7e68d20a1424",
+      "uuidClient": "bc835121-1b9d-4d03-995e-b632356f5e00",
+      "pointVenteId": "b6453734-4eed-4a6c-a80f-52e3b6d5c545",
+      "visiteId": "dfe96f22-f53b-4f59-aada-da9f93b8382b",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/a1b06a02-9186-4d83-95e5-d70727c75d4e.jpg",
+      "createdAt": "2026-10-09T12:50:46.496Z"
+    },
+    {
+      "id": "f61b9e56-78d5-47a6-9b29-224399ef2fcb",
+      "uuidClient": "1db14d5b-8ddc-4d7e-9647-eb32b4568c01",
+      "pointVenteId": "b6453734-4eed-4a6c-a80f-52e3b6d5c545",
+      "visiteId": "dfe96f22-f53b-4f59-aada-da9f93b8382b",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/cfef8b01-423d-46e0-afa6-48072b62e546.jpg",
+      "createdAt": "2026-10-09T12:50:46.496Z"
+    },
+    {
+      "id": "d30d5ebf-757d-4e06-b9c6-1a82db7c8b02",
+      "uuidClient": "110c1fc2-60f9-4556-b63f-48ae369f3b2c",
+      "pointVenteId": "2416860f-20a4-406d-b9ef-cb43e245a97b",
+      "visiteId": "a92d7c02-11df-44af-84e1-2d397f78894a",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/9a4e2dcf-94f9-4b0c-9104-bea1e82e3c40.jpg",
+      "createdAt": "2026-10-09T12:50:47.550Z"
+    },
+    {
+      "id": "8fb47120-96c5-43c4-b2e2-b80946847eb3",
+      "uuidClient": "302baf9c-e685-4b7c-9cb3-d4c9110b6aa7",
+      "pointVenteId": "2416860f-20a4-406d-b9ef-cb43e245a97b",
+      "visiteId": "a92d7c02-11df-44af-84e1-2d397f78894a",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/b598b6a7-0c52-45ea-8dc7-e812c1d6d98c.jpg",
+      "createdAt": "2026-10-09T12:50:47.550Z"
+    },
+    {
+      "id": "c0ea0c4d-d77f-4df5-a99d-8d6ae55253ec",
+      "uuidClient": "4457d8c1-2450-4d3c-a9df-8f5d35957a15",
+      "pointVenteId": "8d2ef449-2704-436b-942f-8e118be65ccb",
+      "visiteId": "12f14e43-7b2c-49a4-a565-c85ac4592141",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/908db8e2-482a-47c0-a746-6a6e7922d4c2.jpg",
+      "createdAt": "2026-10-09T12:50:47.699Z"
+    },
+    {
+      "id": "498e33f0-b3df-4c93-bf3a-eee8dbd97190",
+      "uuidClient": "ccc1a522-abe6-40bd-85b0-2776e36be5d7",
+      "pointVenteId": "8d2ef449-2704-436b-942f-8e118be65ccb",
+      "visiteId": "12f14e43-7b2c-49a4-a565-c85ac4592141",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/390b0dee-5c5a-42a9-97c5-70268a4ea1e2.jpg",
+      "createdAt": "2026-10-09T12:50:47.699Z"
+    },
+    {
+      "id": "3e8e340a-6e9d-4624-8cdb-659f5f773a65",
+      "uuidClient": "9bbc241c-3bcb-488a-9544-c1ac9815a680",
+      "pointVenteId": "ca8aabbf-eadd-42b4-b8b7-1cdd4f73d907",
+      "visiteId": "96b567e3-5e41-4fc9-a459-9a5e2c103b96",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/c4cc7efb-49d5-4d80-9188-b1ec5b7424b6.jpg",
+      "createdAt": "2026-10-09T12:50:49.786Z"
+    },
+    {
+      "id": "3a95fe2a-39b4-4411-b115-48a4043f8b8c",
+      "uuidClient": "f3361eb1-1705-4776-a6b4-08f4dee9100a",
+      "pointVenteId": "451a981e-a8c2-4f37-9a4c-0cae0e679782",
+      "visiteId": "0714683a-9aec-484d-8e7c-cc3cdf2a4bd9",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/e89bc123-9de9-4536-b76c-575f085814ad.jpg",
+      "createdAt": "2026-10-09T12:50:50.242Z"
+    },
+    {
+      "id": "daa0919e-8f9b-4539-8eac-e281255a2f26",
+      "uuidClient": "c8d5ad4a-e63e-417b-bf2d-c9f8f25d05fe",
+      "pointVenteId": "451a981e-a8c2-4f37-9a4c-0cae0e679782",
+      "visiteId": "0714683a-9aec-484d-8e7c-cc3cdf2a4bd9",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/6d2269d5-0f0f-4ec5-9f8a-26890081d8d8.jpg",
+      "createdAt": "2026-10-09T12:50:50.242Z"
+    },
+    {
+      "id": "127ac77e-040f-4939-b41a-b0fb3f7546b3",
+      "uuidClient": "ff34b416-77eb-4a1a-9d56-2a74d27fc11a",
+      "pointVenteId": "5d341ee5-7862-450e-b0b5-73667a46810f",
+      "visiteId": "57331258-e6c1-4f0f-954a-931cedaaec83",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/2e124005-9cdc-4381-91d0-f9aa61d7b212.jpg",
+      "createdAt": "2026-10-09T12:50:50.469Z"
+    },
+    {
+      "id": "eddbac3d-9f20-48c6-9f54-6d065e465d1b",
+      "uuidClient": "0f0893e6-6dca-4deb-bc62-cdc237bc5c12",
+      "pointVenteId": "5d341ee5-7862-450e-b0b5-73667a46810f",
+      "visiteId": "57331258-e6c1-4f0f-954a-931cedaaec83",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/150e74ad-33c9-4997-a6cc-654aadda61d5.jpg",
+      "createdAt": "2026-10-09T12:50:50.469Z"
+    },
+    {
+      "id": "5426eda1-5912-42bc-862f-c9bff9e30e6e",
+      "uuidClient": "b16eb081-5af2-4355-adf5-8bedaa194f83",
+      "pointVenteId": "906d7475-48f6-43f3-af58-1dd10f95eccd",
+      "visiteId": "ee2adf4d-16aa-4cb5-a64c-6ca8e71aeb7d",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/a6bbf7fc-d91e-486b-a28a-aa38c8b59746.jpg",
+      "createdAt": "2026-10-09T12:50:51.012Z"
+    },
+    {
+      "id": "c1f42a46-f98a-46f0-86de-18e804bbd002",
+      "uuidClient": "20a03a8b-8904-46bc-9367-68b1d8a266f3",
+      "pointVenteId": "906d7475-48f6-43f3-af58-1dd10f95eccd",
+      "visiteId": "ee2adf4d-16aa-4cb5-a64c-6ca8e71aeb7d",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/878c31d8-6e71-476f-ac44-47a1cb07eac4.jpg",
+      "createdAt": "2026-10-09T12:50:51.012Z"
+    },
+    {
+      "id": "42a04ee1-849e-47b4-87cf-15727a05e3ee",
+      "uuidClient": "31b7d18d-f9be-4fcb-91c0-80c9ce5312a6",
+      "pointVenteId": "1de505c4-4f23-400b-9610-e175f2a19bc0",
+      "visiteId": "11f13ec0-0caa-4b42-8230-117a4e00e391",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/f95ec8ae-1240-4beb-a68c-b5807a1e7fe2.jpg",
+      "createdAt": "2026-10-09T12:51:02.821Z"
+    },
+    {
+      "id": "cc9cb079-6f82-48f7-ba05-c69d2e7ad4b4",
+      "uuidClient": "e149ea0c-98dc-4937-8503-0437c790b6cf",
+      "pointVenteId": "1de505c4-4f23-400b-9610-e175f2a19bc0",
+      "visiteId": "11f13ec0-0caa-4b42-8230-117a4e00e391",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/68531c4f-a61a-4df9-a594-9396229d8907.jpg",
+      "createdAt": "2026-10-09T12:51:02.821Z"
+    },
+    {
+      "id": "755eef99-d1d1-459d-9495-6823f9888d0a",
+      "uuidClient": "d95181c1-0719-41d7-aab7-38208869ee10",
+      "pointVenteId": "054823c3-5545-46c0-9b1d-4b4c19194aad",
+      "visiteId": "78c03ee4-4ab8-4c61-8c2c-b7a1bf966010",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/333dcdb3-acae-4b1a-8292-e9de062fde1b.jpg",
+      "createdAt": "2026-10-09T12:51:14.180Z"
+    },
+    {
+      "id": "f934eb38-e86d-4478-8bad-62b8e1ee301c",
+      "uuidClient": "fc520e38-1b2f-4659-8c0a-b0e84c51d086",
+      "pointVenteId": "ac4f9f05-53c4-4c68-907c-36ae6a7dcf93",
+      "visiteId": "365cc2b8-a75f-46cb-b3ab-cca8e25e5921",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/3679aeb8-b401-4cfd-a442-cac6f365ff0c.jpg",
+      "createdAt": "2026-10-09T12:51:27.126Z"
+    },
+    {
+      "id": "e321a4c6-dae4-484f-8614-713755eaea06",
+      "uuidClient": "dcbac1ad-3cd7-4c87-aef0-90ff388ac3f4",
+      "pointVenteId": "ac4f9f05-53c4-4c68-907c-36ae6a7dcf93",
+      "visiteId": "365cc2b8-a75f-46cb-b3ab-cca8e25e5921",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/98e29665-cfe2-4e4b-95c6-bab9838b362c.jpg",
+      "createdAt": "2026-10-09T12:51:27.126Z"
+    },
+    {
+      "id": "fb2c2259-0f95-43eb-9cd3-be24cf196de1",
+      "uuidClient": "4aef1d11-b187-4601-8429-e1aac4e7cf15",
+      "pointVenteId": "19d28a05-64e0-409b-b5d2-e6b7716312c5",
+      "visiteId": "95c7c4ee-6c0a-4d82-ae33-5e70977142cb",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/11daaf08-1bf3-4ea2-a27d-12ea973de6de.jpg",
+      "createdAt": "2026-10-09T12:51:27.044Z"
+    },
+    {
+      "id": "6e96a188-8ba0-42d9-ad12-d69a2ceed8e6",
+      "uuidClient": "cfc6a417-2150-4c33-8199-ba25598c5423",
+      "pointVenteId": "19d28a05-64e0-409b-b5d2-e6b7716312c5",
+      "visiteId": "95c7c4ee-6c0a-4d82-ae33-5e70977142cb",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/692c7005-45d0-4760-b851-76636a28e97b.jpg",
+      "createdAt": "2026-10-09T12:51:27.044Z"
+    },
+    {
+      "id": "d0ea8e26-ed3a-4359-9bc1-eeb278d70858",
+      "uuidClient": "7082dbbc-8443-47ad-950a-34eccc8ac44c",
+      "pointVenteId": "4d44b6c7-48bd-40dc-ab4c-7bbec36db35a",
+      "visiteId": "35c052bd-cb7e-483f-a654-538dad094d15",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/5e77552a-0412-47e9-8f32-7d2059605407.jpg",
+      "createdAt": "2026-10-09T12:52:06.503Z"
+    },
+    {
+      "id": "7f09ab77-b2e9-43d9-8d1f-077a85be2312",
+      "uuidClient": "c2efd12b-b37e-4eb4-9858-ec4e88178909",
+      "pointVenteId": "4d44b6c7-48bd-40dc-ab4c-7bbec36db35a",
+      "visiteId": "35c052bd-cb7e-483f-a654-538dad094d15",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/11c70e65-df81-4909-8691-12a242cf7ea4.jpg",
+      "createdAt": "2026-10-09T12:52:06.503Z"
+    },
+    {
+      "id": "a18fc63e-0226-45a9-a4ed-a2391f0e788c",
+      "uuidClient": "62eda808-510d-4607-b4ba-6cfb0d5502b4",
+      "pointVenteId": "3357ef93-d080-44b9-a66b-e89bb688f016",
+      "visiteId": "9bd93d74-009c-453f-998b-8a5b3883a053",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/75fac3db-6d63-4291-881e-14dc94288f6e.jpg",
+      "createdAt": "2026-10-09T12:59:42.310Z"
+    },
+    {
+      "id": "875528cf-3a4f-47a7-9ac4-a381fbe8d6e9",
+      "uuidClient": "32f99a69-364e-4415-9dd8-aeef16971eaf",
+      "pointVenteId": "3357ef93-d080-44b9-a66b-e89bb688f016",
+      "visiteId": "9bd93d74-009c-453f-998b-8a5b3883a053",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/2b0da0e6-fdd5-4236-a436-c7d26640382b.jpg",
+      "createdAt": "2026-10-09T12:59:42.310Z"
+    },
+    {
+      "id": "67152167-e035-4de0-a927-693a22306777",
+      "uuidClient": "860b1e78-0ccc-4a87-9ffd-f0f65f9424e6",
+      "pointVenteId": "ff732539-4392-4130-97b4-28944d1d469c",
+      "visiteId": "2206f1e7-0445-49ad-94f1-9fc7de92e4e8",
+      "url": "https://pub-034e30e17b9747c9b17cc85697510fb6.r2.dev/points-vente/39b2c62f-2cc3-4bdb-b38c-0dfaf42f5d3e.jpg",
+      "createdAt": "2026-10-09T13:03:22.363Z"
+    }
+  ],
+  "marquesPresentes": [
+    {
+      "id": "8753f504-5480-4569-8b2f-e1f39a852061",
+      "visiteId": "659531e1-3bb2-4961-b210-f69e86026c46",
+      "marqueId": "aa2dcc25-ab25-4da4-bf04-d17928ef6b79",
+      "libelleLibre": null,
+      "categorie": null,
+      "prix": null
+    },
+    {
+      "id": "93518bce-d882-4708-adcd-73e3c4e54b8e",
+      "visiteId": "962ce2cc-c93d-4a2b-a529-a3f22b49d18b",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": null,
+      "prix": null
+    },
+    {
+      "id": "78e23d95-8cd9-4eba-b6d9-9074150d94d9",
+      "visiteId": "0ef3f661-843a-4d39-b456-7ae3f9766893",
+      "marqueId": "7f35ae27-c26e-4cbd-b58f-a82aae67ec72",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "b077efd8-1452-456f-924d-18623b7816de",
+      "visiteId": "0ef3f661-843a-4d39-b456-7ae3f9766893",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "ca2ed34c-1d1e-4248-bc21-0174707c26d2",
+      "visiteId": "0ef3f661-843a-4d39-b456-7ae3f9766893",
+      "marqueId": null,
+      "libelleLibre": "AC MOSCATO",
+      "categorie": "MOUSSEUX",
+      "prix": "15000"
+    },
+    {
+      "id": "c9eb5aa0-36fd-4871-b046-529822969bc5",
+      "visiteId": "0ef3f661-843a-4d39-b456-7ae3f9766893",
+      "marqueId": null,
+      "libelleLibre": "Château Lafarge",
+      "categorie": "MOUSSEUX",
+      "prix": "10000"
+    },
+    {
+      "id": "33d4d845-6f0b-494b-9480-f6c9bc9bd635",
+      "visiteId": "0ef3f661-843a-4d39-b456-7ae3f9766893",
+      "marqueId": null,
+      "libelleLibre": "Black Label 01l",
+      "categorie": "MOUSSEUX",
+      "prix": "40000"
+    },
+    {
+      "id": "62c934da-488a-4916-a48d-65e52e68e5cd",
+      "visiteId": "0ef3f661-843a-4d39-b456-7ae3f9766893",
+      "marqueId": null,
+      "libelleLibre": "Heineken",
+      "categorie": "RTD",
+      "prix": "1500"
+    },
+    {
+      "id": "d7171ea1-7ece-45e9-bad4-b7203dc23711",
+      "visiteId": "1d01a7c5-022c-447a-a524-96bb738ac317",
+      "marqueId": "e45fcc23-ef5d-4d7f-9f33-0b9cd1490a42",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "2500"
+    },
+    {
+      "id": "d976fc70-5637-4f33-ab5e-eb523cb6eab7",
+      "visiteId": "1d01a7c5-022c-447a-a524-96bb738ac317",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": "2500"
+    },
+    {
+      "id": "1103e63f-721e-40e5-8d30-8562ba2cb89d",
+      "visiteId": "1d01a7c5-022c-447a-a524-96bb738ac317",
+      "marqueId": "aa2dcc25-ab25-4da4-bf04-d17928ef6b79",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "5800"
+    },
+    {
+      "id": "96696747-fb95-4d2b-9573-25bfd20ac628",
+      "visiteId": "b43b6794-5a5f-4aa0-a18d-64fab96e4cc6",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": null,
+      "prix": null
+    },
+    {
+      "id": "28261edf-bcb1-4e0a-b9f3-4e97c0db1d71",
+      "visiteId": "929591df-fb3f-4bc6-8ee3-eb0085b62888",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": null
+    },
+    {
+      "id": "f2389208-2478-4bb3-b96a-43f6adf579e9",
+      "visiteId": "929591df-fb3f-4bc6-8ee3-eb0085b62888",
+      "marqueId": "aa2dcc25-ab25-4da4-bf04-d17928ef6b79",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": null
+    },
+    {
+      "id": "708130f9-7f3d-4bef-acdf-c18744225c42",
+      "visiteId": "929591df-fb3f-4bc6-8ee3-eb0085b62888",
+      "marqueId": "7f35ae27-c26e-4cbd-b58f-a82aae67ec72",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": null
+    },
+    {
+      "id": "ce059d68-b0ce-429b-b22d-d63d185c3a0e",
+      "visiteId": "929591df-fb3f-4bc6-8ee3-eb0085b62888",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": null
+    },
+    {
+      "id": "7f89a4a5-81e1-4a96-9c90-9f81769a0aba",
+      "visiteId": "2567b8fc-bd18-440a-afd7-0731fb86afe3",
+      "marqueId": "e45fcc23-ef5d-4d7f-9f33-0b9cd1490a42",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "5000"
+    },
+    {
+      "id": "5a2b0528-b152-4612-a865-b49a559cd165",
+      "visiteId": "2567b8fc-bd18-440a-afd7-0731fb86afe3",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": "1200"
+    },
+    {
+      "id": "e9b9c7e1-d5cf-4e13-81d7-17ffa9c4bb51",
+      "visiteId": "2567b8fc-bd18-440a-afd7-0731fb86afe3",
+      "marqueId": "aa2dcc25-ab25-4da4-bf04-d17928ef6b79",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "cce1feaf-1115-424c-8654-e4cd624043ac",
+      "visiteId": "2567b8fc-bd18-440a-afd7-0731fb86afe3",
+      "marqueId": "7f35ae27-c26e-4cbd-b58f-a82aae67ec72",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "2000"
+    },
+    {
+      "id": "74474889-25ac-48f4-aac8-bf8f68a8ad2b",
+      "visiteId": "2567b8fc-bd18-440a-afd7-0731fb86afe3",
+      "marqueId": null,
+      "libelleLibre": "Autre champagne",
+      "categorie": "MOUSSEUX",
+      "prix": "1000"
+    },
+    {
+      "id": "4eb8b0c2-a773-492e-ada3-38f94ffe8bab",
+      "visiteId": "d98514b7-c40f-49d3-8c59-88d0d6fe8dbe",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": null
+    },
+    {
+      "id": "3106a0ef-dbcb-492d-980f-faa8983783cc",
+      "visiteId": "25e45e11-cb68-4077-a807-1e0200d7e674",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": null
+    },
+    {
+      "id": "18aafd5b-97bc-4c51-934a-07daeb4d600c",
+      "visiteId": "dfe96f22-f53b-4f59-aada-da9f93b8382b",
+      "marqueId": "e45fcc23-ef5d-4d7f-9f33-0b9cd1490a42",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "632f119e-2195-40c9-bc22-05315a9f9edb",
+      "visiteId": "dfe96f22-f53b-4f59-aada-da9f93b8382b",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": "6500"
+    },
+    {
+      "id": "3caeae06-8020-479c-8a31-bf907ef50b56",
+      "visiteId": "dfe96f22-f53b-4f59-aada-da9f93b8382b",
+      "marqueId": "aa2dcc25-ab25-4da4-bf04-d17928ef6b79",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "0e0a5b67-4c6b-4419-a505-da6fda22bdf7",
+      "visiteId": "dfe96f22-f53b-4f59-aada-da9f93b8382b",
+      "marqueId": "7f35ae27-c26e-4cbd-b58f-a82aae67ec72",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "401f46cf-da16-4203-9f64-bd5862062d57",
+      "visiteId": "dfe96f22-f53b-4f59-aada-da9f93b8382b",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "d22d0f2e-9ef2-4973-8eba-d308616e81aa",
+      "visiteId": "a92d7c02-11df-44af-84e1-2d397f78894a",
+      "marqueId": "e45fcc23-ef5d-4d7f-9f33-0b9cd1490a42",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "700"
+    },
+    {
+      "id": "f25781de-cfc1-439f-b939-926c70c2b8f2",
+      "visiteId": "a92d7c02-11df-44af-84e1-2d397f78894a",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": "5000"
+    },
+    {
+      "id": "f027de26-6665-4a9d-bf6f-c4851d725ede",
+      "visiteId": "12f14e43-7b2c-49a4-a565-c85ac4592141",
+      "marqueId": "e45fcc23-ef5d-4d7f-9f33-0b9cd1490a42",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": null
+    },
+    {
+      "id": "2e89008b-5997-4265-aba3-a5c7b0329bc8",
+      "visiteId": "12f14e43-7b2c-49a4-a565-c85ac4592141",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": "10000"
+    },
+    {
+      "id": "8d063256-acf7-40a2-91fd-3415629e4e2a",
+      "visiteId": "12f14e43-7b2c-49a4-a565-c85ac4592141",
+      "marqueId": "aa2dcc25-ab25-4da4-bf04-d17928ef6b79",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": null
+    },
+    {
+      "id": "b089b1a0-c9d6-4ccd-8f90-bc1454af050d",
+      "visiteId": "12f14e43-7b2c-49a4-a565-c85ac4592141",
+      "marqueId": "7f35ae27-c26e-4cbd-b58f-a82aae67ec72",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": null
+    },
+    {
+      "id": "a02f427d-ba42-40ea-85b1-eb405eab4769",
+      "visiteId": "12f14e43-7b2c-49a4-a565-c85ac4592141",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": null
+    },
+    {
+      "id": "c15707a6-33dd-4818-ab76-3b0432530482",
+      "visiteId": "7cac3877-d014-48f3-907a-584d98ef5bc0",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": "8000"
+    },
+    {
+      "id": "0151fe7e-f32a-4fa1-8d49-520b672e72ca",
+      "visiteId": "96b567e3-5e41-4fc9-a459-9a5e2c103b96",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": null
+    },
+    {
+      "id": "ba2f805b-0e63-4faf-9ae4-a542fb9ba37a",
+      "visiteId": "0714683a-9aec-484d-8e7c-cc3cdf2a4bd9",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": "10000"
+    },
+    {
+      "id": "b61cd1ef-94fc-4353-8fbe-501fdf37c704",
+      "visiteId": "0714683a-9aec-484d-8e7c-cc3cdf2a4bd9",
+      "marqueId": "aa2dcc25-ab25-4da4-bf04-d17928ef6b79",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": null
+    },
+    {
+      "id": "91a893b3-0d1d-4b98-b6c2-63cbbcc8ae60",
+      "visiteId": "0714683a-9aec-484d-8e7c-cc3cdf2a4bd9",
+      "marqueId": "7f35ae27-c26e-4cbd-b58f-a82aae67ec72",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": null
+    },
+    {
+      "id": "e7da3abb-9999-488d-a1bd-9ae4543fe4d0",
+      "visiteId": "0714683a-9aec-484d-8e7c-cc3cdf2a4bd9",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": null
+    },
+    {
+      "id": "928adb8b-06a9-472b-a4ae-f0d4cc702e83",
+      "visiteId": "0714683a-9aec-484d-8e7c-cc3cdf2a4bd9",
+      "marqueId": null,
+      "libelleLibre": "Maria",
+      "categorie": "MOUSSEUX",
+      "prix": "8000"
+    },
+    {
+      "id": "3bfdf58c-526e-451b-a7f1-08b5b9727820",
+      "visiteId": "57331258-e6c1-4f0f-954a-931cedaaec83",
+      "marqueId": "e45fcc23-ef5d-4d7f-9f33-0b9cd1490a42",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "5000"
+    },
+    {
+      "id": "5bc41040-305a-4ce1-b90a-33a6386898d8",
+      "visiteId": "57331258-e6c1-4f0f-954a-931cedaaec83",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": "20000"
+    },
+    {
+      "id": "8ac9472d-b023-41e3-b4f1-e6572fa73e3f",
+      "visiteId": "57331258-e6c1-4f0f-954a-931cedaaec83",
+      "marqueId": "aa2dcc25-ab25-4da4-bf04-d17928ef6b79",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "3000"
+    },
+    {
+      "id": "315305cc-0612-4cb6-8248-d062ebf090f9",
+      "visiteId": "57331258-e6c1-4f0f-954a-931cedaaec83",
+      "marqueId": "7f35ae27-c26e-4cbd-b58f-a82aae67ec72",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "2000"
+    },
+    {
+      "id": "29165651-ae73-4a22-b7c7-6d3867ce7baf",
+      "visiteId": "57331258-e6c1-4f0f-954a-931cedaaec83",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "c44bcb3d-c812-4c22-8d56-03d4899dacee",
+      "visiteId": "ee2adf4d-16aa-4cb5-a64c-6ca8e71aeb7d",
+      "marqueId": "e45fcc23-ef5d-4d7f-9f33-0b9cd1490a42",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1500"
+    },
+    {
+      "id": "216c868a-367d-4a52-9d54-830590ecc16b",
+      "visiteId": "ee2adf4d-16aa-4cb5-a64c-6ca8e71aeb7d",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": "10000"
+    },
+    {
+      "id": "fbd96a43-6c57-4bd1-be2e-31da4ffa4a41",
+      "visiteId": "ee2adf4d-16aa-4cb5-a64c-6ca8e71aeb7d",
+      "marqueId": "aa2dcc25-ab25-4da4-bf04-d17928ef6b79",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "2000"
+    },
+    {
+      "id": "c833636d-bbd2-4e70-9bd8-c0c58a2416fe",
+      "visiteId": "ee2adf4d-16aa-4cb5-a64c-6ca8e71aeb7d",
+      "marqueId": "7f35ae27-c26e-4cbd-b58f-a82aae67ec72",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1500"
+    },
+    {
+      "id": "1ef4e67f-3bd3-4b38-9267-ceee98e71b08",
+      "visiteId": "ee2adf4d-16aa-4cb5-a64c-6ca8e71aeb7d",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "2000"
+    },
+    {
+      "id": "4b2bb8ee-8760-465a-866f-de1bf47c6c06",
+      "visiteId": "ee2adf4d-16aa-4cb5-a64c-6ca8e71aeb7d",
+      "marqueId": null,
+      "libelleLibre": "Heineken",
+      "categorie": "RTD",
+      "prix": "2500"
+    },
+    {
+      "id": "1ed784c3-ce74-41e4-b069-cfe268717625",
+      "visiteId": "ee2adf4d-16aa-4cb5-a64c-6ca8e71aeb7d",
+      "marqueId": null,
+      "libelleLibre": "Malta",
+      "categorie": "RTD",
+      "prix": "1500"
+    },
+    {
+      "id": "19e86497-118a-4ea0-97d7-ddf7c190f416",
+      "visiteId": "ee2adf4d-16aa-4cb5-a64c-6ca8e71aeb7d",
+      "marqueId": null,
+      "libelleLibre": "Petite Guinness",
+      "categorie": "RTD",
+      "prix": "2000"
+    },
+    {
+      "id": "aa3e9ede-90aa-46c1-80b1-7f74d0f04151",
+      "visiteId": "7240dcf0-a9c4-4c60-9c7d-52105e0779cf",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": null
+    },
+    {
+      "id": "eb44225b-082c-4223-91a5-62be1ddb9fe1",
+      "visiteId": "11f13ec0-0caa-4b42-8230-117a4e00e391",
+      "marqueId": "e45fcc23-ef5d-4d7f-9f33-0b9cd1490a42",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "500"
+    },
+    {
+      "id": "14b0c830-4dd5-466a-97b3-1dd7aa460bb8",
+      "visiteId": "11f13ec0-0caa-4b42-8230-117a4e00e391",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": "5000"
+    },
+    {
+      "id": "cd6c8b2a-83a9-46ae-9aa2-69afe16ab396",
+      "visiteId": "11f13ec0-0caa-4b42-8230-117a4e00e391",
+      "marqueId": "aa2dcc25-ab25-4da4-bf04-d17928ef6b79",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "500"
+    },
+    {
+      "id": "e24d8798-8ca9-47dd-9bbd-9a750644c494",
+      "visiteId": "11f13ec0-0caa-4b42-8230-117a4e00e391",
+      "marqueId": "7f35ae27-c26e-4cbd-b58f-a82aae67ec72",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "650"
+    },
+    {
+      "id": "6585c62b-4bcf-4fa8-a6d9-9d470d0b9c04",
+      "visiteId": "11f13ec0-0caa-4b42-8230-117a4e00e391",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "800"
+    },
+    {
+      "id": "13da9266-91ab-4955-98a1-9783e0680461",
+      "visiteId": "11f13ec0-0caa-4b42-8230-117a4e00e391",
+      "marqueId": null,
+      "libelleLibre": "Vins de Bordeaux",
+      "categorie": "MOUSSEUX",
+      "prix": "2000"
+    },
+    {
+      "id": "0df89192-39b2-468c-8889-bc4d0a38e859",
+      "visiteId": "11f13ec0-0caa-4b42-8230-117a4e00e391",
+      "marqueId": null,
+      "libelleLibre": "Vigne Moussant",
+      "categorie": "MOUSSEUX",
+      "prix": "3000"
+    },
+    {
+      "id": "22f0678f-eb44-4fe2-b204-be3304336ed5",
+      "visiteId": "11f13ec0-0caa-4b42-8230-117a4e00e391",
+      "marqueId": null,
+      "libelleLibre": "MAGGI",
+      "categorie": "RTD",
+      "prix": "500"
+    },
+    {
+      "id": "8d035ee8-6f2b-4ebb-a376-da7a9dc12ffe",
+      "visiteId": "11f13ec0-0caa-4b42-8230-117a4e00e391",
+      "marqueId": null,
+      "libelleLibre": "MANYAN",
+      "categorie": "RTD",
+      "prix": "600"
+    },
+    {
+      "id": "26734a11-2ca1-481d-b44e-e929156604a6",
+      "visiteId": "11f13ec0-0caa-4b42-8230-117a4e00e391",
+      "marqueId": null,
+      "libelleLibre": "GO",
+      "categorie": "RTD",
+      "prix": "500"
+    },
+    {
+      "id": "95cf401f-d6d9-4ad2-b3ff-94934447738b",
+      "visiteId": "78c03ee4-4ab8-4c61-8c2c-b7a1bf966010",
+      "marqueId": "e45fcc23-ef5d-4d7f-9f33-0b9cd1490a42",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1500"
+    },
+    {
+      "id": "01367735-3332-4635-bba2-44e0e5ef1a08",
+      "visiteId": "78c03ee4-4ab8-4c61-8c2c-b7a1bf966010",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": "6000"
+    },
+    {
+      "id": "f16f0b59-7a15-4d67-8622-3fd3638a8191",
+      "visiteId": "78c03ee4-4ab8-4c61-8c2c-b7a1bf966010",
+      "marqueId": "7f35ae27-c26e-4cbd-b58f-a82aae67ec72",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "46918abc-cd3d-40d4-a407-fc44fc6a7bac",
+      "visiteId": "78c03ee4-4ab8-4c61-8c2c-b7a1bf966010",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "672ddf45-ff13-48c9-8f70-94327cc89088",
+      "visiteId": "95c7c4ee-6c0a-4d82-ae33-5e70977142cb",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": "10000"
+    },
+    {
+      "id": "2ee7d92d-55ba-41b7-8aa5-03eda1e24de8",
+      "visiteId": "95c7c4ee-6c0a-4d82-ae33-5e70977142cb",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "0c9d3af3-21e1-430d-aada-d579e5d23063",
+      "visiteId": "95c7c4ee-6c0a-4d82-ae33-5e70977142cb",
+      "marqueId": null,
+      "libelleLibre": "Veuve Cliquots",
+      "categorie": "MOUSSEUX",
+      "prix": "130000"
+    },
+    {
+      "id": "a2675159-417c-4806-96f1-b714ba7e2983",
+      "visiteId": "95c7c4ee-6c0a-4d82-ae33-5e70977142cb",
+      "marqueId": null,
+      "libelleLibre": "Moet & Chandon",
+      "categorie": "MOUSSEUX",
+      "prix": "135000"
+    },
+    {
+      "id": "ba40af61-4f07-4001-b034-28b036bd5a10",
+      "visiteId": "95c7c4ee-6c0a-4d82-ae33-5e70977142cb",
+      "marqueId": null,
+      "libelleLibre": "Mojito",
+      "categorie": "RTD",
+      "prix": "5000"
+    },
+    {
+      "id": "dbd21c10-978f-49e4-bba1-fc21e288c4ec",
+      "visiteId": "95c7c4ee-6c0a-4d82-ae33-5e70977142cb",
+      "marqueId": null,
+      "libelleLibre": "Sex on the beach",
+      "categorie": "RTD",
+      "prix": "8000"
+    },
+    {
+      "id": "78112670-4690-43c2-91ef-f4023eb62c9a",
+      "visiteId": "365cc2b8-a75f-46cb-b3ab-cca8e25e5921",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": "15000"
+    },
+    {
+      "id": "73c7df6a-c97f-4e11-9e85-fbe6292660a8",
+      "visiteId": "365cc2b8-a75f-46cb-b3ab-cca8e25e5921",
+      "marqueId": "7f35ae27-c26e-4cbd-b58f-a82aae67ec72",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1500"
+    },
+    {
+      "id": "6ede0b61-a7cc-46ae-bd4d-86124df892b1",
+      "visiteId": "365cc2b8-a75f-46cb-b3ab-cca8e25e5921",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1500"
+    },
+    {
+      "id": "63d4101a-1708-4e04-8c32-ca8b2123b0c9",
+      "visiteId": "35c052bd-cb7e-483f-a654-538dad094d15",
+      "marqueId": "e45fcc23-ef5d-4d7f-9f33-0b9cd1490a42",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "2000"
+    },
+    {
+      "id": "fddf02e1-7f54-4e78-ad87-60e406ac152f",
+      "visiteId": "35c052bd-cb7e-483f-a654-538dad094d15",
+      "marqueId": "aa2dcc25-ab25-4da4-bf04-d17928ef6b79",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1500"
+    },
+    {
+      "id": "670c608c-96ba-40a3-847b-7713feb7eca2",
+      "visiteId": "35c052bd-cb7e-483f-a654-538dad094d15",
+      "marqueId": "7f35ae27-c26e-4cbd-b58f-a82aae67ec72",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "6f526236-d5bb-4f69-b637-d0ea6eb0f730",
+      "visiteId": "35c052bd-cb7e-483f-a654-538dad094d15",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "1000"
+    },
+    {
+      "id": "67218f0d-a7c1-4809-8bd0-344823fdc7c5",
+      "visiteId": "35c052bd-cb7e-483f-a654-538dad094d15",
+      "marqueId": null,
+      "libelleLibre": "vin rouge",
+      "categorie": "MOUSSEUX",
+      "prix": "1000"
+    },
+    {
+      "id": "fe9b0303-b1ec-4ac7-aaaf-c8e812c47bc2",
+      "visiteId": "35c052bd-cb7e-483f-a654-538dad094d15",
+      "marqueId": null,
+      "libelleLibre": "armnie",
+      "categorie": "MOUSSEUX",
+      "prix": "50000"
+    },
+    {
+      "id": "bffe823e-85a5-4eb0-8b05-802899da1ec0",
+      "visiteId": "35c052bd-cb7e-483f-a654-538dad094d15",
+      "marqueId": null,
+      "libelleLibre": "Rolux blanc",
+      "categorie": "MOUSSEUX",
+      "prix": "100000"
+    },
+    {
+      "id": "fc7b4e51-1864-493a-8c18-ccfa11cd130f",
+      "visiteId": "9bd93d74-009c-453f-998b-8a5b3883a053",
+      "marqueId": "e45fcc23-ef5d-4d7f-9f33-0b9cd1490a42",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": "558"
+    },
+    {
+      "id": "559b3ff0-88cc-49dd-8610-a7c09cc9d5cc",
+      "visiteId": "9bd93d74-009c-453f-998b-8a5b3883a053",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": "5000"
+    },
+    {
+      "id": "585e452c-69ca-4c35-aecd-a2e756989303",
+      "visiteId": "d4d8001b-75c0-4bf9-94bd-f45f9149d8e3",
+      "marqueId": "e45fcc23-ef5d-4d7f-9f33-0b9cd1490a42",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": null
+    },
+    {
+      "id": "a84ff611-abe4-4aa8-a650-d09890ee2976",
+      "visiteId": "d4d8001b-75c0-4bf9-94bd-f45f9149d8e3",
+      "marqueId": "de60d1b5-fc1e-4a00-a1d1-dcc92559d1d7",
+      "libelleLibre": null,
+      "categorie": "MOUSSEUX",
+      "prix": null
+    },
+    {
+      "id": "5741da4d-d681-496a-b6b1-3fbe10056324",
+      "visiteId": "d4d8001b-75c0-4bf9-94bd-f45f9149d8e3",
+      "marqueId": "aa2dcc25-ab25-4da4-bf04-d17928ef6b79",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": null
+    },
+    {
+      "id": "006209ce-1ea6-484e-8256-0387b69a08ed",
+      "visiteId": "d4d8001b-75c0-4bf9-94bd-f45f9149d8e3",
+      "marqueId": "7f35ae27-c26e-4cbd-b58f-a82aae67ec72",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": null
+    },
+    {
+      "id": "68ae964c-3169-47bd-a952-d6891d1ad4de",
+      "visiteId": "d4d8001b-75c0-4bf9-94bd-f45f9149d8e3",
+      "marqueId": "1d62aa96-aecd-427e-8416-260c0837b7e6",
+      "libelleLibre": null,
+      "categorie": "RTD",
+      "prix": null
+    }
+  ],
+  "commandes": [
+    {
+      "id": "bef62197-5980-4566-8d37-97fd788fca43",
+      "uuidClient": "fe866789-803f-4298-9660-270eb4ad705e",
+      "pointVenteId": "70dbf19d-4c8e-4997-b696-b203fe014093",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateCommande": "2026-09-30T11:47:50.409Z",
+      "dateLivraison": "2026-10-02T00:00:00.000Z",
+      "statut": "LIVREE",
+      "observations": "Merci ",
+      "montantTotal": "86000",
+      "gammeId": "e5887074-6247-4bca-a137-6b92b8dc5b66",
+      "modePaiement": "ESPECES",
+      "mobileMoneyConfirme": false,
+      "montantRecu": "86000",
+      "resteAPayer": "0",
+      "createdAt": "2026-09-30T11:47:50.409Z"
+    },
+    {
+      "id": "e680efb4-cda4-47e0-98c5-c6ee2fb38e04",
+      "uuidClient": "598a2039-8487-4d71-8261-289a94fbe28c",
+      "pointVenteId": "71635588-0df5-45e7-a8ab-358124fc8c8c",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateCommande": "2026-09-30T11:31:58.907Z",
+      "dateLivraison": "2026-10-02T00:00:00.000Z",
+      "statut": "LIVREE",
+      "observations": "Merci ",
+      "montantTotal": "483000",
+      "gammeId": "e5887074-6247-4bca-a137-6b92b8dc5b66",
+      "modePaiement": "CREDIT_PARTIEL",
+      "mobileMoneyConfirme": false,
+      "montantRecu": "50000",
+      "resteAPayer": "433000",
+      "createdAt": "2026-09-30T11:31:58.907Z"
+    },
+    {
+      "id": "3ba6fd2f-21ca-455c-a07e-3e3da17b9562",
+      "uuidClient": "606d79ea-ef04-4737-9a4a-dc52f9ffd02b",
+      "pointVenteId": "71635588-0df5-45e7-a8ab-358124fc8c8c",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateCommande": "2026-09-28T18:13:50.506Z",
+      "dateLivraison": null,
+      "statut": "LIVREE",
+      "observations": "Beau produit ",
+      "montantTotal": "1120",
+      "gammeId": "e5887074-6247-4bca-a137-6b92b8dc5b66",
+      "modePaiement": "ESPECES",
+      "mobileMoneyConfirme": false,
+      "montantRecu": "0",
+      "resteAPayer": "0",
+      "createdAt": "2026-09-28T18:13:50.506Z"
+    },
+    {
+      "id": "0cc68e68-336e-4d34-ba8f-1abebc418166",
+      "uuidClient": "b16b2e2d-2c71-4207-ac0d-5e1e38184e0a",
+      "pointVenteId": "70dbf19d-4c8e-4997-b696-b203fe014093",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateCommande": "2026-09-30T12:19:57.763Z",
+      "dateLivraison": "2026-09-30T00:00:00.000Z",
+      "statut": "LIVREE",
+      "observations": "Livraison attebdue",
+      "montantTotal": "21500",
+      "gammeId": "e5887074-6247-4bca-a137-6b92b8dc5b66",
+      "modePaiement": "ESPECES",
+      "mobileMoneyConfirme": false,
+      "montantRecu": "21500",
+      "resteAPayer": "0",
+      "createdAt": "2026-09-30T12:19:57.763Z"
+    },
+    {
+      "id": "1220b490-bc10-4ca3-b87e-ad679565b9b8",
+      "uuidClient": "c0d3af0a-d3b1-42a7-9b79-52df938b556b",
+      "pointVenteId": "4128b23c-c89f-48fc-b2bc-42db481f4e83",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "dateCommande": "2026-10-07T10:29:25.918Z",
+      "dateLivraison": null,
+      "statut": "NON_TRAITEE",
+      "observations": null,
+      "montantTotal": "21500",
+      "gammeId": "e5887074-6247-4bca-a137-6b92b8dc5b66",
+      "modePaiement": "MOBILE_MONEY",
+      "mobileMoneyConfirme": false,
+      "montantRecu": "0",
+      "resteAPayer": "21500",
+      "createdAt": "2026-10-07T10:29:25.918Z"
+    }
+  ],
+  "lignes": [
+    {
+      "id": "69923dac-5856-4aa6-9c0c-88f4faad71f6",
+      "commandeId": "3ba6fd2f-21ca-455c-a07e-3e3da17b9562",
+      "produitId": null,
+      "libelleLibre": "Belgravia",
+      "quantite": 112,
+      "prixUnitaire": "10",
+      "sousTotal": "1120"
+    },
+    {
+      "id": "0fd19b64-d463-490d-9278-e702921a0050",
+      "commandeId": "e680efb4-cda4-47e0-98c5-c6ee2fb38e04",
+      "produitId": "318b5845-8339-42eb-8346-ed615536ee67",
+      "libelleLibre": null,
+      "quantite": 1,
+      "prixUnitaire": "21000",
+      "sousTotal": "21000"
+    },
+    {
+      "id": "db0d7ea9-a475-436d-8033-a1394baa7158",
+      "commandeId": "e680efb4-cda4-47e0-98c5-c6ee2fb38e04",
+      "produitId": "f99739be-5628-4246-a7c4-33e2b0e274dc",
+      "libelleLibre": null,
+      "quantite": 22,
+      "prixUnitaire": "21000",
+      "sousTotal": "462000"
+    },
+    {
+      "id": "eeb1bc5f-dc83-406f-aa95-730f4a23960f",
+      "commandeId": "bef62197-5980-4566-8d37-97fd788fca43",
+      "produitId": "318b5845-8339-42eb-8346-ed615536ee67",
+      "libelleLibre": null,
+      "quantite": 1,
+      "prixUnitaire": "21500",
+      "sousTotal": "21500"
+    },
+    {
+      "id": "3140768f-9188-43e5-9802-c69c9e1fc921",
+      "commandeId": "bef62197-5980-4566-8d37-97fd788fca43",
+      "produitId": "f99739be-5628-4246-a7c4-33e2b0e274dc",
+      "libelleLibre": null,
+      "quantite": 1,
+      "prixUnitaire": "21500",
+      "sousTotal": "21500"
+    },
+    {
+      "id": "6dedd043-7830-4ca3-b8fc-220602754b82",
+      "commandeId": "bef62197-5980-4566-8d37-97fd788fca43",
+      "produitId": "55c7e67e-401f-473e-b0c0-91caddaad2cc",
+      "libelleLibre": null,
+      "quantite": 1,
+      "prixUnitaire": "21500",
+      "sousTotal": "21500"
+    },
+    {
+      "id": "0db4cfd8-8c73-49b4-af2b-328d4e17aa66",
+      "commandeId": "bef62197-5980-4566-8d37-97fd788fca43",
+      "produitId": "d6c15435-0414-4613-84e2-195978e46582",
+      "libelleLibre": null,
+      "quantite": 1,
+      "prixUnitaire": "21500",
+      "sousTotal": "21500"
+    },
+    {
+      "id": "070ca329-6abc-4e61-a328-36b86109f866",
+      "commandeId": "0cc68e68-336e-4d34-ba8f-1abebc418166",
+      "produitId": "318b5845-8339-42eb-8346-ed615536ee67",
+      "libelleLibre": null,
+      "quantite": 1,
+      "prixUnitaire": "21500",
+      "sousTotal": "21500"
+    },
+    {
+      "id": "329d2048-e24b-4b05-9f3b-5e9b9b7a0e05",
+      "commandeId": "1220b490-bc10-4ca3-b87e-ad679565b9b8",
+      "produitId": "d6c15435-0414-4613-84e2-195978e46582",
+      "libelleLibre": null,
+      "quantite": 1,
+      "prixUnitaire": "21500",
+      "sousTotal": "21500"
+    }
+  ],
+  "mouvements": [
+    {
+      "id": "3c5134f5-62f6-4836-b27c-a273221ae4b6",
+      "produitId": "318b5845-8339-42eb-8346-ed615536ee67",
+      "type": "SORTIE",
+      "quantiteCartons": 1,
+      "referenceType": "COMMANDE",
+      "referenceId": "e680efb4-cda4-47e0-98c5-c6ee2fb38e04",
+      "note": null,
+      "createdAt": "2026-09-30T11:31:59.349Z"
+    },
+    {
+      "id": "b438f941-a7c7-4554-9b84-3cd1385372fb",
+      "produitId": "f99739be-5628-4246-a7c4-33e2b0e274dc",
+      "type": "SORTIE",
+      "quantiteCartons": 22,
+      "referenceType": "COMMANDE",
+      "referenceId": "e680efb4-cda4-47e0-98c5-c6ee2fb38e04",
+      "note": null,
+      "createdAt": "2026-09-30T11:31:59.638Z"
+    },
+    {
+      "id": "ea4b451c-821a-497f-a572-879c084b1e2a",
+      "produitId": "318b5845-8339-42eb-8346-ed615536ee67",
+      "type": "SORTIE",
+      "quantiteCartons": 1,
+      "referenceType": "COMMANDE",
+      "referenceId": "bef62197-5980-4566-8d37-97fd788fca43",
+      "note": null,
+      "createdAt": "2026-09-30T11:47:50.835Z"
+    },
+    {
+      "id": "927e0162-dc50-4666-82fa-12acc387b570",
+      "produitId": "f99739be-5628-4246-a7c4-33e2b0e274dc",
+      "type": "SORTIE",
+      "quantiteCartons": 1,
+      "referenceType": "COMMANDE",
+      "referenceId": "bef62197-5980-4566-8d37-97fd788fca43",
+      "note": null,
+      "createdAt": "2026-09-30T11:47:51.116Z"
+    },
+    {
+      "id": "f72a30d2-7e40-4a22-919f-e50b2bf9b638",
+      "produitId": "55c7e67e-401f-473e-b0c0-91caddaad2cc",
+      "type": "SORTIE",
+      "quantiteCartons": 1,
+      "referenceType": "COMMANDE",
+      "referenceId": "bef62197-5980-4566-8d37-97fd788fca43",
+      "note": null,
+      "createdAt": "2026-09-30T11:47:51.396Z"
+    },
+    {
+      "id": "92716733-8cfc-4b31-9714-fe9bafcf5b88",
+      "produitId": "d6c15435-0414-4613-84e2-195978e46582",
+      "type": "SORTIE",
+      "quantiteCartons": 1,
+      "referenceType": "COMMANDE",
+      "referenceId": "bef62197-5980-4566-8d37-97fd788fca43",
+      "note": null,
+      "createdAt": "2026-09-30T11:47:51.677Z"
+    },
+    {
+      "id": "bc453d67-49fe-4ddd-a6f3-cacea44bc6ad",
+      "produitId": "318b5845-8339-42eb-8346-ed615536ee67",
+      "type": "SORTIE",
+      "quantiteCartons": 1,
+      "referenceType": "COMMANDE",
+      "referenceId": "0cc68e68-336e-4d34-ba8f-1abebc418166",
+      "note": null,
+      "createdAt": "2026-09-30T12:19:58.191Z"
+    },
+    {
+      "id": "819a4cc4-f010-4f4a-baec-40848b3e0bdd",
+      "produitId": "318b5845-8339-42eb-8346-ed615536ee67",
+      "type": "AJUSTEMENT",
+      "quantiteCartons": 35,
+      "referenceType": "AJUSTEMENT",
+      "referenceId": null,
+      "note": null,
+      "createdAt": "2026-09-30T12:20:49.228Z"
+    },
+    {
+      "id": "a85d8cd1-7b7d-4970-babf-3294bdc600ea",
+      "produitId": "d6c15435-0414-4613-84e2-195978e46582",
+      "type": "SORTIE",
+      "quantiteCartons": 1,
+      "referenceType": "COMMANDE",
+      "referenceId": "1220b490-bc10-4ca3-b87e-ad679565b9b8",
+      "note": null,
+      "createdAt": "2026-10-07T10:29:26.367Z"
+    },
+    {
+      "id": "3650f54c-c803-4f6c-964b-0d25028589f0",
+      "produitId": "f99739be-5628-4246-a7c4-33e2b0e274dc",
+      "type": "ENTREE",
+      "quantiteCartons": 655,
+      "referenceType": "AJUSTEMENT",
+      "referenceId": null,
+      "note": null,
+      "createdAt": "2026-10-07T10:55:56.798Z"
+    }
+  ],
+  "notifications": [
+    {
+      "id": "bcb60ec8-8ca3-414e-81a1-a304485c3a26",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "commandeId": "e680efb4-cda4-47e0-98c5-c6ee2fb38e04",
+      "message": "Commande de Emmanuel  (Bp cité ) en cours de livraison.",
+      "lu": true,
+      "createdAt": "2026-09-30T11:49:28.086Z"
+    },
+    {
+      "id": "69c7c613-ab7e-428e-acb1-b203dac58a35",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "commandeId": "bef62197-5980-4566-8d37-97fd788fca43",
+      "message": "Commande de Nyawa (Ndogbong ) en cours de livraison.",
+      "lu": true,
+      "createdAt": "2026-09-30T11:49:09.172Z"
+    },
+    {
+      "id": "928387e4-659f-4df5-b9e6-d0edc9ab70fd",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "commandeId": "3ba6fd2f-21ca-455c-a07e-3e3da17b9562",
+      "message": "Commande de Emmanuel  (Bp cité ) en cours de livraison.",
+      "lu": true,
+      "createdAt": "2026-09-30T12:18:01.308Z"
+    },
+    {
+      "id": "a36c9251-cff5-40cc-a4a3-17f5aa8a0657",
+      "commercialId": "38ef933c-7c4e-4996-9aeb-be0f040d23c2",
+      "commandeId": "0cc68e68-336e-4d34-ba8f-1abebc418166",
+      "message": "Commande de Nyawa (Ndogbong ) en cours de livraison.",
+      "lu": true,
+      "createdAt": "2026-09-30T12:24:10.275Z"
+    }
+  ],
+  "alertes": [
+    {
+      "id": "1c13de02-4294-419b-b1ba-369832f0b054",
+      "type": "STOCK_FAIBLE",
+      "message": "Stock Red Square Energising faible : 0 carton(s) restant(s) (seuil : 20).",
+      "entiteType": "Produit",
+      "entiteId": "91243044-4107-459c-930f-033dbc7b59a5",
+      "resolue": false,
+      "createdAt": "2026-09-30T12:39:25.489Z"
+    },
+    {
+      "id": "b47e624e-08d2-4f89-9424-60104dcca1b9",
+      "type": "STOCK_FAIBLE",
+      "message": "Stock Red Square Red Ice faible : 0 carton(s) restant(s) (seuil : 20).",
+      "entiteType": "Produit",
+      "entiteId": "21e5f4fd-b62d-4a7a-81c8-02ed36478fe1",
+      "resolue": false,
+      "createdAt": "2026-09-30T12:39:26.191Z"
+    },
+    {
+      "id": "bc99aa9b-2399-416e-a59b-fc3168c3de2c",
+      "type": "STOCK_FAIBLE",
+      "message": "Stock Gin & Tonic faible : -23 carton(s) restant(s) (seuil : 20).",
+      "entiteType": "Produit",
+      "entiteId": "f99739be-5628-4246-a7c4-33e2b0e274dc",
+      "resolue": false,
+      "createdAt": "2026-09-30T12:39:26.888Z"
+    },
+    {
+      "id": "6b9d66f9-1d30-49c4-b1bd-83706a76da6f",
+      "type": "STOCK_FAIBLE",
+      "message": "Stock Gin & Pink Tonic faible : -1 carton(s) restant(s) (seuil : 20).",
+      "entiteType": "Produit",
+      "entiteId": "55c7e67e-401f-473e-b0c0-91caddaad2cc",
+      "resolue": false,
+      "createdAt": "2026-09-30T12:39:27.585Z"
+    },
+    {
+      "id": "ebfd0a8c-532a-4aec-b6df-d84b32a19f9d",
+      "type": "STOCK_FAIBLE",
+      "message": "Stock Gin & Dark Cherry faible : -1 carton(s) restant(s) (seuil : 20).",
+      "entiteType": "Produit",
+      "entiteId": "d6c15435-0414-4613-84e2-195978e46582",
+      "resolue": true,
+      "createdAt": "2026-09-30T12:39:28.282Z"
+    }
+  ],
+  "stocks": [
+    {
+      "id": "f3a223a0-2d65-43b8-8450-7993723e30a3",
+      "produitId": "91243044-4107-459c-930f-033dbc7b59a5",
+      "quantiteCartons": 0,
+      "seuilAlerte": 20,
+      "updatedAt": "2026-09-30T11:25:11.373Z"
+    },
+    {
+      "id": "dd56ecc3-db21-4115-a3dd-87beffbe8a08",
+      "produitId": "21e5f4fd-b62d-4a7a-81c8-02ed36478fe1",
+      "quantiteCartons": 0,
+      "seuilAlerte": 20,
+      "updatedAt": "2026-09-30T11:25:13.091Z"
+    },
+    {
+      "id": "883c5863-4a3d-463a-b87c-cd74a5f3c8f5",
+      "produitId": "55c7e67e-401f-473e-b0c0-91caddaad2cc",
+      "quantiteCartons": -1,
+      "seuilAlerte": 20,
+      "updatedAt": "2026-09-30T11:47:51.256Z"
+    },
+    {
+      "id": "2460feae-f281-4eea-a39b-fb1f6a0a40f2",
+      "produitId": "318b5845-8339-42eb-8346-ed615536ee67",
+      "quantiteCartons": 32,
+      "seuilAlerte": 20,
+      "updatedAt": "2026-09-30T12:20:49.087Z"
+    },
+    {
+      "id": "2ea85892-0329-465f-8075-b0a2310dc373",
+      "produitId": "d6c15435-0414-4613-84e2-195978e46582",
+      "quantiteCartons": -2,
+      "seuilAlerte": 20,
+      "updatedAt": "2026-10-07T10:29:26.222Z"
+    },
+    {
+      "id": "d08c8849-44ae-4679-91d8-9cb2f26351d0",
+      "produitId": "f99739be-5628-4246-a7c4-33e2b0e274dc",
+      "quantiteCartons": 632,
+      "seuilAlerte": 20,
+      "updatedAt": "2026-10-07T10:55:56.657Z"
+    }
+  ]
+}

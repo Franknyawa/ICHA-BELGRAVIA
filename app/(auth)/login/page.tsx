@@ -168,7 +168,7 @@ function LoginForm() {
 
         <header className="relative">
           <p className="font-display text-3xl italic leading-none text-[#F7EBD0]">Belgravia / VDV</p>
-          <p className="mt-2 text-xs tracking-[0.22em] text-[#E6CC9A]/80">by ICHA IMPORT</p>
+          <p className="mt-2 text-xs tracking-[0.22em] text-[#E6CC9A]/80">by SIRI IMPORT</p>
         </header>
 
         <div className="relative my-6 min-h-[240px] flex-1">
@@ -197,7 +197,7 @@ function LoginForm() {
           </dl>
 
           <p className="mt-10 text-xs text-[#F4EBDD]/40">
-            © {new Date().getFullYear()} BELGRAVIA / VDV by ICHA IMPORT — usage interne
+            © {new Date().getFullYear()} BELGRAVIA / VDV by SIRI IMPORT — usage interne
           </p>
         </div>
       </aside>
@@ -219,7 +219,7 @@ function LoginForm() {
           <div className="relative">
             <ChampagneScene className="mx-auto h-40 w-auto" />
             <p className="mt-4 font-display text-4xl italic leading-none text-[#F7EBD0]">Belgravia / VDV</p>
-            <p className="mt-2 text-xs tracking-[0.22em] text-[#E6CC9A]/80">by ICHA IMPORT</p>
+            <p className="mt-2 text-xs tracking-[0.22em] text-[#E6CC9A]/80">by SIRI IMPORT</p>
           </div>
         </div>
 
@@ -312,7 +312,7 @@ function LoginForm() {
             <span aria-hidden className="absolute inset-x-8 top-0 !m-0 h-px bg-gradient-to-r from-transparent via-[#D9B45E] to-transparent" />
           </form>
 
-            <p className="mt-6 text-center text-xs text-ink-muted">Accès réservé à l&apos;équipe ICHA IMPORT.</p>
+            <p className="mt-6 text-center text-xs text-ink-muted">Accès réservé à l&apos;équipe SIRI IMPORT.</p>
           </div>
         </div>
       </section>
