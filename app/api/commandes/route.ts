@@ -222,6 +222,9 @@ export async function GET(req: NextRequest) {
   const dateTo = searchParams.get("dateTo");
 
   const where = {
+    // Les archives n'apparaissent plus dans les listes de l'admin (voir l'onglet
+    // Archives) ; le commercial, lui, garde tout son historique.
+    ...(session.role === "ADMIN" ? { archiveeLe: null } : {}),
     ...(commercialId ? { commercialId } : {}),
     ...(villeId ? { pointVente: { villeId } } : {}),
     ...(modePaiement ? { modePaiement: modePaiement as any } : {}),

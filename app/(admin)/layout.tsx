@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
+import { SIGNATURE_APP } from "@/lib/marque";
 import LogoutButton from "@/components/LogoutButton";
 import ThemeToggle from "@/components/ThemeToggle";
 import InstallButton from "@/components/InstallButton";
@@ -20,6 +21,8 @@ import {
   IconTrend,
   IconList,
   IconAlert,
+  IconWallet,
+  IconArchive,
 } from "@/components/icons";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -31,7 +34,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <InactivityLogout />
       <aside className="no-print border-b border-line bg-bg-elevated px-5 py-5 lg:min-h-screen lg:border-b-0 lg:border-r">
         <p className="font-display italic text-2xl text-ink">Belgravia / VDV</p>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brass">by SIRI IMPORT</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brass">{SIGNATURE_APP}</p>
         <p className="mb-4 mt-1 text-xs text-ink-muted">Espace administration</p>
         <GoldRule className="mb-5 hidden lg:flex" />
         <nav className="flex flex-wrap gap-2 text-sm lg:flex-col">
@@ -76,6 +79,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/stock" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
             <IconList className="h-4 w-4" />
             Stock
+          </Link>
+          <Link href="/caisse" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
+            <IconWallet className="h-4 w-4" />
+            Caisse
+          </Link>
+          <Link href="/archives" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
+            <IconArchive className="h-4 w-4" />
+            Archives
           </Link>
           <Link href="/utilisateurs" className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-ink transition-colors hover:bg-brass/10 hover:text-brass">
             <IconUsers className="h-4 w-4" />

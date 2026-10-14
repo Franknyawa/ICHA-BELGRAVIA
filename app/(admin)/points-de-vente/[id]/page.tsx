@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { libelleTypes } from "@/lib/typesEtablissement";
-import { IconStorefront, IconPhone, IconPin, IconReceipt, IconClipboard, IconCamera } from "@/components/icons";
+import { IconStorefront, IconPhone, IconPin, IconReceipt, IconClipboard, IconCamera, IconClose } from "@/components/icons";
 import { Spinner, ChargementPage } from "@/components/Spinner";
 
 type Ligne = { id: string; quantite: number; prixUnitaire: string; produit: { nom: string } | null };
@@ -68,6 +68,13 @@ export default function FichePointVentePage() {
       .then((d) => setFiche(d.pointVente))
       .finally(() => setChargement(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!photoAgrandie) return;
+    const fermer = (e: KeyboardEvent) => { if (e.key === "Escape") setPhotoAgrandie(null); };
+    window.addEventListener("keydown", fermer);
+    return () => window.removeEventListener("keydown", fermer);
+  }, [photoAgrandie]);
 
   if (chargement) return <ChargementPage label="Chargement de la fiche…" />;
   if (!fiche) return <p className="text-sm text-danger">Fiche introuvable.</p>;
@@ -241,11 +248,27 @@ export default function FichePointVentePage() {
 
       {photoAgrandie && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
           onClick={() => setPhotoAgrandie(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Photo agrandie"
         >
+          <button
+            type="button"
+            aria-label="Fermer la photo"
+            onClick={(e) => { e.stopPropagation(); setPhotoAgrandie(null); }}
+            className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          >
+            <IconClose className="h-5 w-5" />
+          </button>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={photoAgrandie} alt="Photo terrain agrandie" className="max-h-full max-w-full rounded-lg object-contain" />
+          <img
+            src={photoAgrandie}
+            alt="Photo terrain agrandie"
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-full max-w-full rounded-lg object-contain"
+          />
         </div>
       )}
     </div>

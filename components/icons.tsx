@@ -331,3 +331,22 @@ export function IconClose({ className }: Props) {
     </svg>
   );
 }
+
+export function IconWallet({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <path d="M4.5 7.5V6a1.5 1.5 0 0 1 1.5-1.5h11.5A1.5 1.5 0 0 1 19 6v1.5" />
+      <rect x="3.5" y="7.5" width="17" height="12" rx="2" />
+      <path d="M20.5 12.5h-4a1.8 1.8 0 0 0 0 3.6h4" />
+    </svg>
+  );
+}
+
+export function IconArchive({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <rect x="3.5" y="4.5" width="17" height="4.5" rx="1.2" />
+      <path d="M5 9v9a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 18V9M9.5 13h5" />
+    </svg>
+  );
+}

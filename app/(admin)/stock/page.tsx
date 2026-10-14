@@ -39,6 +39,7 @@ export default function StockPage() {
   const [type, setType] = useState<"ENTREE" | "AJUSTEMENT">("ENTREE");
   const [quantite, setQuantite] = useState("");
   const [note, setNote] = useState("");
+  const [cout, setCout] = useState("");
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
 
@@ -73,7 +74,13 @@ export default function StockPage() {
       const res = await fetch("/api/stock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ produitId, type, quantiteCartons: parseInt(quantite, 10), note }),
+        body: JSON.stringify({
+          produitId,
+          type,
+          quantiteCartons: parseInt(quantite, 10),
+          note,
+          ...(type === "ENTREE" && cout ? { coutTotal: Number(cout) } : {}),
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -83,6 +90,7 @@ export default function StockPage() {
       setProduitId("");
       setQuantite("");
       setNote("");
+      setCout("");
       chargerTout();
     } finally {
       setEnCours(false);
@@ -209,12 +217,16 @@ export default function StockPage() {
         </table>
       </div>
 
-      <div className="field-card mb-8 max-w-2xl">
+      <div className="field-card mb-8 w-full">
         <p className="section-eyebrow mb-3">
           <IconPlus className="h-4 w-4" />
           Enregistrer un mouvement manuel
         </p>
-        <form onSubmit={enregistrerMouvement} className="grid gap-2 sm:grid-cols-[1.5fr_1fr_1fr_1.5fr_auto]">
+        <form onSubmit={enregistrerMouvement} className={`grid gap-2 ${
+            type === "ENTREE"
+              ? "md:grid-cols-[minmax(0,2fr)_minmax(0,1.6fr)_minmax(0,1.1fr)_minmax(0,1.7fr)_minmax(0,2fr)_auto]"
+              : "md:grid-cols-[minmax(0,2fr)_minmax(0,1.6fr)_minmax(0,1.2fr)_minmax(0,2fr)_auto]"
+          }`}>
           <select className="field-input" value={produitId} onChange={(e) => setProduitId(e.target.value)} required>
             <option value="">Produit…</option>
             {itemsAffiches.map((i) => <option key={i.produitId} value={i.produitId}>{i.nom}</option>)}
@@ -231,6 +243,16 @@ export default function StockPage() {
             onChange={(e) => setQuantite(e.target.value)}
             required
           />
+          {type === "ENTREE" && (
+            <input
+              className="field-input"
+              type="number"
+              min={0}
+              placeholder="Coût total (FCFA)"
+              value={cout}
+              onChange={(e) => setCout(e.target.value)}
+            />
+          )}
           <input className="field-input" placeholder="Note (optionnel)" value={note} onChange={(e) => setNote(e.target.value)} />
           <button className="btn-primary" type="submit" disabled={enCours}>
             {enCours ? "…" : "Valider"}
@@ -238,7 +260,8 @@ export default function StockPage() {
         </form>
         {erreur && <p className="mt-2 text-sm text-danger">{erreur}</p>}
         <p className="mt-2 text-xs text-ink-muted">
-          « Entrée » ajoute la quantité au stock existant (réapprovisionnement). « Ajustement » fixe
+          « Entrée » ajoute la quantité au stock existant (réapprovisionnement) ; si vous indiquez le coût d'achat,
+          une dépense est enregistrée automatiquement dans la caisse. « Ajustement » fixe
           directement la quantité en stock à la valeur saisie (utile après un inventaire physique).
         </p>
       </div>

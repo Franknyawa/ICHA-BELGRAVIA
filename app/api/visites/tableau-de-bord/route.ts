@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { debutAujourdhui } from "@/lib/dates";
 
 function plages() {
   const now = new Date();
 
-  const debutJour = new Date(now);
-  debutJour.setHours(0, 0, 0, 0);
+  const debutJour = debutAujourdhui(); // minuit heure du Cameroun
 
   const jourSemaine = (now.getDay() + 6) % 7; // 0 = lundi
   const debutSemaine = new Date(now);

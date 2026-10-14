@@ -296,6 +296,10 @@ model Visite {
   commercialId String   @map("commercial_id")
   commercial   User     @relation(fields: [commercialId], references: [id])
   dateVisite   DateTime @map("date_visite")
+  // Archivage : non nul = masquée des listes courantes mais conservée,
+  // consultable (et restaurable) depuis l'onglet Archives. Les statistiques
+  // et rapports continuent de la compter.
+  archiveeLe   DateTime? @map("archivee_le")
 
   // Section 3 — Offre et potentiel
   vendSpiritueux      Boolean?          @map("vend_spiritueux")
@@ -458,9 +462,11 @@ model Commande {
   resteAPayer   Decimal      @default(0) @db.Decimal(12, 2) @map("reste_a_payer")
 
   createdAt    DateTime @default(now()) @map("created_at")
+  archiveeLe   DateTime? @map("archivee_le")
 
   lignes LigneCommande[]
 
+  @@index([archiveeLe])
   @@index([pointVenteId])
   @@index([commercialId])
   @@index([createdAt])
@@ -520,8 +526,41 @@ model MouvementStock {
   referenceId     String?            @map("reference_id")
   note            String?
   createdAt       DateTime           @default(now()) @map("created_at")
+  archiveeLe      DateTime?          @map("archivee_le")
 
   @@index([produitId])
   @@index([createdAt])
+  @@index([archiveeLe])
   @@map("mouvements_stock")
+}
+
+/// Opération manuelle de caisse. Les recettes de ventes ne sont PAS
+/// dupliquées ici : elles se lisent directement dans les commandes
+/// (montantRecu). Ici : achats de stock, dépenses diverses, encaissements
+/// de crédits clients et autres entrées d'argent.
+/// categorie : REAPPROVISIONNEMENT | TRANSPORT | COMMISSION | FRAIS_DIVERS |
+/// ENCAISSEMENT_CREDIT | AUTRE_RECETTE | AUTRE_DEPENSE
+/// Le journal de caisse n'est jamais archivé : le solde reste toujours exact.
+model OperationCaisse {
+  id              String   @id @default(uuid())
+  type            TypeOperationCaisse
+  categorie       String
+  montant         Decimal  @db.Decimal(12, 2)
+  libelle         String
+  produitId       String?  @map("produit_id")
+  quantiteCartons Int?     @map("quantite_cartons")
+  commandeId      String?  @map("commande_id")
+  mouvementStockId String? @map("mouvement_stock_id")
+  creeParId       String?  @map("cree_par_id")
+  dateOperation   DateTime @default(now()) @map("date_operation")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([dateOperation])
+  @@index([type])
+  @@map("operations_caisse")
+}
+
+enum TypeOperationCaisse {
+  RECETTE
+  DEPENSE
 }

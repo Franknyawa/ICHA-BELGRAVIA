@@ -4,18 +4,14 @@ import { getSession } from "@/lib/auth";
 import { assurerGammes } from "@/lib/gammes";
 import { compterParType } from "@/lib/comptageTypes";
 
-function debutJournee() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
+import { debutAujourdhui } from "@/lib/dates";
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   await assurerGammes();
-  const debutJour = debutJournee();
+  const debutJour = debutAujourdhui();
 
   // Filtre optionnel de gamme : concerne uniquement les commandes et le CA ;
   // visites et points de vente ne sont pas rattachés à une gamme.

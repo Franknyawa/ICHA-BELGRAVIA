@@ -25,6 +25,8 @@ const PREFIXES_ADMIN = [
   "/stock",
   "/factures",
   "/alertes",
+  "/caisse",
+  "/archives",
 ];
 
 function sous(pathname: string, prefix: string) {
@@ -71,5 +73,7 @@ export const config = {
     "/stock/:path*",
     "/factures/:path*",
     "/alertes/:path*",
+    "/caisse/:path*",
+    "/archives/:path*",
   ],
 };

@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
-  const where = construireFiltreVisites(new URL(req.url).searchParams);
+  const where = construireFiltreVisites(new URL(req.url).searchParams, "tout");
 
   const visites = await prisma.visite.findMany({
     where,

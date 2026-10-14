@@ -11,6 +11,7 @@ import {
   IconReceipt,
   IconTrend,
   IconCheckCircle,
+  IconCalendar,
 } from "@/components/icons";
 
 type TableauDeBord = {
@@ -84,8 +85,9 @@ export default function TableauDeBordPage() {
           </div>
 
           <p className="section-eyebrow mb-3">Vue d'ensemble</p>
-          <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
             <Kpi icon={IconStorefront} label="Points de vente recensés" valeur={data.pointVenteTotal} />
+            <Kpi icon={IconCalendar} label="Visites du jour" valeur={data.visitesAujourdhui} accent />
             <Kpi icon={IconReceipt} label="CA total" valeur={formatMontant(data.caTotal)} />
             <Kpi icon={IconCheckCircle} label="Intéressés (visite commerciale)" valeur={data.interessesTotal} />
             <Kpi icon={IconTrend} label="Taux de conversion" valeur={`${data.tauxConversion}%`} />
@@ -136,13 +138,15 @@ function Kpi({
   icon: Icon,
   label,
   valeur,
+  accent,
 }: {
+  accent?: boolean;
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   valeur: string | number;
 }) {
   return (
-    <div className="field-card transition-shadow hover:shadow-md">
+    <div className={`field-card transition-shadow hover:shadow-md ${accent ? "border-brass/40 bg-gradient-to-br from-bg-card to-bg-elevated" : ""}`}>
       <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-brass/10 text-brass">
         <Icon className="h-4 w-4" />
       </span>

@@ -6,7 +6,11 @@ import type { Prisma, PotentielEstime } from "@prisma/client";
  * (/api/visites/export) pour que "exporter" respecte toujours exactement les
  * filtres actifs à l'écran.
  */
-export function construireFiltreVisites(searchParams: URLSearchParams): Prisma.VisiteWhereInput {
+export function construireFiltreVisites(
+  searchParams: URLSearchParams,
+  // "non" : listes courantes (archives masquées) ; "tout" : export complet.
+  archives: "non" | "tout" = "non"
+): Prisma.VisiteWhereInput {
   const villeId = searchParams.get("villeId") || undefined;
   const typeId = searchParams.get("typeId") || undefined;
   const potentiel = searchParams.get("potentiel") || undefined;
@@ -21,6 +25,7 @@ export function construireFiltreVisites(searchParams: URLSearchParams): Prisma.V
   if (dateTo) createdAt.lte = new Date(`${dateTo}T23:59:59`);
 
   return {
+    ...(archives === "non" ? { archiveeLe: null } : {}),
     ...(potentiel ? { potentielEstime: potentiel as PotentielEstime } : {}),
     ...(commercialId ? { commercialId } : {}),
     ...(veutCommander ? { veutCommander: veutCommander === "oui" } : {}),

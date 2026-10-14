@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { assurerGammes } from "@/lib/gammes";
+import { enregistrerAchatStock } from "@/lib/caisse";
 
 /** État courant du stock par produit — inclut les produits sans ligne Stock
  * encore créée (quantité affichée à 0) pour ne jamais en oublier un. */
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
   }
 
-  const { produitId, type, quantiteCartons, note, seuilAlerte } = await req.json();
+  const { produitId, type, quantiteCartons, note, seuilAlerte, coutTotal } = await req.json();
   if (!produitId || !type || quantiteCartons === undefined) {
     return NextResponse.json({ error: "Données incomplètes." }, { status: 400 });
   }
@@ -60,17 +61,18 @@ export async function POST(req: NextRequest) {
     const quantiteAvant = stockActuel?.quantiteCartons ?? 0;
 
     if (type === "ENTREE") {
-      await tx.stock.upsert({
-        where: { produitId },
-        update: {
-          quantiteCartons: { increment: quantite },
-          ...(seuilAlerte !== undefined ? { seuilAlerte: parseInt(seuilAlerte, 10) } : {}),
-        },
-        create: { produitId, quantiteCartons: quantite, seuilAlerte: seuilAlerte ? parseInt(seuilAlerte, 10) : 20 },
+      const cout = Math.round(Number(coutTotal) || 0);
+      // Un coût d'achat saisi crée aussi la dépense de caisse correspondante.
+      await enregistrerAchatStock(tx, {
+        produitId,
+        quantiteCartons: quantite,
+        coutTotal: cout,
+        note: note || null,
+        creeParId: session.userId,
       });
-      await tx.mouvementStock.create({
-        data: { produitId, type: "ENTREE", quantiteCartons: quantite, referenceType: "AJUSTEMENT", note: note || null },
-      });
+      if (seuilAlerte !== undefined) {
+        await tx.stock.update({ where: { produitId }, data: { seuilAlerte: parseInt(seuilAlerte, 10) } });
+      }
     } else {
       const delta = quantite - quantiteAvant;
       await tx.stock.upsert({

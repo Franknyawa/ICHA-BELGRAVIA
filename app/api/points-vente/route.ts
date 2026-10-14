@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { intervalleJours } from "@/lib/dates";
 
 /**
  * Listing paginé des points de vente pour l'admin — sert à la fois d'annuaire
@@ -21,6 +22,10 @@ export async function GET(req: NextRequest) {
   const typeId = searchParams.get("typeId") || undefined;
   const quartier = searchParams.get("quartier") || undefined;
   const q = searchParams.get("q") || undefined;
+  // Filtre par jour (heure du Cameroun) : "du" / "au" inclus. "base" choisit
+  // ce qui est daté : le recensement du point de vente, ou une visite reçue.
+  const intervalle = intervalleJours(searchParams.get("du"), searchParams.get("au"));
+  const parVisite = searchParams.get("base") === "visite";
   // Pagination normale côté API, mais le PDF/impression a besoin de TOUTES
   // les lignes correspondant aux filtres, pas seulement la page affichée.
   const toutesLesLignes = searchParams.get("toutesLesLignes") === "1";
@@ -29,6 +34,11 @@ export async function GET(req: NextRequest) {
   // combine avec AND pour qu'elles ne s'écrasent pas.
   const where = {
     ...(villeId ? { villeId } : {}),
+    ...(intervalle
+      ? parVisite
+        ? { visites: { some: { createdAt: intervalle } } }
+        : { createdAt: intervalle }
+      : {}),
     ...(quartier ? { quartier: { contains: quartier, mode: "insensitive" as const } } : {}),
     AND: [
       ...(typeId ? [{ OR: [{ typeId }, { typesLies: { some: { typeId } } }] }] : []),

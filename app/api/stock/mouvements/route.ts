@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   const pageSize = 25;
   const produitId = searchParams.get("produitId") || undefined;
 
-  const where = produitId ? { produitId } : {};
+  const where = { archiveeLe: null, ...(produitId ? { produitId } : {}) };
 
   const [total, items] = await Promise.all([
     prisma.mouvementStock.count({ where }),

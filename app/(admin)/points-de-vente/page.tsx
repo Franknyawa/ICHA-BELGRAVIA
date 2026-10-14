@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { IconStorefront, IconArrowRight, IconCheckCircle, IconAlert, IconGear, IconDownload, IconPrinter } from "@/components/icons";
+import { IconStorefront, IconArrowRight, IconCheckCircle, IconAlert, IconGear, IconDownload, IconPrinter, IconCalendar } from "@/components/icons";
 import { exporterRapportPdf } from "@/lib/rapportPdf";
 import { NOM_APP } from "@/lib/marque";
 import { libelleTypes } from "@/lib/typesEtablissement";
 import { Spinner, ChargementPage } from "@/components/Spinner";
+import { aujourdhuiISO, ajouterJours } from "@/lib/dates";
 
 type PointVente = {
   id: string;
@@ -27,7 +28,12 @@ type PointVente = {
 
 type Referentiels = { villes: { id: string; nom: string }[]; types: { id: string; nom: string }[] };
 
-const FILTRES_VIDES = { villeId: "", typeId: "", quartier: "", q: "" };
+const FILTRES_VIDES = { villeId: "", typeId: "", quartier: "", q: "", du: "", au: "", base: "recensement" };
+
+function formaterJour(iso: string) {
+  const [a, m, j] = iso.split("-");
+  return `${j}/${m}/${a}`;
+}
 
 export default function PointsDeVentePage() {
   const [items, setItems] = useState<PointVente[]>([]);
@@ -44,6 +50,9 @@ export default function PointsDeVentePage() {
     if (filtres.typeId) s.set("typeId", filtres.typeId);
     if (filtres.quartier) s.set("quartier", filtres.quartier);
     if (filtres.q) s.set("q", filtres.q);
+    if (filtres.du) s.set("du", filtres.du);
+    if (filtres.au) s.set("au", filtres.au);
+    if ((filtres.du || filtres.au) && filtres.base === "visite") s.set("base", "visite");
     return s;
   }
 
@@ -53,6 +62,13 @@ export default function PointsDeVentePage() {
     if (filtres.quartier) morceaux.push(`Quartier : ${filtres.quartier}`);
     if (filtres.typeId) morceaux.push(`Type : ${ref?.types.find((t) => t.id === filtres.typeId)?.nom || filtres.typeId}`);
     if (filtres.q) morceaux.push(`Recherche : "${filtres.q}"`);
+    if (filtres.du || filtres.au) {
+      const quand =
+        filtres.du && filtres.du === filtres.au
+          ? `le ${formaterJour(filtres.du)}`
+          : `${filtres.du ? `du ${formaterJour(filtres.du)}` : ""} ${filtres.au ? `au ${formaterJour(filtres.au)}` : ""}`.trim();
+      morceaux.push(`${filtres.base === "visite" ? "Visités" : "Recensés"} ${quand}`);
+    }
     return morceaux.length ? morceaux.join(" · ") : "Tous les points de vente";
   }
 
@@ -123,6 +139,13 @@ export default function PointsDeVentePage() {
   const finPage = Math.min(page * 20, total);
   const avecCommandes = items.filter((p) => p._count.commandes > 0).length;
   const sansCommande = items.length - avecCommandes;
+  const aujourdhui = aujourdhuiISO();
+  const raccourcis: { label: string; du: string; au: string }[] = [
+    { label: "Aujourd'hui", du: aujourdhui, au: aujourdhui },
+    { label: "Hier", du: ajouterJours(aujourdhui, -1), au: ajouterJours(aujourdhui, -1) },
+    { label: "7 derniers jours", du: ajouterJours(aujourdhui, -6), au: aujourdhui },
+    { label: "30 derniers jours", du: ajouterJours(aujourdhui, -29), au: aujourdhui },
+  ];
   const filtresActifs = JSON.stringify(filtres) !== JSON.stringify(FILTRES_VIDES);
 
   return (
@@ -216,6 +239,57 @@ export default function PointsDeVentePage() {
             Filtres actifs
           </span>
         )}
+      </div>
+
+      <div className="field-card mb-6 flex flex-wrap items-center gap-2 no-print">
+        <span className="mr-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-brass">
+          <IconCalendar className="h-4 w-4" />
+          Jour
+        </span>
+        <select
+          className="field-input max-w-[150px]"
+          value={filtres.base}
+          onChange={(e) => setFiltres({ ...filtres, base: e.target.value })}
+          aria-label="Date prise en compte"
+        >
+          <option value="recensement">Recensés</option>
+          <option value="visite">Visités</option>
+        </select>
+        {raccourcis.map((r) => {
+          const actif = filtres.du === r.du && filtres.au === r.au;
+          return (
+            <button
+              key={r.label}
+              type="button"
+              onClick={() => setFiltres(actif ? { ...filtres, du: "", au: "" } : { ...filtres, du: r.du, au: r.au })}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                actif ? "border-brass bg-brass text-white" : "border-line text-ink-muted hover:border-brass hover:text-brass"
+              }`}
+            >
+              {r.label}
+            </button>
+          );
+        })}
+        <label className="ml-1 flex items-center gap-1.5 text-xs text-ink-muted">
+          Du
+          <input
+            type="date"
+            className="field-input w-[150px]"
+            value={filtres.du}
+            max={filtres.au || undefined}
+            onChange={(e) => setFiltres({ ...filtres, du: e.target.value })}
+          />
+        </label>
+        <label className="flex items-center gap-1.5 text-xs text-ink-muted">
+          au
+          <input
+            type="date"
+            className="field-input w-[150px]"
+            value={filtres.au}
+            min={filtres.du || undefined}
+            onChange={(e) => setFiltres({ ...filtres, au: e.target.value })}
+          />
+        </label>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-line">
