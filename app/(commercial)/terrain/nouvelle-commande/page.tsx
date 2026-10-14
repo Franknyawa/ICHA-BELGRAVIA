@@ -65,6 +65,7 @@ function NouvelleCommandeInner() {
   const [modePaiement, setModePaiement] = useState<ModePaiementValue>("ESPECES");
   const [montantRecuSaisi, setMontantRecuSaisi] = useState(0);
   const [mobileMoneyConfirme, setMobileMoneyConfirme] = useState(false);
+  const [operateurMobile, setOperateurMobile] = useState<"" | "ORANGE_MONEY" | "MTN_MOMO">("");
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [messageInfo, setMessageInfo] = useState<string | null>(null);
@@ -224,6 +225,10 @@ function NouvelleCommandeInner() {
 
   async function soumettre() {
     if (!client) return;
+    if (modePaiement === "MOBILE_MONEY" && !operateurMobile) {
+      setErreur("Choisissez l'opérateur Mobile Money : Orange Money ou MTN MoMo.");
+      return;
+    }
     setEnvoi(true);
     setErreur(null);
     setMessageInfo(null);
@@ -236,6 +241,7 @@ function NouvelleCommandeInner() {
       modePaiement,
       montantRecu: modePaiement === "CREDIT_PARTIEL" ? montantRecuSaisi : undefined,
       mobileMoneyConfirme: modePaiement === "MOBILE_MONEY" ? mobileMoneyConfirme : undefined,
+      operateurMobile: modePaiement === "MOBILE_MONEY" ? operateurMobile : undefined,
       lignes: lignesRetenues.map((l) => ({ produitId: l.produit.id, quantite: l.quantite })),
     };
 
@@ -531,6 +537,26 @@ function NouvelleCommandeInner() {
               value={montantRecuSaisi || ""}
               onChange={(e) => setMontantRecuSaisi(Math.max(0, parseFloat(e.target.value) || 0))}
             />
+          </div>
+        )}
+
+        {modePaiement === "MOBILE_MONEY" && (
+          <div>
+            <label className="field-label">Opérateur</label>
+            <div className="grid grid-cols-2 gap-2">
+              {([["ORANGE_MONEY", "Orange Money"], ["MTN_MOMO", "MTN MoMo"]] as const).map(([v, l]) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setOperateurMobile(v)}
+                  className={`rounded-md border px-3 py-2.5 text-sm font-medium transition ${
+                    operateurMobile === v ? "border-brass bg-brass text-white" : "border-line text-ink hover:border-brass"
+                  }`}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 

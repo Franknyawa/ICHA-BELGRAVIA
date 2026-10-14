@@ -457,6 +457,9 @@ model Commande {
   // le montant est traité comme un crédit en attente — même logique que le
   // projet HYPO/HTC (voir reassort/page.tsx : montantEffectivementRecu).
   modePaiement       ModePaiement @default(ESPECES) @map("mode_paiement")
+  // Pour un paiement Mobile Money : ORANGE_MONEY ou MTN_MOMO (null = non précisé,
+  // anciennes commandes). Sert à la caisse pour séparer espèces / OM / MoMo.
+  operateurMobile    String?      @map("operateur_mobile")
   mobileMoneyConfirme Boolean     @default(false) @map("mobile_money_confirme")
   montantRecu   Decimal      @default(0) @db.Decimal(12, 2) @map("montant_recu")
   resteAPayer   Decimal      @default(0) @db.Decimal(12, 2) @map("reste_a_payer")
@@ -534,10 +537,13 @@ model MouvementStock {
   @@map("mouvements_stock")
 }
 
-/// Opération manuelle de caisse. Les recettes de ventes ne sont PAS
-/// dupliquées ici : elles se lisent directement dans les commandes
-/// (montantRecu). Ici : achats de stock, dépenses diverses, encaissements
-/// de crédits clients et autres entrées d'argent.
+/// Opération manuelle de caisse. Les ventes ne sont PAS dupliquées ici : la
+/// part encaissée à la commande se lit directement dans les commandes. Ici :
+/// achats de stock, dépenses diverses, encaissements de crédits clients
+/// (qui mettent aussi à jour la commande : montantRecu / resteAPayer) et
+/// autres entrées d'argent.
+/// Un ENCAISSEMENT_CREDIT est toujours rattaché à une commande (commandeId) et met
+/// à jour son montantRecu / resteAPayer : caisse, commerciaux et rapports restent synchronisés.
 /// categorie : REAPPROVISIONNEMENT | TRANSPORT | COMMISSION | FRAIS_DIVERS |
 /// ENCAISSEMENT_CREDIT | AUTRE_RECETTE | AUTRE_DEPENSE
 /// Le journal de caisse n'est jamais archivé : le solde reste toujours exact.
@@ -550,7 +556,11 @@ model OperationCaisse {
   produitId       String?  @map("produit_id")
   quantiteCartons Int?     @map("quantite_cartons")
   commandeId      String?  @map("commande_id")
+  // Moyen par lequel l'argent est entré/sorti : ESPECES | MOBILE_MONEY (OM/MoMo)
+  moyen           String   @default("ESPECES")
   mouvementStockId String? @map("mouvement_stock_id")
+  // Comment l'argent est entré / sorti : ESPECES | ORANGE_MONEY | MTN_MOMO.
+  modePaiement    String?  @map("mode_paiement")
   creeParId       String?  @map("cree_par_id")
   dateOperation   DateTime @default(now()) @map("date_operation")
   createdAt       DateTime @default(now()) @map("created_at")

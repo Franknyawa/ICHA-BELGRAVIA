@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
     modePaiement,
     montantRecu: montantRecuSaisi,
     mobileMoneyConfirme,
+    operateurMobile,
   } = body as {
     uuidClient: string;
     pointVenteId: string;
@@ -44,6 +45,7 @@ export async function POST(req: NextRequest) {
     modePaiement: ModePaiementValue;
     montantRecu?: number;
     mobileMoneyConfirme?: boolean;
+    operateurMobile?: string;
   };
 
   if (!uuidClient || !pointVenteId || !Array.isArray(lignes) || lignes.length === 0) {
@@ -145,6 +147,10 @@ export async function POST(req: NextRequest) {
         montantTotal,
         modePaiement,
         mobileMoneyConfirme: !!mobileMoneyConfirme,
+        operateurMobile:
+          modePaiement === "MOBILE_MONEY" && (operateurMobile === "ORANGE_MONEY" || operateurMobile === "MTN_MOMO")
+            ? operateurMobile
+            : null,
         montantRecu,
         resteAPayer,
       },

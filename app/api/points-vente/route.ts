@@ -26,6 +26,9 @@ export async function GET(req: NextRequest) {
   // ce qui est daté : le recensement du point de vente, ou une visite reçue.
   const intervalle = intervalleJours(searchParams.get("du"), searchParams.get("au"));
   const parVisite = searchParams.get("base") === "visite";
+  const potentiel = searchParams.get("potentiel") || undefined;
+  // "oui" = déjà client (au moins une commande), "non" = prospect sans commande.
+  const client = searchParams.get("client") || undefined;
   // Pagination normale côté API, mais le PDF/impression a besoin de TOUTES
   // les lignes correspondant aux filtres, pas seulement la page affichée.
   const toutesLesLignes = searchParams.get("toutesLesLignes") === "1";
@@ -40,7 +43,11 @@ export async function GET(req: NextRequest) {
         : { createdAt: intervalle }
       : {}),
     ...(quartier ? { quartier: { contains: quartier, mode: "insensitive" as const } } : {}),
+    ...(client === "oui" ? { commandes: { some: {} } } : client === "non" ? { commandes: { none: {} } } : {}),
     AND: [
+      ...(potentiel && ["FORT", "MOYEN", "FAIBLE"].includes(potentiel)
+        ? [{ visites: { some: { potentielEstime: potentiel as "FORT" | "MOYEN" | "FAIBLE" } } }]
+        : []),
       ...(typeId ? [{ OR: [{ typeId }, { typesLies: { some: { typeId } } }] }] : []),
       ...(q
         ? [
@@ -63,13 +70,15 @@ export async function GET(req: NextRequest) {
     prisma.pointVente.findMany({
       where,
       orderBy: { createdAt: "desc" },
-      ...(toutesLesLignes ? {} : { skip: (page - 1) * pageSize, take: pageSize }),
+      // Garde-fou : un export ne dépasse jamais 5 000 lignes d'un coup.
+      ...((toutesLesLignes ? { take: 5000 } : { skip: (page - 1) * pageSize, take: pageSize }) as { skip?: number; take: number }),
       include: {
         ville: true,
         type: true,
         typesLies: { include: { type: true } },
         createdBy: { select: { nom: true, prenom: true } },
         _count: { select: { visites: true, commandes: true } },
+        visites: { orderBy: { createdAt: "desc" as const }, take: 1, select: { potentielEstime: true } },
       },
     }),
   ]);

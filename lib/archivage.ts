@@ -56,25 +56,13 @@ export function dateSeuil(jours: number): Date {
   return new Date(Date.now() - jours * 24 * 60 * 60 * 1000);
 }
 
-/** Ids des commandes archivables : livrées, anciennes, et soldées. */
+/** Ids des commandes archivables : livrées, anciennes, et soldées (les encaissements de caisse mettent déjà à jour le reste à payer). */
 async function commandesArchivables(avant: Date): Promise<string[]> {
-  const candidates = await prisma.commande.findMany({
-    where: { archiveeLe: null, statut: "LIVREE", createdAt: { lt: avant } },
-    select: { id: true, resteAPayer: true },
+  const rows = await prisma.commande.findMany({
+    where: { archiveeLe: null, statut: "LIVREE", createdAt: { lt: avant }, resteAPayer: { lte: 0 } },
+    select: { id: true },
   });
-  const aCredit = candidates.filter((c) => Number(c.resteAPayer) > 0);
-  const encaisse = new Map<string, number>();
-  if (aCredit.length > 0) {
-    const ops = await prisma.operationCaisse.groupBy({
-      by: ["commandeId"],
-      where: { categorie: "ENCAISSEMENT_CREDIT", commandeId: { in: aCredit.map((c) => c.id) } },
-      _sum: { montant: true },
-    });
-    for (const o of ops) if (o.commandeId) encaisse.set(o.commandeId, Number(o._sum.montant || 0));
-  }
-  return candidates
-    .filter((c) => Number(c.resteAPayer) - (encaisse.get(c.id) ?? 0) <= 0)
-    .map((c) => c.id);
+  return rows.map((c) => c.id);
 }
 
 /** Ce qui serait archivé pour une durée de conservation donnée (simulation). */

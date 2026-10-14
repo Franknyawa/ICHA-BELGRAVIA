@@ -57,7 +57,19 @@ export async function exporterRapportPdf(data: ExportRapportData) {
   autoTable(doc, {
     startY: 39,
     head: [data.colonnes.map((c) => c.label)],
-    body: data.lignes.map((ligne) => data.colonnes.map((c) => formatCell(c, ligne[c.cle]))),
+    // Une ligne portant "__groupe" est un titre de section (regroupement) qui
+    // occupe toute la largeur du tableau.
+    body: data.lignes.map((ligne) =>
+      typeof ligne.__groupe === "string"
+        ? [
+            {
+              content: ligne.__groupe,
+              colSpan: data.colonnes.length,
+              styles: { fontStyle: "bold" as const, fillColor: [240, 234, 218] as [number, number, number], textColor: COULEUR_ENCRE },
+            },
+          ]
+        : data.colonnes.map((c) => formatCell(c, ligne[c.cle]))
+    ),
     foot: [
       data.colonnes.map((c, i) => {
         if (i === 0) return "Total";
