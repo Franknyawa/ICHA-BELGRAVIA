@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { peut } from "@/lib/permissions";
+import { useEcriture } from "@/lib/useEcriture";
 import { IconList, IconAlert, IconPlus, IconCheckCircle, IconGlass } from "@/components/icons";
 import GammeTabs from "@/components/GammeTabs";
 import { styleBadgeGamme, libelleGamme, type GammeInfo } from "@/lib/gammesClient";
@@ -41,6 +42,7 @@ export default function StockPage() {
   const [quantite, setQuantite] = useState("");
   const [note, setNote] = useState("");
   const [cout, setCout] = useState("");
+  const ecriture = useEcriture("stock");
   const [voitCout, setVoitCout] = useState(false); // le coût d'achat alimente la caisse
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -220,6 +222,7 @@ export default function StockPage() {
         </table>
       </div>
 
+      {ecriture && (
       <div className="field-card mb-8 w-full">
         <p className="section-eyebrow mb-3">
           <IconPlus className="h-4 w-4" />
@@ -268,6 +271,7 @@ export default function StockPage() {
           directement la quantité en stock à la valeur saisie (utile après un inventaire physique).
         </p>
       </div>
+      )}
 
       <div>
         <p className="section-eyebrow mb-3">Historique des mouvements</p>

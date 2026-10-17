@@ -1,5 +1,6 @@
 "use client";
 
+import { useEcriture } from "@/lib/useEcriture";
 import { useCallback, useEffect, useState } from "react";
 import { IconAlert, IconRefresh, IconCheckCircle, IconList, IconClock, IconReceipt } from "@/components/icons";
 import { Spinner, ChargementPage } from "@/components/Spinner";
@@ -27,6 +28,7 @@ export default function AlertesPage() {
   const [chargement, setChargement] = useState(true);
   const [generation, setGeneration] = useState(false);
   const [resolution, setResolution] = useState<string | null>(null);
+  const ecriture = useEcriture("alertes");
 
   const charger = useCallback(async () => {
     setChargement(true);
@@ -70,11 +72,13 @@ export default function AlertesPage() {
           </h1>
           <p className="text-sm text-ink-muted">{alertes.length} alerte(s) active(s)</p>
         </div>
+        {ecriture && (
         <button className="btn-secondary" onClick={generer} disabled={generation}>
           <IconRefresh className={`h-4 w-4 ${generation ? "animate-spin" : ""}`} />
           {generation && <Spinner className="h-4 w-4" />}
           {generation ? "Génération…" : "Générer maintenant"}
         </button>
+        )}
       </div>
 
       <div className="mb-5 flex flex-wrap gap-2">
@@ -117,6 +121,7 @@ export default function AlertesPage() {
                   <p className="text-xs text-ink-muted">{new Date(a.createdAt).toLocaleDateString("fr-FR")}</p>
                 </div>
               </div>
+              {ecriture && (
               <button
                 onClick={() => resoudre(a.id)}
                 disabled={resolution === a.id}
@@ -125,6 +130,7 @@ export default function AlertesPage() {
                 <IconCheckCircle className="h-3.5 w-3.5" />
                 Résolue
               </button>
+              )}
             </div>
           );
         })}

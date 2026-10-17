@@ -4,7 +4,8 @@
  * dépendance serveur : utilisable côté client et dans le middleware).
  *
  * - COMMERCIAL  : application terrain uniquement (/terrain), inchangée.
- * - SUPERVISEUR : visites terrain, points de vente, stock.
+ * - SUPERVISEUR : visites, alertes, commandes, points de vente, rapports, stock
+ *                 en CONSULTATION seulement (voir peutEcrire).
  * - ADMIN       : tout, sauf la gestion des utilisateurs et des paramètres.
  * - SUPER_ADMIN : contrôle total.
  */
@@ -33,7 +34,7 @@ const TOUS: Module[] = [
 
 const ACCES: Record<RoleApp, readonly Module[]> = {
   COMMERCIAL: [],
-  SUPERVISEUR: ["visites", "points_de_vente", "stock"],
+  SUPERVISEUR: ["visites", "alertes", "commandes", "points_de_vente", "rapports", "stock"],
   ADMIN: TOUS.filter((m) => m !== "utilisateurs" && m !== "parametres"),
   SUPER_ADMIN: TOUS,
 };
@@ -47,7 +48,7 @@ export const LIBELLE_ROLE: Record<RoleApp, string> = {
 
 export const DESCRIPTION_ROLE: Record<RoleApp, string> = {
   COMMERCIAL: "Application terrain : recensement, commandes.",
-  SUPERVISEUR: "Visites terrain, points de vente et stock.",
+  SUPERVISEUR: "Consultation : visites, alertes, commandes, points de vente, rapports et stock.",
   ADMIN: "Tout, sauf la gestion des utilisateurs et des paramètres.",
   SUPER_ADMIN: "Contrôle total.",
 };
@@ -65,6 +66,19 @@ export function peut(role: string | null | undefined, module: Module): boolean {
 /** Tout rôle qui n'est pas COMMERCIAL travaille dans le back-office. */
 export function estBackOffice(role: string | null | undefined): boolean {
   return estRole(role) && role !== "COMMERCIAL";
+}
+
+/**
+ * Modifier / agir (créer, valider, supprimer…) : réservé aux ADMIN et SUPER_ADMIN.
+ * Le superviseur consulte ses modules (lecture, filtres, exports) sans pouvoir agir dessus.
+ */
+export function peutEcrire(role: string | null | undefined, module: Module): boolean {
+  return (role === "ADMIN" || role === "SUPER_ADMIN") && peut(role, module);
+}
+
+/** Garde pour les actions qui modifient des données (POST/PATCH/PUT/DELETE). */
+export function aEcriture<S extends { role: string } | null | undefined>(session: S, module: Module): session is NonNullable<S> {
+  return !!session && peutEcrire(session.role, module);
 }
 
 /** Vrai si la session existe et a accès au module (sert de garde de type dans les API). */

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { aAcces, peut } from "@/lib/permissions";
+import { aEcriture, aAcces, peut } from "@/lib/permissions";
 import { assurerGammes } from "@/lib/gammes";
 import { enregistrerAchatStock } from "@/lib/caisse";
 
@@ -37,7 +37,7 @@ export async function GET() {
 /** Mouvement manuel (ENTREE réapprovisionnement, ou AJUSTEMENT d'inventaire). */
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  if (!aAcces(session, "stock")) {
+  if (!aEcriture(session, "stock")) {
     return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
   }
 

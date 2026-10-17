@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useEcriture } from "@/lib/useEcriture";
 import { usePolling } from "@/lib/usePolling";
 import { IconReceipt, IconCheckCircle, IconClock, IconDownload, IconStorefront, IconAlert } from "@/components/icons";
 import { genererBonLivraisonPdf } from "@/lib/bonLivraisonPdf";
@@ -55,6 +56,7 @@ export default function CommandesPage() {
   const [nouvelles, setNouvelles] = useState(0);
   const [chargement, setChargement] = useState(true);
   const [enCours, setEnCours] = useState<string | null>(null);
+  const ecriture = useEcriture("commandes");
 
   const charger = useCallback(async () => {
     setChargement(true);
@@ -265,7 +267,7 @@ export default function CommandesPage() {
                 <div className="flex flex-col items-end gap-2">
                   <span className="font-display text-xl text-ink">{Number(c.montantTotal).toLocaleString("fr-FR")} FCFA</span>
                   <div className="flex items-center gap-2">
-                    {c.statut === "NON_TRAITEE" && (
+                    {ecriture && c.statut === "NON_TRAITEE" && (
                       <button
                         className="btn-primary"
                         disabled={enCours === c.id}
@@ -275,7 +277,7 @@ export default function CommandesPage() {
                         {enCours === c.id ? <Spinner className="h-4 w-4" /> : "Valider"}
                       </button>
                     )}
-                    {c.statut === "EN_COURS_LIVRAISON" && (
+                    {ecriture && c.statut === "EN_COURS_LIVRAISON" && (
                       <button
                         className="btn-secondary"
                         disabled={enCours === c.id}
