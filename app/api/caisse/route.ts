@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { aAcces } from "@/lib/permissions";
 import { intervalleJours, dateValide, debutJour, debutAujourdhui } from "@/lib/dates";
 import {
   CATEGORIES_DEPENSE,
@@ -70,7 +71,7 @@ function details(c: CommandeCaisse): DetailsCommande {
 /** Journal + synthèse de caisse sur la période (jours du Cameroun), soldes, crédits à encaisser, stock valorisé. */
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "caisse")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const sp = new URL(req.url).searchParams;
   const intervalle = intervalleJours(sp.get("du"), sp.get("au"));
@@ -199,7 +200,7 @@ function dateOperationDe(date: unknown): Date {
 /** Saisie : encaissement d'un crédit (lié à la commande), recette libre, dépense, achat de stock. */
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "caisse")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const b = await req.json().catch(() => ({}));
   const type = b.type as "RECETTE" | "DEPENSE";

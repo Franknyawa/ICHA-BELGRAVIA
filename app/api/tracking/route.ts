@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { aAcces } from "@/lib/permissions";
 
 /**
  * Deux modes de tracking, sélectionnés par ?mode= :
@@ -15,7 +16,7 @@ import { getSession } from "@/lib/auth";
  */
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "tracking")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const { searchParams } = new URL(req.url);
   const mode = searchParams.get("mode") === "positions" ? "positions" : "itineraire";

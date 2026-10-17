@@ -10,6 +10,7 @@ import { IconUser, IconLock } from "@/components/icons";
 import { Spinner, ChargementPage } from "@/components/Spinner";
 import { deverrouiller, effacerVerrou, enregistrerVerrou, resumeVerrou, DUREE_MAX_JOURS } from "@/lib/verrouLocal";
 import { viderCachesHorsLigne } from "@/lib/horsLigne";
+import { accueilPourRole } from "@/lib/permissions";
 
 // useSearchParams() (lecture de ?motif=inactivite, voir InactivityLogout)
 // oblige Next.js à isoler le composant qui l'utilise dans un <Suspense> —
@@ -133,7 +134,7 @@ function LoginForm() {
           /* le mode hors-ligne sera simplement indisponible */
         }
       }
-      router.push(role === "ADMIN" ? "/tableau-de-bord" : "/terrain");
+      router.push(accueilPourRole(role));
       router.refresh();
     } finally {
       setEnCours(false);

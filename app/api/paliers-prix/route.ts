@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { aAcces } from "@/lib/permissions";
 import { assurerGammes } from "@/lib/gammes";
 
 /**
@@ -10,7 +11,7 @@ import { assurerGammes } from "@/lib/gammes";
  */
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "parametres")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   await assurerGammes();
   const gammeId = new URL(req.url).searchParams.get("gammeId") || undefined;
@@ -23,7 +24,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "parametres")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const { cartonsMin, cartonsMax, prixCarton, gammeId } = await req.json();
   if (cartonsMin === undefined || prixCarton === undefined) {
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
  */
 export async function PUT(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "parametres")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const { gammeId, paliers } = await req.json();
   if (!gammeId || !Array.isArray(paliers) || paliers.length === 0) {

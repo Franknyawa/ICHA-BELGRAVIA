@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { aAcces } from "@/lib/permissions";
 import { assurerGammes } from "@/lib/gammes";
 import { compterParType } from "@/lib/comptageTypes";
 
@@ -8,7 +9,7 @@ import { debutAujourdhui } from "@/lib/dates";
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "tableau_de_bord")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   await assurerGammes();
   const debutJour = debutAujourdhui();

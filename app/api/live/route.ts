@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { peut } from "@/lib/permissions";
 
 /**
  * Sondage léger pour l'admin : combien de visites / commandes ont été créées
@@ -10,7 +11,7 @@ import { getSession } from "@/lib/auth";
  */
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!session || !(peut(session.role, "visites") || peut(session.role, "commandes"))) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const maintenant = new Date();
   const sinceParam = req.nextUrl.searchParams.get("since");

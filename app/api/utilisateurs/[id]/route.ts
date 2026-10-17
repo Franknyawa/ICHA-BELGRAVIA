@@ -3,27 +3,40 @@ import bcrypt from "bcryptjs";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { aAcces, ROLES } from "@/lib/permissions";
+
+/** Il doit toujours rester au moins un super admin actif (sinon plus personne ne gère les comptes). */
+async function resteUnAutreSuperAdmin(idExclu: string) {
+  return (await prisma.user.count({ where: { role: "SUPER_ADMIN", actif: true, id: { not: idExclu } } })) > 0;
+}
 
 /** Modification d'un compte : profil (nom/prénom/téléphone/ville/rôle),
  *  activation/désactivation, et/ou réinitialisation du mot de passe. */
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "utilisateurs")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const { actif, nom, prenom, telephone, villeId, role, nouveauMotDePasse } = await req.json();
 
-  if (role !== undefined && role !== "ADMIN" && role !== "COMMERCIAL") {
+  if (role !== undefined && !ROLES.includes(role)) {
     return NextResponse.json({ error: "Rôle invalide." }, { status: 400 });
   }
   if (nouveauMotDePasse && (typeof nouveauMotDePasse !== "string" || nouveauMotDePasse.length < 8)) {
     return NextResponse.json({ error: "Le mot de passe doit contenir au moins 8 caractères." }, { status: 400 });
   }
   // Évite de s'enfermer dehors : on ne se désactive pas / ne se rétrograde pas soi-même.
-  if (params.id === session.userId && (actif === false || (role !== undefined && role !== "ADMIN"))) {
+  if (params.id === session.userId && (actif === false || (role !== undefined && role !== "SUPER_ADMIN"))) {
     return NextResponse.json(
       { error: "Vous ne pouvez pas désactiver ou rétrograder votre propre compte." },
       { status: 400 }
     );
+  }
+
+  if (actif === false || (role !== undefined && role !== "SUPER_ADMIN")) {
+    const cible = await prisma.user.findUnique({ where: { id: params.id }, select: { role: true } });
+    if (cible?.role === "SUPER_ADMIN" && !(await resteUnAutreSuperAdmin(params.id))) {
+      return NextResponse.json({ error: "Il doit rester au moins un super admin actif." }, { status: 400 });
+    }
   }
 
   const data: Prisma.UserUpdateInput = {};
@@ -50,10 +63,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
  *  désactiver le compte est alors la bonne alternative. */
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "utilisateurs")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   if (params.id === session.userId) {
     return NextResponse.json({ error: "Impossible de supprimer votre propre compte." }, { status: 400 });
+  }
+
+  const cible = await prisma.user.findUnique({ where: { id: params.id }, select: { role: true } });
+  if (cible?.role === "SUPER_ADMIN" && !(await resteUnAutreSuperAdmin(params.id))) {
+    return NextResponse.json({ error: "Il doit rester au moins un super admin actif." }, { status: 400 });
   }
 
   try {

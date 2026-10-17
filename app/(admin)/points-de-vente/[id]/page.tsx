@@ -60,12 +60,13 @@ export default function FichePointVentePage() {
   const { id } = useParams<{ id: string }>();
   const [fiche, setFiche] = useState<Fiche | null>(null);
   const [chargement, setChargement] = useState(true);
+  const [voitCommandes, setVoitCommandes] = useState(true);
   const [photoAgrandie, setPhotoAgrandie] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/points-vente/${id}`)
       .then((r) => r.json())
-      .then((d) => setFiche(d.pointVente))
+      .then((d) => { setFiche(d.pointVente); setVoitCommandes(d.voitCommandes !== false); })
       .finally(() => setChargement(false));
   }, [id]);
 
@@ -137,11 +138,12 @@ export default function FichePointVentePage() {
         </p>
       </div>
 
-      <div className="mb-5 grid gap-3 sm:grid-cols-3">
+      <div className={`mb-5 grid gap-3 ${voitCommandes ? "sm:grid-cols-3" : "sm:grid-cols-1"}`}>
         <div className="field-card text-center">
           <p className="text-2xl font-display text-ink">{fiche.visites.length}</p>
           <p className="text-xs text-ink-muted">Visite(s)</p>
         </div>
+        {voitCommandes && (<>
         <div className="field-card text-center">
           <p className="text-2xl font-display text-ink">{montantTotalCommandes.toLocaleString("fr-FR")}</p>
           <p className="text-xs text-ink-muted">Total commandé (FCFA)</p>
@@ -152,6 +154,7 @@ export default function FichePointVentePage() {
           </p>
           <p className="text-xs text-ink-muted">Reste à payer (FCFA)</p>
         </div>
+        </>)}
       </div>
 
       <div className="mb-5">
@@ -189,6 +192,7 @@ export default function FichePointVentePage() {
         )}
       </div>
 
+      {voitCommandes && (
       <div className="mb-5">
         <h2 className="mb-2 flex items-center gap-2 font-display text-lg text-ink">
           <IconReceipt className="h-4 w-4 text-brass" />
@@ -219,6 +223,7 @@ export default function FichePointVentePage() {
           )}
         </div>
       </div>
+      )}
 
       <div>
         <h2 className="mb-2 flex items-center gap-2 font-display text-lg text-ink">

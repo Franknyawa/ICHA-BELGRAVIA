@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import { aAcces } from "@/lib/permissions";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
@@ -22,7 +23,7 @@ const CATEGORIE_LABEL: Record<string, string> = {
 
 export default async function DetailVisite({ params }: { params: { id: string } }) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") redirect("/login");
+  if (!aAcces(session, "visites")) redirect("/login");
 
   const visite = await prisma.visite.findUnique({
     where: { id: params.id },

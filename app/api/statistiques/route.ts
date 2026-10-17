@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { aAcces } from "@/lib/permissions";
 import { compterParType } from "@/lib/comptageTypes";
 
 export async function GET() {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "carte")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const [total, parPotentiel, parType, parVille, parAgent, interesses, veulentCommander] = await Promise.all([
     prisma.visite.count(),

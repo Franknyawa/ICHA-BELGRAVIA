@@ -106,7 +106,7 @@ async function main() {
     create: {
       identifiant: "admin@belgravia.local",
       passwordHash: adminHash,
-      role: "ADMIN",
+      role: "SUPER_ADMIN",
       nom: "Admin",
       prenom: "Belgravia",
     },

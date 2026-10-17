@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession, getDureeInactiviteMinutes, definirDureeInactiviteMinutes } from "@/lib/auth";
+import { aAcces } from "@/lib/permissions";
 
 /**
  * Durée d'inactivité avant déconnexion automatique. Lecture ouverte à tout
@@ -17,7 +18,7 @@ export async function GET() {
 
 export async function PATCH(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "parametres")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const { minutes } = await req.json().catch(() => ({}));
   const n = Number(minutes);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { peut } from "@/lib/permissions";
 import { IconList, IconAlert, IconPlus, IconCheckCircle, IconGlass } from "@/components/icons";
 import GammeTabs from "@/components/GammeTabs";
 import { styleBadgeGamme, libelleGamme, type GammeInfo } from "@/lib/gammesClient";
@@ -40,6 +41,7 @@ export default function StockPage() {
   const [quantite, setQuantite] = useState("");
   const [note, setNote] = useState("");
   const [cout, setCout] = useState("");
+  const [voitCout, setVoitCout] = useState(false); // le coût d'achat alimente la caisse
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
 
@@ -62,6 +64,7 @@ export default function StockPage() {
 
   useEffect(() => {
     chargerTout();
+    fetch("/api/me").then((r) => r.json()).then((d) => setVoitCout(peut(d.role, "caisse"))).catch(() => {});
     fetch("/api/gammes").then((r) => r.json()).then((d) => setGammes(d.gammes || []));
   }, []);
 
@@ -79,7 +82,7 @@ export default function StockPage() {
           type,
           quantiteCartons: parseInt(quantite, 10),
           note,
-          ...(type === "ENTREE" && cout ? { coutTotal: Number(cout) } : {}),
+          ...(voitCout && type === "ENTREE" && cout ? { coutTotal: Number(cout) } : {}),
         }),
       });
       if (!res.ok) {
@@ -223,7 +226,7 @@ export default function StockPage() {
           Enregistrer un mouvement manuel
         </p>
         <form onSubmit={enregistrerMouvement} className={`grid gap-2 ${
-            type === "ENTREE"
+            type === "ENTREE" && voitCout
               ? "md:grid-cols-[minmax(0,2fr)_minmax(0,1.6fr)_minmax(0,1.1fr)_minmax(0,1.7fr)_minmax(0,2fr)_auto]"
               : "md:grid-cols-[minmax(0,2fr)_minmax(0,1.6fr)_minmax(0,1.2fr)_minmax(0,2fr)_auto]"
           }`}>
@@ -243,7 +246,7 @@ export default function StockPage() {
             onChange={(e) => setQuantite(e.target.value)}
             required
           />
-          {type === "ENTREE" && (
+          {type === "ENTREE" && voitCout && (
             <input
               className="field-input"
               type="number"

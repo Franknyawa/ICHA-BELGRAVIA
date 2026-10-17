@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { IconUsers, IconPlus, IconPencil, IconKey, IconTrash, IconShield, IconUser, IconSmartphone } from "@/components/icons";
+import { ROLES, LIBELLE_ROLE, DESCRIPTION_ROLE, type RoleApp } from "@/lib/permissions";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { Spinner, ChargementPage } from "@/components/Spinner";
 
@@ -11,20 +12,20 @@ type Utilisateur = {
   nom: string;
   prenom: string;
   telephone: string | null;
-  role: "ADMIN" | "COMMERCIAL";
+  role: RoleApp;
   actif: boolean;
   villeId: string | null;
 };
 type Ville = { id: string; nom: string };
 type SessionActive = { id: string; userAgent: string | null; createdAt: string; lastSeenAt: string };
 
-type ChampsCreation = { identifiant: string; motDePasse: string; nom: string; prenom: string; telephone: string; role: "ADMIN" | "COMMERCIAL"; villeId: string };
+type ChampsCreation = { identifiant: string; motDePasse: string; nom: string; prenom: string; telephone: string; role: RoleApp; villeId: string };
 const CHAMPS_VIDES: ChampsCreation = { identifiant: "", motDePasse: "", nom: "", prenom: "", telephone: "", role: "COMMERCIAL", villeId: "" };
 
 export default function UtilisateursPage() {
   const [users, setUsers] = useState<Utilisateur[]>([]);
   const [villes, setVilles] = useState<Ville[]>([]);
-  const [filtreRole, setFiltreRole] = useState<"" | "ADMIN" | "COMMERCIAL">("");
+  const [filtreRole, setFiltreRole] = useState<"" | RoleApp>("");
   const [formulaireOuvert, setFormulaireOuvert] = useState(false);
   const [champs, setChamps] = useState<ChampsCreation>(CHAMPS_VIDES);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -32,6 +33,8 @@ export default function UtilisateursPage() {
 
   const [editId, setEditId] = useState<string | null>(null);
   const [editChamps, setEditChamps] = useState({ nom: "", prenom: "", telephone: "", villeId: "" });
+  const [editRole, setEditRole] = useState<RoleApp>("COMMERCIAL");
+  const [roleInitial, setRoleInitial] = useState<RoleApp>("COMMERCIAL");
   const [resetId, setResetId] = useState<string | null>(null);
   const [nouveauMdp, setNouveauMdp] = useState("");
   const [erreurLigne, setErreurLigne] = useState<string | null>(null);
@@ -90,6 +93,8 @@ export default function UtilisateursPage() {
     setResetId(null);
     setEditId(u.id);
     setEditChamps({ nom: u.nom, prenom: u.prenom, telephone: u.telephone || "", villeId: u.villeId || "" });
+    setEditRole(u.role);
+    setRoleInitial(u.role);
   }
 
   async function enregistrerEdition(id: string) {
@@ -97,10 +102,12 @@ export default function UtilisateursPage() {
     const res = await fetch(`/api/utilisateurs/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(editChamps),
+      // Le rôle n'est envoyé que s'il change (un changement de rôle coupe les sessions ouvertes).
+      body: JSON.stringify(editRole !== roleInitial ? { ...editChamps, role: editRole } : editChamps),
     });
     if (!res.ok) {
-      setErreurLigne("Échec de la modification.");
+      const d = await res.json().catch(() => ({}));
+      setErreurLigne(d.error || "Échec de la modification.");
       return;
     }
     setEditId(null);
@@ -176,14 +183,14 @@ export default function UtilisateursPage() {
         </button>
       </div>
 
-      <div className="mb-4 flex gap-2">
-        {(["", "ADMIN", "COMMERCIAL"] as const).map((r) => (
+      <div className="mb-4 flex flex-wrap gap-2">
+        {(["", ...[...ROLES].reverse()] as const).map((r) => (
           <button
             key={r}
             onClick={() => setFiltreRole(r)}
             className={["choice-pill", filtreRole === r ? "choice-pill-active" : ""].join(" ")}
           >
-            {r === "" ? "Tous" : r === "ADMIN" ? "Admins" : "Commerciaux"}
+            {r === "" ? "Tous" : LIBELLE_ROLE[r] + "s"}
           </button>
         ))}
       </div>
@@ -192,10 +199,10 @@ export default function UtilisateursPage() {
         <form onSubmit={creer} className="field-card mb-6 grid grid-cols-2 gap-3">
           <input className="field-input" placeholder="Prénom" value={champs.prenom} onChange={(e) => setChamps({ ...champs, prenom: e.target.value })} required />
           <input className="field-input" placeholder="Nom" value={champs.nom} onChange={(e) => setChamps({ ...champs, nom: e.target.value })} required />
-          <select className="field-input" value={champs.role} onChange={(e) => setChamps({ ...champs, role: e.target.value as "ADMIN" | "COMMERCIAL" })}>
-            <option value="COMMERCIAL">Commercial</option>
-            <option value="ADMIN">Admin</option>
+          <select className="field-input" value={champs.role} onChange={(e) => setChamps({ ...champs, role: e.target.value as RoleApp })}>
+            {ROLES.map((x) => <option key={x} value={x}>{LIBELLE_ROLE[x]}</option>)}
           </select>
+          <p className="col-span-2 -mt-1 text-xs text-ink-muted">{DESCRIPTION_ROLE[champs.role]}</p>
           <select className="field-input" value={champs.villeId} onChange={(e) => setChamps({ ...champs, villeId: e.target.value })}>
             <option value="">Ville d'affectation (optionnel)</option>
             {villes.map((v) => <option key={v.id} value={v.id}>{v.nom}</option>)}
@@ -216,8 +223,8 @@ export default function UtilisateursPage() {
           <div key={u.id} className="field-card">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${u.role === "ADMIN" ? "bg-brass/15 text-brass" : "bg-bg-elevated text-ink-muted"}`}>
-                  {u.role === "ADMIN" ? <IconShield className="h-4 w-4" /> : <IconUser className="h-4 w-4" />}
+                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${u.role !== "COMMERCIAL" ? "bg-brass/15 text-brass" : "bg-bg-elevated text-ink-muted"}`}>
+                  {u.role !== "COMMERCIAL" ? <IconShield className="h-4 w-4" /> : <IconUser className="h-4 w-4" />}
                 </span>
                 <div>
                   <p className="font-medium text-ink">
@@ -225,7 +232,7 @@ export default function UtilisateursPage() {
                     {!u.actif && <span className="ml-2 rounded-full bg-bg-elevated px-2 py-0.5 text-xs text-ink-muted">Désactivé</span>}
                   </p>
                   <p className="text-xs text-ink-muted">
-                    {u.identifiant} · {u.role === "ADMIN" ? "Admin" : "Commercial"}
+                    {u.identifiant} · {LIBELLE_ROLE[u.role]}
                     {u.telephone ? ` · ${u.telephone}` : ""}
                   </p>
                 </div>
@@ -254,6 +261,9 @@ export default function UtilisateursPage() {
                 <input className="field-input" placeholder="Prénom" value={editChamps.prenom} onChange={(e) => setEditChamps({ ...editChamps, prenom: e.target.value })} />
                 <input className="field-input" placeholder="Nom" value={editChamps.nom} onChange={(e) => setEditChamps({ ...editChamps, nom: e.target.value })} />
                 <input className="field-input" placeholder="Téléphone" value={editChamps.telephone} onChange={(e) => setEditChamps({ ...editChamps, telephone: e.target.value })} />
+                <select className="field-input" value={editRole} onChange={(e) => setEditRole(e.target.value as RoleApp)}>
+                  {ROLES.map((x) => <option key={x} value={x}>{LIBELLE_ROLE[x]}</option>)}
+                </select>
                 <select className="field-input" value={editChamps.villeId} onChange={(e) => setEditChamps({ ...editChamps, villeId: e.target.value })}>
                   <option value="">Ville d'affectation</option>
                   {villes.map((v) => <option key={v.id} value={v.id}>{v.nom}</option>)}

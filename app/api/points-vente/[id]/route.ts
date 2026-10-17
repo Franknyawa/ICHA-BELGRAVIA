@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { peut } from "@/lib/permissions";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getSession();
@@ -48,5 +49,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   });
   if (!p) return NextResponse.json({ error: "Point de vente introuvable." }, { status: 404 });
 
-  return NextResponse.json({ pointVente: p });
+  // Le superviseur voit la fiche et les visites, pas l'historique des commandes (chiffres de vente).
+  const voitCommandes = peut(session.role, "commandes");
+  return NextResponse.json({ pointVente: voitCommandes ? p : { ...p, commandes: [] }, voitCommandes });
 }

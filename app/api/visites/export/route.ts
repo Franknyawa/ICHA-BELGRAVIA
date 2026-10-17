@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { aAcces } from "@/lib/permissions";
 import { construireFiltreVisites } from "@/lib/visiteFiltres";
 import { libelleTypes, libelleRepondant } from "@/lib/typesEtablissement";
 
@@ -15,7 +16,7 @@ function csvEscape(value: unknown): string {
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "visites")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const where = construireFiltreVisites(new URL(req.url).searchParams, "tout");
 

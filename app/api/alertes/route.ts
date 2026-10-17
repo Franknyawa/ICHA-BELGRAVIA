@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
+import { aAcces } from "@/lib/permissions";
 import { listAlertes } from "@/lib/alertes";
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "alertes")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const type = req.nextUrl.searchParams.get("type") || undefined;
   const [alertes, toutes] = await Promise.all([listAlertes(type), type ? listAlertes() : Promise.resolve(null)]);

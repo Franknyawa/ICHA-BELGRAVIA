@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { aAcces } from "@/lib/permissions";
 import { intervalleJours } from "@/lib/dates";
 import { TYPES_ARCHIVE, type TypeArchive } from "@/lib/archivage";
 
@@ -18,7 +19,7 @@ function csvEscape(value: unknown): string {
 /** Données archivées d'un type (visites | commandes | mouvements) : liste paginée ou export CSV complet. */
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "archives")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const sp = new URL(req.url).searchParams;
   const type = sp.get("type") as TypeArchive;

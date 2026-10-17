@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { peut } from "@/lib/permissions";
 import { calculerCommande, calculerPaiement, type ModePaiementValue } from "@/lib/pricing";
 import { assurerGammes } from "@/lib/gammes";
 
@@ -213,6 +214,9 @@ export async function GET(req: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
   }
+  if (session.role !== "COMMERCIAL" && !peut(session.role, "commandes")) {
+    return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  }
 
   await assurerGammes();
   const { searchParams } = new URL(req.url);
@@ -230,7 +234,7 @@ export async function GET(req: NextRequest) {
   const where = {
     // Les archives n'apparaissent plus dans les listes de l'admin (voir l'onglet
     // Archives) ; le commercial, lui, garde tout son historique.
-    ...(session.role === "ADMIN" ? { archiveeLe: null } : {}),
+    ...(session.role !== "COMMERCIAL" ? { archiveeLe: null } : {}),
     ...(commercialId ? { commercialId } : {}),
     ...(villeId ? { pointVente: { villeId } } : {}),
     ...(modePaiement ? { modePaiement: modePaiement as any } : {}),

@@ -82,9 +82,14 @@ model Gamme {
 // UTILISATEURS
 // ---------------------------------------------------------------------------
 
+/// COMMERCIAL : app terrain. SUPERVISEUR : visites, points de vente, stock.
+/// ADMIN : tout sauf utilisateurs et paramètres. SUPER_ADMIN : contrôle total.
+/// (voir lib/permissions.ts)
 enum Role {
   ADMIN
   COMMERCIAL
+  SUPERVISEUR
+  SUPER_ADMIN
 }
 
 model User {

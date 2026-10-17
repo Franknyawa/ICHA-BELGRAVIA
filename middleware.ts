@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
+import { PREFIXES_BACK_OFFICE, estBackOffice } from "@/lib/permissions";
 
 const COOKIE_NAME = "belgravia_session";
 
@@ -11,23 +12,10 @@ function getSecret() {
   return new TextEncoder().encode(secret);
 }
 
-const PREFIXES_ADMIN = [
-  "/dashboard",
-  "/utilisateurs",
-  "/statistiques",
-  "/commandes",
-  "/produits",
-  "/tableau-de-bord",
-  "/parametres",
-  "/tracking",
-  "/points-de-vente",
-  "/rapports",
-  "/stock",
-  "/factures",
-  "/alertes",
-  "/caisse",
-  "/archives",
-];
+// Pages du back-office (liste dans lib/permissions.ts). Le middleware ne fait que le tri
+// grossier d'après le rôle du cookie ; le contrôle fin par module (avec le rôle lu en base)
+// est fait par app/(admin)/layout.tsx et par chaque API.
+const PREFIXES_ADMIN = PREFIXES_BACK_OFFICE;
 
 function sous(pathname: string, prefix: string) {
   return pathname === prefix || pathname.startsWith(prefix + "/");
@@ -50,8 +38,11 @@ export async function middleware(req: NextRequest) {
     const { payload } = await jwtVerify(token, secret);
     const role = payload.role as string;
     if (isCommercialArea && role !== "COMMERCIAL") return vers("/login");
-    if (isAdminArea && role !== "ADMIN") return vers("/login");
-    return NextResponse.next();
+    if (isAdminArea && !estBackOffice(role)) return vers("/login");
+    // Le layout a besoin du chemin pour contrôler l'accès au module.
+    const entetes = new Headers(req.headers);
+    entetes.set("x-pathname", pathname);
+    return NextResponse.next({ request: { headers: entetes } });
   } catch {
     return vers("/login");
   }

@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { aAcces, estBackOffice } from "@/lib/permissions";
 import { assurerGammes } from "@/lib/gammes";
 
 export async function GET() {
+  // Le catalogue se consulte depuis plusieurs pages (rapports, stock…) : tout le back-office.
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!session || !estBackOffice(session.role)) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   await assurerGammes();
   const produits = await prisma.produit.findMany({ orderBy: { ordre: "asc" }, include: { gamme: true } });
@@ -14,7 +16,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "produits")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   await assurerGammes();
   const { nom, prixUnitaire, volumeMl, gammeId } = await req.json();

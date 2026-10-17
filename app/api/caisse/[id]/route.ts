@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { aAcces } from "@/lib/permissions";
 
 /**
  * Annule une opération de caisse.
@@ -9,7 +10,7 @@ import { getSession } from "@/lib/auth";
  */
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "caisse")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const op = await prisma.operationCaisse.findUnique({ where: { id: params.id } });
   if (!op) return NextResponse.json({ error: "Opération introuvable." }, { status: 404 });

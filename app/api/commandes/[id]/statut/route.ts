@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { aAcces } from "@/lib/permissions";
 
 const TRANSITIONS_VALIDES: Record<string, string[]> = {
   NON_TRAITEE: ["EN_COURS_LIVRAISON"],
@@ -17,7 +18,7 @@ const TRANSITIONS_VALIDES: Record<string, string[]> = {
  */
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") {
+  if (!aAcces(session, "commandes")) {
     return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
   }
 

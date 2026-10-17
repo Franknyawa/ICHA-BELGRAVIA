@@ -93,6 +93,15 @@ export async function createSession(
   });
 }
 
+let cacheSuperAdmin: { existe: boolean; expire: number } | null = null;
+async function existeSuperAdmin(): Promise<boolean> {
+  if (cacheSuperAdmin && cacheSuperAdmin.expire > Date.now()) return cacheSuperAdmin.existe;
+  const existe = (await prisma.user.count({ where: { role: "SUPER_ADMIN", actif: true } })) > 0;
+  // Cache court quand aucun super admin n'existe : la promotion se voit presque tout de suite.
+  cacheSuperAdmin = { existe, expire: Date.now() + (existe ? 60_000 : 10_000) };
+  return existe;
+}
+
 export async function getSession(): Promise<SessionPayload | null> {
   const token = cookies().get(COOKIE_NAME)?.value;
   if (!token) return null;
@@ -103,7 +112,7 @@ export async function getSession(): Promise<SessionPayload | null> {
     // perd l'accès immédiatement, sans attendre l'expiration de sa session.
     const session = await prisma.session.findUnique({
       where: { id: sessionId },
-      include: { user: { select: { actif: true } } },
+      include: { user: { select: { actif: true, role: true } } },
     });
     if (!session || session.revoked || session.expiresAt < new Date() || !session.user.actif) return null;
 
@@ -127,10 +136,17 @@ export async function getSession(): Promise<SessionPayload | null> {
       prisma.session.update({ where: { id: sessionId }, data: { lastSeenAt: new Date() } }).catch(() => {});
     }
 
+    // Le rôle lu en base fait foi (celui du cookie peut dater d'avant un changement de rôle).
+    // Tant qu'aucun super admin n'existe (juste après l'introduction des rôles), les admins
+    // existants gardent tous leurs droits pour ne pas se retrouver bloqués : voir
+    // prisma/promouvoir-super-admin.ts.
+    let role: Role = session.user.role;
+    if (role === "ADMIN" && !(await existeSuperAdmin())) role = "SUPER_ADMIN";
+
     return {
       sessionId,
       userId: payload.userId as string,
-      role: payload.role as Role,
+      role,
       nom: payload.nom as string,
       prenom: payload.prenom as string,
     };

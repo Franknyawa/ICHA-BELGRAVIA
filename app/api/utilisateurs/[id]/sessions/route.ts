@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { aAcces } from "@/lib/permissions";
 
 /**
  * Sessions actives d'un utilisateur — panneau "Sessions actives" de
@@ -10,7 +11,7 @@ import { getSession } from "@/lib/auth";
  */
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "utilisateurs")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const sessions = await prisma.session.findMany({
     where: { userId: params.id, revoked: false, expiresAt: { gt: new Date() } },
@@ -23,7 +24,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 /** Déconnecte l'utilisateur de partout d'un coup ("Déconnecter partout"). */
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "utilisateurs")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   await prisma.session.updateMany({
     where: { userId: params.id, revoked: false },

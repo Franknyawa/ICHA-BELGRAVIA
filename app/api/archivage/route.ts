@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
+import { peut } from "@/lib/permissions";
 import {
   JOURS_MAX,
   JOURS_MIN,
@@ -18,7 +19,7 @@ export const dynamic = "force-dynamic";
 
 async function admin() {
   const s = await getSession();
-  return s && s.role === "ADMIN" ? s : null;
+  return s && peut(s.role, "archives") ? s : null;
 }
 
 export async function GET(req: NextRequest) {

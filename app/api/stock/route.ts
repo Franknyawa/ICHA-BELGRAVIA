@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { aAcces, peut } from "@/lib/permissions";
 import { assurerGammes } from "@/lib/gammes";
 import { enregistrerAchatStock } from "@/lib/caisse";
 
@@ -8,7 +9,7 @@ import { enregistrerAchatStock } from "@/lib/caisse";
  * encore créée (quantité affichée à 0) pour ne jamais en oublier un. */
 export async function GET() {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") {
+  if (!aAcces(session, "stock")) {
     return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
   }
 
@@ -36,7 +37,7 @@ export async function GET() {
 /** Mouvement manuel (ENTREE réapprovisionnement, ou AJUSTEMENT d'inventaire). */
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") {
+  if (!aAcces(session, "stock")) {
     return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
   }
 
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
     const quantiteAvant = stockActuel?.quantiteCartons ?? 0;
 
     if (type === "ENTREE") {
-      const cout = Math.round(Number(coutTotal) || 0);
+      const cout = peut(session.role, "caisse") ? Math.round(Number(coutTotal) || 0) : 0;
       // Un coût d'achat saisi crée aussi la dépense de caisse correspondante.
       await enregistrerAchatStock(tx, {
         produitId,

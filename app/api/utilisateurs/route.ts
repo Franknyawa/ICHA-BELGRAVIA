@@ -2,15 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { aAcces, estBackOffice, peut, ROLES, type RoleApp } from "@/lib/permissions";
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!session || !estBackOffice(session.role)) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
-  const role = req.nextUrl.searchParams.get("role"); // "ADMIN" | "COMMERCIAL" | absent = tous
+  const role = req.nextUrl.searchParams.get("role"); // un rôle, ou absent = tous
+  if (role !== null && !ROLES.includes(role as RoleApp)) return NextResponse.json({ error: "Rôle invalide." }, { status: 400 });
+
+  // Les filtres « commercial » des pages (visites, rapports, tracking…) n'ont besoin que
+  // de la liste des commerciaux, sans coordonnées : ouverte à tout le back-office.
+  // La liste complète des comptes est réservée à la gestion des utilisateurs.
+  if (!peut(session.role, "utilisateurs")) {
+    if (role !== "COMMERCIAL") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+    const commerciaux = await prisma.user.findMany({
+      where: { role: "COMMERCIAL" },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, identifiant: true, nom: true, prenom: true, role: true, actif: true, villeId: true },
+    });
+    return NextResponse.json({ users: commerciaux });
+  }
 
   const users = await prisma.user.findMany({
-    where: role ? { role: role as "ADMIN" | "COMMERCIAL" } : {},
+    where: role ? { role: role as RoleApp } : {},
     orderBy: [{ role: "asc" }, { createdAt: "desc" }],
     select: {
       id: true,
@@ -29,13 +44,13 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aAcces(session, "utilisateurs")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const { identifiant, motDePasse, nom, prenom, telephone, role, villeId } = await req.json();
   if (!identifiant || !motDePasse || !nom || !prenom || !role) {
     return NextResponse.json({ error: "Champs requis manquants." }, { status: 400 });
   }
-  if (role !== "ADMIN" && role !== "COMMERCIAL") {
+  if (!ROLES.includes(role)) {
     return NextResponse.json({ error: "Rôle invalide." }, { status: 400 });
   }
 

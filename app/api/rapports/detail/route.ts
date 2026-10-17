@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
+import { aAcces } from "@/lib/permissions";
 import type { GroupBy } from "@/lib/rapports";
 import { detailRapport } from "@/lib/rapportDetail";
 
@@ -8,7 +9,7 @@ const GROUPES_VALIDES: GroupBy[] = ["commercial", "pointVente", "ville", "quarti
 /** Détail d'une ligne de rapport (aperçu + impression individuelle). */
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") {
+  if (!aAcces(session, "rapports")) {
     return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
   }
 
