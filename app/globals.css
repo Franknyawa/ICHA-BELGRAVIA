@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 :root {
+  --font-cormorant: 'Cormorant Garamond';
+  --font-jost: 'Jost';
+  --font-menu: 'Plus Jakarta Sans';
   /* Mode clair — par défaut. Ivoire + or, esprit maison de spiritueux haut de gamme. */
   --color-bg: 250 246 239;          /* #FAF6EF */
   --color-bg-elevated: 255 255 255; /* #FFFFFF */

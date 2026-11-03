@@ -1,27 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Jost, Plus_Jakarta_Sans } from "next/font/google";
+// Polices auto-hébergées (paquets @fontsource) : le build ne dépend plus de Google Fonts.
+import "@fontsource/cormorant-garamond/latin-400.css";
+import "@fontsource/cormorant-garamond/latin-500.css";
+import "@fontsource/cormorant-garamond/latin-600.css";
+import "@fontsource/cormorant-garamond/latin-700.css";
+import "@fontsource/cormorant-garamond/latin-400-italic.css";
+import "@fontsource/cormorant-garamond/latin-500-italic.css";
+import "@fontsource/cormorant-garamond/latin-600-italic.css";
+import "@fontsource/cormorant-garamond/latin-700-italic.css";
+import "@fontsource/jost/latin-400.css";
+import "@fontsource/jost/latin-500.css";
+import "@fontsource/jost/latin-600.css";
+import "@fontsource/jost/latin-700.css";
+// Police du menu latéral : géométrique, très lisible en petit et en gras.
+import "@fontsource/plus-jakarta-sans/latin-500.css";
+import "@fontsource/plus-jakarta-sans/latin-600.css";
+import "@fontsource/plus-jakarta-sans/latin-700.css";
+import "@fontsource/plus-jakarta-sans/latin-800.css";
 import "./globals.css";
 import RegisterServiceWorker from "@/components/RegisterServiceWorker";
-
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  variable: "--font-cormorant",
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-});
-
-const jost = Jost({
-  subsets: ["latin"],
-  variable: "--font-jost",
-  weight: ["400", "500", "600", "700"],
-});
-
-// Police du menu latéral : géométrique, très lisible en petit et en gras.
-const menu = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-menu",
-  weight: ["500", "600", "700", "800"],
-});
 
 export const metadata: Metadata = {
   title: "BELGRAVIA / VDV by SIRI IMPORT",
@@ -54,7 +51,7 @@ const THEME_INIT_SCRIPT = `
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${cormorant.variable} ${jost.variable} ${menu.variable}`}>
+    <html lang="fr">
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
