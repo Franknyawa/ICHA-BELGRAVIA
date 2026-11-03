@@ -53,6 +53,16 @@
 }
 
 @layer components {
+  /* Pastille sombre sous le logo doré quand le fond de la page est clair. */
+  .logo-plaque {
+    @apply inline-flex items-center justify-center rounded-lg px-3 py-2 shadow-[inset_0_0_0_1px_rgb(230_204_154/0.25)];
+    background: linear-gradient(135deg, #14070f 0%, #2a1020 100%);
+  }
+  [data-theme="dark"] .logo-plaque {
+    background: transparent;
+    box-shadow: none;
+  }
+
   .btn-primary {
     @apply relative inline-flex items-center justify-center gap-2 rounded-md bg-brass px-5 py-3 text-sm font-semibold text-bg shadow-[0_2px_10px_-2px_rgb(var(--color-brass)/0.55)] transition-all hover:-translate-y-px hover:shadow-[0_6px_18px_-4px_rgb(var(--color-brass)/0.65)] active:translate-y-0 disabled:opacity-40 disabled:pointer-events-none disabled:shadow-none disabled:translate-y-0;
   }

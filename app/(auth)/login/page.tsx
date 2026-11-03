@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import ThemeToggle from "@/components/ThemeToggle";
 import ChampagneScene from "@/components/ChampagneScene";
 import GoldRule from "@/components/GoldRule";
+import LogoSiri from "@/components/LogoSiri";
 import InstallButton from "@/components/InstallButton";
 import { IconUser, IconLock } from "@/components/icons";
 import { Spinner, ChargementPage } from "@/components/Spinner";
@@ -168,7 +169,8 @@ function LoginForm() {
         <div aria-hidden className="pointer-events-none absolute inset-5 rounded-sm border border-[#E6CC9A]/20" />
 
         <header className="relative">
-          <p className="font-display text-3xl italic leading-none text-[#F7EBD0]">Belgravia / VDV</p>
+          <LogoSiri hauteur={92} />
+          <p className="mt-4 font-display text-3xl italic leading-none text-[#F7EBD0]">Belgravia / VDV</p>
           <p className="mt-2 text-xs tracking-[0.22em] text-[#E6CC9A]/80">by SIRI IMPORT</p>
         </header>
 
@@ -218,9 +220,9 @@ function LoginForm() {
             style={{ background: "radial-gradient(70% 70% at 50% 40%, rgba(122,32,62,0.55) 0%, transparent 70%)" }}
           />
           <div className="relative">
-            <ChampagneScene className="mx-auto h-40 w-auto" />
+            <LogoSiri hauteur={72} className="mx-auto flex justify-center" />
+            <ChampagneScene className="mx-auto mt-3 h-32 w-auto" />
             <p className="mt-4 font-display text-4xl italic leading-none text-[#F7EBD0]">Belgravia / VDV</p>
-            <p className="mt-2 text-xs tracking-[0.22em] text-[#E6CC9A]/80">by SIRI IMPORT</p>
           </div>
         </div>
 

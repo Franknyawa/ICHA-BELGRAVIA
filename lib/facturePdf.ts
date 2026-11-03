@@ -2,6 +2,7 @@
 
 import { libelleModePaiement } from "./pricing";
 import { NOM_APP, NOM_APP_COMPLET, SIGNATURE_APP } from "./marque";
+import { ajouterLogoPdf } from "./logoPdf";
 
 /**
  * Formate un montant avec un point comme séparateur de milliers
@@ -67,13 +68,16 @@ export async function genererFacturePdf(data: FactureData) {
   doc.setFillColor(...COULEUR_OR);
   doc.rect(0, 34, largeur, 4, "F");
 
+  const largeurLogo = await ajouterLogoPdf(doc, 14, 4, 26);
+  const xTexte = largeurLogo ? 14 + largeurLogo + 6 : 14;
+
   doc.setTextColor(...COULEUR_IVOIRE);
   doc.setFont("times", "italic");
   doc.setFontSize(20);
-  doc.text(NOM_APP, 14, 18);
+  doc.text(NOM_APP, xTexte, 18);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text(data.gammeNom ? `${SIGNATURE_APP} — Gamme ${data.gammeNom}` : SIGNATURE_APP, 14, 25);
+  doc.text(data.gammeNom ? `${SIGNATURE_APP} — Gamme ${data.gammeNom}` : SIGNATURE_APP, xTexte, 25);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(15);

@@ -28,6 +28,7 @@ const config: Config = {
       fontFamily: {
         display: ["var(--font-cormorant)", "serif"],
         sans: ["var(--font-jost)", "sans-serif"],
+        menu: ["var(--font-menu)", "var(--font-jost)", "sans-serif"],
       },
       borderRadius: {
         sm: "4px",

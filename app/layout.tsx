@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Jost } from "next/font/google";
+import { Cormorant_Garamond, Jost, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import RegisterServiceWorker from "@/components/RegisterServiceWorker";
 
@@ -14,6 +14,13 @@ const jost = Jost({
   subsets: ["latin"],
   variable: "--font-jost",
   weight: ["400", "500", "600", "700"],
+});
+
+// Police du menu latéral : géométrique, très lisible en petit et en gras.
+const menu = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-menu",
+  weight: ["500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -47,7 +54,7 @@ const THEME_INIT_SCRIPT = `
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${cormorant.variable} ${jost.variable}`}>
+    <html lang="fr" className={`${cormorant.variable} ${jost.variable} ${menu.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
