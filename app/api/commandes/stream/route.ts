@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getSession } from "@/lib/auth";
+import { aAcces } from "@/lib/permissions";
 import { visiteEvents, NOUVELLE_COMMANDE } from "@/lib/events";
 
 export const dynamic = "force-dynamic";
@@ -7,7 +8,7 @@ export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "ADMIN") {
+  if (!aAcces(session, "commandes")) {
     return new Response("Non autorisé.", { status: 403 });
   }
 

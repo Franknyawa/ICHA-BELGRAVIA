@@ -4,3 +4,7 @@ node_modules
 public/uploads
 *.tsbuildinfo
 .DS_Store
+
+# Sauvegardes générées par les scripts de purge (données de test)
+sauvegarde-*.json
+photos-*.txt
