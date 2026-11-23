@@ -48,12 +48,16 @@ export async function genererRapportConcurrence(f: {
   dateTo?: string | null;
   villeId?: string | null;
   quartier?: string | null;
+  pointVenteId?: string | null;
+  // FORT | MOYEN | FAIBLE | NON_EVALUE : potentiel estimé lors de la dernière visite du point.
+  potentiel?: string | null;
 }): Promise<RapportConcurrence> {
   const plage = intervalleJours(f.dateFrom, f.dateTo);
 
   const visites = await prisma.visite.findMany({
     where: {
       ...(plage ? { dateVisite: plage } : {}),
+      ...(f.pointVenteId ? { pointVenteId: f.pointVenteId } : {}),
       pointVente: {
         ...(f.villeId ? { villeId: f.villeId } : {}),
         ...(f.quartier ? { quartier: { contains: f.quartier, mode: "insensitive" as const } } : {}),
@@ -62,6 +66,7 @@ export async function genererRapportConcurrence(f: {
     orderBy: { dateVisite: "desc" },
     select: {
       pointVenteId: true,
+      potentielEstime: true,
       marquesPresentes: {
         select: { libelleLibre: true, categorie: true, prix: true, marque: { select: { nom: true, categorie: true } } },
       },
@@ -71,6 +76,13 @@ export async function genererRapportConcurrence(f: {
   // Dernière visite de chaque point (les visites sont déjà triées de la plus récente à la plus ancienne).
   const derniereParPoint = new Map<string, (typeof visites)[number]>();
   for (const v of visites) if (!derniereParPoint.has(v.pointVenteId)) derniereParPoint.set(v.pointVenteId, v);
+  // Filtre « potentiel » : sur le potentiel noté à la dernière visite de chaque point.
+  if (f.potentiel && ["FORT", "MOYEN", "FAIBLE", "NON_EVALUE"].includes(f.potentiel)) {
+    for (const [id, v] of derniereParPoint) {
+      const p = v.potentielEstime ?? "NON_EVALUE";
+      if (p !== f.potentiel) derniereParPoint.delete(id);
+    }
+  }
   const totalPoints = derniereParPoint.size;
 
   type Agg = { variantes: Map<string, number>; catalogue?: string; points: number; prix: number[] };

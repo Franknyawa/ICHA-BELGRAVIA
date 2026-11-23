@@ -11,7 +11,9 @@ import type { RapportConcurrence } from "@/lib/concurrence";
 type Onglet = "TOUTES" | "RTD" | "MOUSSEUX" | "NON_CLASSEE";
 // Une couleur par catégorie pour les distinguer d'un coup d'œil (barres, pastilles, onglets).
 const COULEUR: Record<string, string> = { RTD: "#2E8B7A", MOUSSEUX: "#B8892B", NON_CLASSEE: "#8A8A8A" };
-const FILTRES_VIDES = { dateFrom: "", dateTo: "", villeId: "", quartier: "" };
+const FILTRES_VIDES = { dateFrom: "", dateTo: "", villeId: "", quartier: "", pointVenteId: "", potentiel: "" };
+const LIBELLE_POTENTIEL: Record<string, string> = { FORT: "Fort", MOYEN: "Moyen", FAIBLE: "Faible", NON_EVALUE: "Non évalué" };
+type PointSuggere = { id: string; nomEtablissement: string; quartier: string | null; ville: { nom: string } | null };
 const fcfa = (n: number | null) => (n === null ? "—" : `${n.toLocaleString("fr-FR")} FCFA`);
 const pct = (n: number) => `${n.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`;
 
@@ -22,6 +24,32 @@ export default function ConcurrencePage() {
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState("");
   const [onglet, setOnglet] = useState<Onglet>("TOUTES");
+  // Sélection d'un point de vente précis : recherche par nom, puis choix dans la liste.
+  const [pointChoisi, setPointChoisi] = useState<PointSuggere | null>(null);
+  const [recherchePoint, setRecherchePoint] = useState("");
+  const [suggestions, setSuggestions] = useState<PointSuggere[]>([]);
+  const [listeOuverte, setListeOuverte] = useState(false);
+
+  useEffect(() => {
+    if (pointChoisi || recherchePoint.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    const t = setTimeout(() => {
+      fetch(`/api/points-vente?q=${encodeURIComponent(recherchePoint.trim())}`)
+        .then((r) => (r.ok ? r.json() : { items: [] }))
+        .then((d) => setSuggestions(d.items || []))
+        .catch(() => setSuggestions([]));
+    }, 300);
+    return () => clearTimeout(t);
+  }, [recherchePoint, pointChoisi]);
+
+  function choisirPoint(p: PointSuggere | null) {
+    setPointChoisi(p);
+    setRecherchePoint("");
+    setListeOuverte(false);
+    setFiltres((f) => ({ ...f, pointVenteId: p?.id ?? "" }));
+  }
   const [exportEnCours, setExportEnCours] = useState<"pdf" | "csv" | null>(null);
 
   useEffect(() => {
@@ -57,6 +85,8 @@ export default function ConcurrencePage() {
     const ville = villes.find((v) => v.id === filtres.villeId);
     if (ville) p.push(`Ville : ${ville.nom}`);
     if (filtres.quartier) p.push(`Quartier : ${filtres.quartier}`);
+    if (pointChoisi) p.push(`Point de vente : ${pointChoisi.nomEtablissement}`);
+    if (filtres.potentiel) p.push(`Potentiel : ${LIBELLE_POTENTIEL[filtres.potentiel]}`);
     p.push(`${rapport?.totalPoints ?? 0} point(s) recensé(s)`);
     return p.join(" · ");
   };
@@ -153,8 +183,43 @@ export default function ConcurrencePage() {
           {villes.map((v) => <option key={v.id} value={v.id}>{v.nom}</option>)}
         </select>
         <input className="field-input max-w-[180px]" placeholder="Quartier…" value={filtres.quartier} onChange={(e) => setFiltres({ ...filtres, quartier: e.target.value })} />
-        {(filtres.dateFrom || filtres.dateTo || filtres.villeId || filtres.quartier) && (
-          <button className="btn-secondary" onClick={() => setFiltres(FILTRES_VIDES)}>Réinitialiser</button>
+        <select className="field-input max-w-[170px]" value={filtres.potentiel} onChange={(e) => setFiltres({ ...filtres, potentiel: e.target.value })} aria-label="Potentiel">
+          <option value="">Tous les potentiels</option>
+          {Object.entries(LIBELLE_POTENTIEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+        <div className="relative">
+          {pointChoisi ? (
+            <span className="field-input flex max-w-[260px] items-center gap-2">
+              <span className="truncate font-semibold text-ink">{pointChoisi.nomEtablissement}</span>
+              <button type="button" onClick={() => choisirPoint(null)} aria-label="Retirer le point de vente" className="text-ink-muted hover:text-danger">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
+            </span>
+          ) : (
+            <input
+              className="field-input max-w-[240px]"
+              placeholder="Point de vente (nom)…"
+              value={recherchePoint}
+              onChange={(e) => { setRecherchePoint(e.target.value); setListeOuverte(true); }}
+              onFocus={() => setListeOuverte(true)}
+              onBlur={() => setTimeout(() => setListeOuverte(false), 150)}
+            />
+          )}
+          {listeOuverte && suggestions.length > 0 && (
+            <ul className="absolute left-0 top-full z-20 mt-1 max-h-64 w-72 overflow-y-auto rounded-lg border border-line bg-bg-elevated shadow-lg">
+              {suggestions.map((s) => (
+                <li key={s.id}>
+                  <button type="button" onMouseDown={() => choisirPoint(s)} className="block w-full px-3 py-2 text-left text-sm hover:bg-brass/10">
+                    <span className="font-semibold text-ink">{s.nomEtablissement}</span>
+                    <span className="block text-xs text-ink-muted">{[s.quartier, s.ville?.nom].filter(Boolean).join(" · ") || "—"}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        {(filtres.dateFrom || filtres.dateTo || filtres.villeId || filtres.quartier || filtres.pointVenteId || filtres.potentiel) && (
+          <button className="btn-secondary" onClick={() => { setFiltres(FILTRES_VIDES); setPointChoisi(null); setRecherchePoint(""); }}>Réinitialiser</button>
         )}
       </div>
 

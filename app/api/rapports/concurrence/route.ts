@@ -16,6 +16,8 @@ export async function GET(req: NextRequest) {
     dateTo: p.get("dateTo"),
     villeId: p.get("villeId"),
     quartier: p.get("quartier")?.trim() || null,
+    pointVenteId: p.get("pointVenteId"),
+    potentiel: p.get("potentiel"),
   });
   return NextResponse.json(rapport);
 }
