@@ -4,16 +4,19 @@ import { trouverPrixCarton } from "@/lib/pricing";
 /**
  * Caisse : recettes et dépenses, reliées au stock de produits.
  *
- * - Recettes de ventes : lues directement dans les commandes (montantRecu,
- *   c.-à-d. l'argent réellement encaissé — un crédit n'entre en caisse qu'au
- *   moment où il est encaissé, via une opération ENCAISSEMENT_CREDIT).
- * - Autres mouvements d'argent : table OperationCaisse (saisie manuelle).
- * - Achat de stock : une dépense REAPPROVISIONNEMENT crée en même temps
- *   l'entrée de stock correspondante (voir enregistrerAchatStock).
+ * Circuit d'une commande : le commercial l'enregistre → l'admin la valide
+ * (« Valider et autoriser la livraison ») → « Effectuer la livraison » (la
+ * commande passe LIVREE et son montant entre dans « Commandes à encaisser »)
+ * → « Encaisser » dans la caisse, qui crée une opération ENCAISSEMENT_COMMANDE
+ * et fait seulement alors bouger le solde.
+ *
+ * Source unique de vérité : la table OperationCaisse. Une commande ne crée
+ * jamais d'argent en caisse par elle-même (le montant « reçu » déclaré par le
+ * commercial reste une simple information).
+ * Reste à encaisser d'une commande = montantTotal − Σ de ses encaissements.
  */
 
 export const CATEGORIES_RECETTE = {
-  ENCAISSEMENT_CREDIT: "Encaissement d'un crédit client",
   AUTRE_RECETTE: "Autre recette",
 } as const;
 
@@ -25,8 +28,13 @@ export const CATEGORIES_DEPENSE = {
   AUTRE_DEPENSE: "Autre dépense",
 } as const;
 
+/** Catégories réservées (jamais saisies via le formulaire « autre recette / dépense »). */
+export const CATEGORIES_ENCAISSEMENT = ["ENCAISSEMENT_COMMANDE", "ENCAISSEMENT_CREDIT"] as const;
+
 export const LIBELLE_CATEGORIE: Record<string, string> = {
-  VENTE: "Vente",
+  ENCAISSEMENT_COMMANDE: "Encaissement de commande",
+  ENCAISSEMENT_CREDIT: "Encaissement de crédit",
+  TRANSFERT: "Transfert",
   ...CATEGORIES_RECETTE,
   ...CATEGORIES_DEPENSE,
 };
@@ -37,6 +45,7 @@ export const MODES_CAISSE = {
   ORANGE_MONEY: "Orange Money",
   MTN_MOMO: "MTN MoMo",
   MOBILE_MONEY: "Mobile Money (opérateur non précisé)",
+  BANQUE: "Banque",
 } as const;
 export type ModeCaisse = keyof typeof MODES_CAISSE;
 
@@ -56,7 +65,20 @@ export function modeDeVente(c: { modePaiement: string; operateurMobile: string |
 }
 
 export function modeOperation(m: string | null | undefined): ModeCaisse {
-  return m === "ORANGE_MONEY" || m === "MTN_MOMO" || m === "MOBILE_MONEY" ? m : "ESPECES";
+  return m === "ORANGE_MONEY" || m === "MTN_MOMO" || m === "MOBILE_MONEY" || m === "BANQUE" ? m : "ESPECES";
+}
+
+/** Les 3 canaux affichés : Espèces, OM/MOMO (Orange + MTN + non précisé), Banque. */
+export type Canal = "ESPECES" | "OM_MOMO" | "BANQUE";
+export const LIBELLE_CANAL: Record<Canal, string> = { ESPECES: "Espèces", OM_MOMO: "OM/MOMO", BANQUE: "Banque" };
+export function canalDe(m: ModeCaisse): Canal {
+  return m === "ESPECES" ? "ESPECES" : m === "BANQUE" ? "BANQUE" : "OM_MOMO";
+}
+/** Mode stocké pour un canal choisi à l'écran (le mobile reprend l'opérateur de la commande s'il est connu). */
+export function modePourCanal(canal: unknown, operateurCommande?: string | null): ModeCaisse | null {
+  if (canal === "ESPECES" || canal === "BANQUE") return canal;
+  if (canal === "OM_MOMO") return operateurCommande === "ORANGE_MONEY" || operateurCommande === "MTN_MOMO" ? operateurCommande : "MOBILE_MONEY";
+  return null;
 }
 
 export type DetailsCommande = {
@@ -68,7 +90,17 @@ export type DetailsCommande = {
   agent: string;
   modePaiementCommande: string;
   montantTotal: number;
+  /** Reste à encaisser (montantTotal − encaissements enregistrés). */
   reste: number;
+};
+
+/** Commande livrée dont le montant (ou une partie) reste à encaisser. */
+export type AEncaisser = DetailsCommande & {
+  date: string; // date de la commande
+  livreeLe: string | null;
+  datePrevue: string | null; // livraison / encaissement prévu
+  enRetard: boolean;
+  encaisse: number;
 };
 
 export type LigneJournal = {
@@ -77,9 +109,8 @@ export type LigneJournal = {
   type: "RECETTE" | "DEPENSE";
   categorie: string;
   libelle: string;
-  montant: number; // argent réellement entré / sorti
-  credit: number; // montant laissé à crédit lors de la vente (info)
-  source: "VENTE" | "ENCAISSEMENT" | "MANUEL";
+  montant: number;
+  source: "ENCAISSEMENT" | "TRANSFERT" | "MANUEL";
   mode: ModeCaisse | null;
   details?: DetailsCommande;
   produit?: string | null;
@@ -128,11 +159,11 @@ export async function enregistrerAchatStock(
   return mouvement;
 }
 
-/** Encaissements enregistrés par commande (déjà inclus dans commande.montantRecu). */
+/** Encaissements enregistrés par commande (nouveaux encaissements et anciens « crédits »). */
 export async function encaisseParCommande(ids?: string[]): Promise<Map<string, number>> {
   const rows = await prisma.operationCaisse.groupBy({
     by: ["commandeId"],
-    where: { categorie: "ENCAISSEMENT_CREDIT", commandeId: ids ? { in: ids } : { not: null } },
+    where: { categorie: { in: [...CATEGORIES_ENCAISSEMENT] }, commandeId: ids ? { in: ids } : { not: null } },
     _sum: { montant: true },
   });
   const m = new Map<string, number>();
@@ -140,44 +171,38 @@ export async function encaisseParCommande(ids?: string[]): Promise<Map<string, n
   return m;
 }
 
-export type SoldeParMode = Record<ModeCaisse, { recettes: number; depenses: number; solde: number }>;
+export type SoldeParCanal = Record<Canal, number>;
 
 /**
- * Cumul depuis le début, total et par moyen de paiement.
- * Recettes = argent encaissé à la vente (commande.montantRecu moins les encaissements
- * ultérieurs, comptés à part à leur date) + opérations de recette ; dépenses = opérations de dépense.
+ * Cumul depuis le début : tout vient des opérations de caisse.
+ * Les transferts déplacent l'argent d'un canal à l'autre : ils comptent dans
+ * le solde de chaque canal mais ni dans les recettes ni dans les dépenses.
  */
 export async function soldeGlobal() {
-  const [commandes, linked, ops] = await Promise.all([
-    prisma.commande.findMany({
-      where: { montantRecu: { gt: 0 } },
-      select: { id: true, modePaiement: true, operateurMobile: true, montantRecu: true },
-    }),
-    encaisseParCommande(),
-    prisma.operationCaisse.groupBy({ by: ["type", "modePaiement"], _sum: { montant: true } }),
-  ]);
-
-  const vide = () => ({ recettes: 0, depenses: 0, solde: 0 });
-  const parMode: SoldeParMode = { ESPECES: vide(), ORANGE_MONEY: vide(), MTN_MOMO: vide(), MOBILE_MONEY: vide() };
-
-  for (const c of commandes) {
-    const initial = Math.max(0, Number(c.montantRecu) - (linked.get(c.id) ?? 0));
-    parMode[modeDeVente(c)].recettes += initial;
-  }
-  for (const o of ops) {
-    const m = modeOperation(o.modePaiement);
-    const v = Number(o._sum.montant || 0);
-    if (o.type === "RECETTE") parMode[m].recettes += v;
-    else parMode[m].depenses += v;
-  }
+  const ops = await prisma.operationCaisse.groupBy({ by: ["type", "modePaiement", "categorie"], _sum: { montant: true } });
+  const parMode: Record<ModeCaisse, number> = { ESPECES: 0, ORANGE_MONEY: 0, MTN_MOMO: 0, MOBILE_MONEY: 0, BANQUE: 0 };
   let recettes = 0;
   let depenses = 0;
-  for (const m of Object.keys(parMode) as ModeCaisse[]) {
-    parMode[m].solde = parMode[m].recettes - parMode[m].depenses;
-    recettes += parMode[m].recettes;
-    depenses += parMode[m].depenses;
+  for (const o of ops) {
+    const v = Number(o._sum.montant || 0);
+    const signe = o.type === "RECETTE" ? 1 : -1;
+    parMode[modeOperation(o.modePaiement)] += signe * v;
+    if (o.categorie === "TRANSFERT") continue;
+    if (o.type === "RECETTE") recettes += v;
+    else depenses += v;
   }
-  return { recettes, depenses, solde: recettes - depenses, parMode };
+  const parCanal: SoldeParCanal = {
+    ESPECES: parMode.ESPECES,
+    OM_MOMO: parMode.ORANGE_MONEY + parMode.MTN_MOMO + parMode.MOBILE_MONEY,
+    BANQUE: parMode.BANQUE,
+  };
+  return {
+    recettes,
+    depenses,
+    solde: parCanal.ESPECES + parCanal.OM_MOMO + parCanal.BANQUE,
+    parCanal,
+    detailMobile: { ORANGE_MONEY: parMode.ORANGE_MONEY, MTN_MOMO: parMode.MTN_MOMO, MOBILE_MONEY: parMode.MOBILE_MONEY },
+  };
 }
 
 /** Valorisation du stock présent (prix de vente de base et coût d'achat moyen). */

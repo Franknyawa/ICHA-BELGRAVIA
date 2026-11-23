@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { aEcriture } from "@/lib/permissions";
+import { dateValide, debutJour } from "@/lib/dates";
 
 const TRANSITIONS_VALIDES: Record<string, string[]> = {
   NON_TRAITEE: ["EN_COURS_LIVRAISON"],
@@ -22,7 +23,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
   }
 
-  const { statut } = await req.json();
+  const { statut, dateLivraison } = await req.json();
   if (!["NON_TRAITEE", "EN_COURS_LIVRAISON", "LIVREE"].includes(statut)) {
     return NextResponse.json({ error: "Statut invalide." }, { status: 400 });
   }
@@ -40,10 +41,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     );
   }
 
-  const misAJour = await prisma.commande.update({
-    where: { id: params.id },
-    data: { statut },
-  });
+  // Validation : date de livraison prévue (optionnelle). Livraison effectuée :
+  // la commande entre dans « Commandes à encaisser » de la caisse (livreeLe).
+  // L'update est conditionné à l'ancien statut : deux clics simultanés ne
+  // passent pas tous les deux.
+  const data: { statut: typeof statut; dateLivraison?: Date; livreeLe?: Date | null } = { statut };
+  if (statut === "EN_COURS_LIVRAISON" && dateValide(dateLivraison)) data.dateLivraison = debutJour(dateLivraison);
+  if (statut === "LIVREE") data.livreeLe = new Date();
+  if (statut === "NON_TRAITEE") data.livreeLe = null;
+
+  const { count } = await prisma.commande.updateMany({ where: { id: params.id, statut: commande.statut }, data });
+  if (count === 0) {
+    return NextResponse.json({ error: "Cette commande vient d'être modifiée. Rafraîchissez la page." }, { status: 409 });
+  }
+  const misAJour = { id: params.id, statut };
 
   if (statut === "EN_COURS_LIVRAISON") {
     const nomClient = commande.pointVente.nomVendeur || commande.pointVente.nomEtablissement;

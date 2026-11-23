@@ -34,6 +34,8 @@ export type FactureLigne = {
 };
 
 export type FactureData = {
+  /** "FACTURE" par défaut ; "BON DE COMMANDE" réutilise la même mise en page. */
+  titre?: string;
   numero: string;
   date: Date;
   gammeNom?: string; // ex. "Belgravia" ou "VDV" — affichée dans l'en-tête
@@ -81,7 +83,7 @@ export async function genererFacturePdf(data: FactureData) {
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(15);
-  doc.text("FACTURE", largeur - 14, 16, { align: "right" });
+  doc.text(data.titre || "FACTURE", largeur - 14, 16, { align: "right" });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.text(`N° ${data.numero}`, largeur - 14, 22, { align: "right" });

@@ -469,6 +469,10 @@ model Commande {
   montantRecu   Decimal      @default(0) @db.Decimal(12, 2) @map("montant_recu")
   resteAPayer   Decimal      @default(0) @db.Decimal(12, 2) @map("reste_a_payer")
 
+  // Renseigné quand l'admin clique « Effectuer la livraison » : c'est à cet
+  // instant que le montant entre dans « Commandes à encaisser » (caisse).
+  livreeLe     DateTime? @map("livree_le")
+
   createdAt    DateTime @default(now()) @map("created_at")
   archiveeLe   DateTime? @map("archivee_le")
 
@@ -564,6 +568,8 @@ model OperationCaisse {
   // Moyen par lequel l'argent est entré/sorti : ESPECES | MOBILE_MONEY (OM/MoMo)
   moyen           String   @default("ESPECES")
   mouvementStockId String? @map("mouvement_stock_id")
+  // Un transfert entre canaux = 2 lignes (sortie + entrée) partageant ce même identifiant.
+  transfertId     String?  @map("transfert_id")
   // Comment l'argent est entré / sorti : ESPECES | ORANGE_MONEY | MTN_MOMO.
   modePaiement    String?  @map("mode_paiement")
   creeParId       String?  @map("cree_par_id")

@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { aAcces } from "@/lib/permissions";
+import { aEcriture } from "@/lib/permissions";
 
 /**
  * Annule une opération de caisse.
  * - Achat de stock : retire aussi les cartons ajoutés.
- * - Encaissement de crédit : remet la somme en « reste à payer » sur la commande.
+ * - Encaissement de commande : la somme redevient « à encaisser » (le reste se déduit des encaissements).
+ * - Transfert : annule les deux lignes (sortie et entrée).
+ * - Ancien encaissement de crédit : remet la somme en « reste à payer » sur la commande.
  */
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const session = await getSession();
-  if (!aAcces(session, "caisse")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
+  if (!aEcriture(session, "caisse")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const op = await prisma.operationCaisse.findUnique({ where: { id: params.id } });
   if (!op) return NextResponse.json({ error: "Opération introuvable." }, { status: 404 });
@@ -36,7 +38,8 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
           });
         }
       }
-      await tx.operationCaisse.delete({ where: { id: op.id } });
+      if (op.transfertId) await tx.operationCaisse.deleteMany({ where: { transfertId: op.transfertId } });
+      else await tx.operationCaisse.delete({ where: { id: op.id } });
     });
   } catch (e) {
     if (e instanceof Error && e.message === "STOCK_INSUFFISANT") {

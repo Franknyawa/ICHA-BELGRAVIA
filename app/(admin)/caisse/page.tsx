@@ -22,7 +22,8 @@ import { aujourdhuiISO, ajouterJours } from "@/lib/dates";
 import { telechargerCsv } from "@/lib/csv";
 import { NOM_APP } from "@/lib/marque";
 
-type Mode = "ESPECES" | "ORANGE_MONEY" | "MTN_MOMO" | "MOBILE_MONEY";
+type Mode = "ESPECES" | "ORANGE_MONEY" | "MTN_MOMO" | "MOBILE_MONEY" | "BANQUE";
+type Canal = "ESPECES" | "OM_MOMO" | "BANQUE";
 type Details = {
   commandeId: string;
   pointVente: string;
@@ -34,7 +35,13 @@ type Details = {
   montantTotal: number;
   reste: number;
 };
-type Creance = Details & { date: string };
+type AEncaisser = Details & {
+  date: string;
+  livreeLe: string | null;
+  datePrevue: string | null;
+  enRetard: boolean;
+  encaisse: number;
+};
 type LigneJournal = {
   id: string;
   date: string;
@@ -42,8 +49,7 @@ type LigneJournal = {
   categorie: string;
   libelle: string;
   montant: number;
-  credit: number;
-  source: "VENTE" | "ENCAISSEMENT" | "MANUEL";
+  source: "ENCAISSEMENT" | "TRANSFERT" | "MANUEL";
   mode: Mode | null;
   details?: Details;
   produit?: string | null;
@@ -62,27 +68,27 @@ type LigneStock = {
 };
 type Donnees = {
   resume: {
-    recettesVentes: number;
     recettesEncaissements: number;
+    nbEncaissements: number;
     recettesAutres: number;
     recettes: number;
     depenses: number;
     solde: number;
-    creditAccorde: number;
-    creancesARecouvrer: number;
-    nbCreances: number;
-    parMode: Record<string, number>;
+    aEncaisser: number;
+    nbAEncaisser: number;
+    nbEnRetard: number;
+    parCanal: Record<Canal, number>;
     tronque: boolean;
   };
   global: {
     recettes: number;
     depenses: number;
     solde: number;
-    parMode: Record<Mode, { recettes: number; depenses: number; solde: number }>;
+    parCanal: Record<Canal, number>;
+    detailMobile: { ORANGE_MONEY: number; MTN_MOMO: number; MOBILE_MONEY: number };
   };
   stock: { lignes: LigneStock[]; totalCartons: number; valeurVente: number; valeurCout: number; coutInconnu: boolean };
-  creances: Creance[];
-  parCategorie: { categorie: string; type: string; montant: number }[];
+  aEncaisser: AEncaisser[];
   journal: LigneJournal[];
 };
 
@@ -90,8 +96,11 @@ const MODES: Record<Mode, string> = {
   ESPECES: "Espèces",
   ORANGE_MONEY: "Orange Money",
   MTN_MOMO: "MTN MoMo",
-  MOBILE_MONEY: "Mobile Money",
+  MOBILE_MONEY: "OM/MOMO",
+  BANQUE: "Banque",
 };
+const CANAUX: Record<Canal, string> = { ESPECES: "Espèces", OM_MOMO: "OM/MOMO", BANQUE: "Opération bancaire" };
+const canalDuMode = (m: Mode | null): Canal | null => (m === null ? null : m === "ESPECES" ? "ESPECES" : m === "BANQUE" ? "BANQUE" : "OM_MOMO");
 
 const CATEGORIES_RECETTE: Record<string, string> = {
   AUTRE_RECETTE: "Autre recette",
@@ -104,8 +113,9 @@ const CATEGORIES_DEPENSE: Record<string, string> = {
   AUTRE_DEPENSE: "Autre dépense",
 };
 const LIBELLE_CATEGORIE: Record<string, string> = {
-  VENTE: "Vente",
+  ENCAISSEMENT_COMMANDE: "Encaissement de commande",
   ENCAISSEMENT_CREDIT: "Encaissement de crédit",
+  TRANSFERT: "Transfert",
   ...CATEGORIES_RECETTE,
   ...CATEGORIES_DEPENSE,
 };
@@ -116,7 +126,7 @@ const jourFr = (iso: string) => {
   return `${j}/${m}/${a}`;
 };
 
-type Onglet = "ENCAISSEMENT" | "DEPENSE" | "RECETTE";
+type Onglet = "ENCAISSEMENT" | "DEPENSE" | "RECETTE" | "TRANSFERT";
 
 export default function CaissePage() {
   const aujourdhui = aujourdhuiISO();
@@ -125,8 +135,8 @@ export default function CaissePage() {
   const [data, setData] = useState<Donnees | null>(null);
   const [chargement, setChargement] = useState(true);
   const [erreurPage, setErreurPage] = useState<string | null>(null);
-  const [filtreMode, setFiltreMode] = useState<"" | Mode>("");
-  const [filtreSource, setFiltreSource] = useState<"" | "VENTE" | "ENCAISSEMENT" | "MANUEL" | "CREDIT">("");
+  const [filtreCanal, setFiltreCanal] = useState<"" | Canal>("");
+  const [filtreSource, setFiltreSource] = useState<"" | "ENCAISSEMENT" | "TRANSFERT" | "MANUEL">("");
 
   // Formulaire
   const [onglet, setOnglet] = useState<Onglet>("ENCAISSEMENT");
@@ -135,9 +145,10 @@ export default function CaissePage() {
   const [libelle, setLibelle] = useState("");
   const [produitId, setProduitId] = useState("");
   const [cartons, setCartons] = useState("");
-  const [mode, setMode] = useState<"ESPECES" | "ORANGE_MONEY" | "MTN_MOMO">("ESPECES");
+  const [canal, setCanal] = useState<Canal>("ESPECES");
+  const [versCanal, setVersCanal] = useState<Canal>("BANQUE");
   const [commandeId, setCommandeId] = useState("");
-  const [rechercheCreance, setRechercheCreance] = useState("");
+  const [recherche, setRecherche] = useState("");
   const [date, setDate] = useState(aujourdhui);
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -175,20 +186,23 @@ export default function CaissePage() {
   ];
 
   const estEncaissement = onglet === "ENCAISSEMENT";
+  const estTransfert = onglet === "TRANSFERT";
   const type: "RECETTE" | "DEPENSE" = onglet === "RECETTE" ? "RECETTE" : onglet === "DEPENSE" ? "DEPENSE" : "RECETTE";
   const categories = onglet === "RECETTE" ? CATEGORIES_RECETTE : CATEGORIES_DEPENSE;
   const estAchatStock = onglet === "DEPENSE" && categorie === "REAPPROVISIONNEMENT";
   const produitChoisi = data?.stock.lignes.find((l) => l.produitId === produitId);
-  const creanceChoisie = data?.creances.find((c) => c.commandeId === commandeId);
+  const commandeChoisie = data?.aEncaisser.find((c) => c.commandeId === commandeId);
   const montantNum = Number(montant) || 0;
-  const soldeApres = data ? data.global.solde + (type === "RECETTE" ? montantNum : -montantNum) : 0;
+  const soldeCanal = data ? data.global.parCanal[canal] : 0;
 
-  const creancesFiltrees = useMemo(() => {
+  const aEncaisserFiltrees = useMemo(() => {
     if (!data) return [];
-    const q = rechercheCreance.trim().toLowerCase();
-    if (!q) return data.creances;
-    return data.creances.filter((c) => `${c.pointVente} ${c.localisation} ${c.client} ${c.agent}`.toLowerCase().includes(q));
-  }, [data, rechercheCreance]);
+    const q = recherche.trim().toLowerCase();
+    if (!q) return data.aEncaisser;
+    return data.aEncaisser.filter((c) => `${c.pointVente} ${c.localisation} ${c.client} ${c.agent}`.toLowerCase().includes(q));
+  }, [data, recherche]);
+  const enRetard = data?.aEncaisser.filter((c) => c.enRetard) ?? [];
+  const aVenir = data?.aEncaisser.filter((c) => !c.enRetard) ?? [];
 
   function changerOnglet(o: Onglet) {
     setOnglet(o);
@@ -197,9 +211,9 @@ export default function CaissePage() {
     setMontant("");
   }
 
-  function choisirCreance(id: string) {
+  function choisirCommande(id: string) {
     setCommandeId(id);
-    const c = data?.creances.find((x) => x.commandeId === id);
+    const c = data?.aEncaisser.find((x) => x.commandeId === id);
     setMontant(c ? String(c.reste) : "");
     setErreur(null);
   }
@@ -208,25 +222,29 @@ export default function CaissePage() {
     e.preventDefault();
     setErreur(null);
     if (estEncaissement && !commandeId) {
-      setErreur("Choisissez le crédit à encaisser.");
+      setErreur("Choisissez la commande à encaisser.");
+      return;
+    }
+    if (estTransfert && canal === versCanal) {
+      setErreur("Choisissez deux canaux différents.");
       return;
     }
     setEnCours(true);
     try {
-      const res = await fetch("/api/caisse", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type,
-          categorie: estEncaissement ? "ENCAISSEMENT_CREDIT" : categorie,
-          montant: montantNum,
-          libelle,
-          date,
-          modePaiement: mode,
-          ...(estEncaissement ? { commandeId } : {}),
-          ...(estAchatStock ? { produitId, quantiteCartons: parseInt(cartons, 10) } : {}),
-        }),
-      });
+      const corps = estEncaissement
+        ? { type: "ENCAISSEMENT", commandeId, montant: montantNum, canal, libelle, date }
+        : estTransfert
+          ? { type: "TRANSFERT", de: canal, vers: versCanal, montant: montantNum, libelle, date }
+          : {
+              type,
+              categorie,
+              montant: montantNum,
+              libelle,
+              date,
+              canal,
+              ...(estAchatStock ? { produitId, quantiteCartons: parseInt(cartons, 10) } : {}),
+            };
+      const res = await fetch("/api/caisse", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corps) });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) {
         setErreur(d.error || "Erreur lors de l'enregistrement.");
@@ -263,40 +281,38 @@ export default function CaissePage() {
     return `${du ? `Du ${jourFr(du)}` : ""} ${au ? `au ${jourFr(au)}` : ""}`.trim();
   }, [du, au, aujourdhui]);
 
-  // Journal filtré (mode de paiement / nature de l'opération), utilisé à l'écran et dans les exports.
+  // Journal filtré (canal / nature), utilisé à l'écran et dans les exports.
   const journal = useMemo(() => {
     if (!data) return [];
     return data.journal.filter((l) => {
-      if (filtreMode && l.mode !== filtreMode) return false;
-      if (filtreSource === "CREDIT") return l.credit > 0;
+      if (filtreCanal && canalDuMode(l.mode) !== filtreCanal) return false;
       if (filtreSource && l.source !== filtreSource) return false;
       return true;
     });
-  }, [data, filtreMode, filtreSource]);
+  }, [data, filtreCanal, filtreSource]);
 
-  const totauxJournal = useMemo(
-    () => ({
-      recettes: journal.filter((l) => l.type === "RECETTE").reduce((s, l) => s + l.montant, 0),
-      depenses: journal.filter((l) => l.type === "DEPENSE").reduce((s, l) => s + l.montant, 0),
-      credit: journal.reduce((s, l) => s + l.credit, 0),
-    }),
-    [journal]
-  );
+  // Les transferts déplacent l'argent sans le créer ni le dépenser : hors totaux.
+  const totauxJournal = useMemo(() => {
+    const hors = journal.filter((l) => l.source !== "TRANSFERT");
+    return {
+      recettes: hors.filter((l) => l.type === "RECETTE").reduce((s, l) => s + l.montant, 0),
+      depenses: hors.filter((l) => l.type === "DEPENSE").reduce((s, l) => s + l.montant, 0),
+    };
+  }, [journal]);
 
   const sousTitreExport = () =>
-    `${libellePeriode}${filtreMode ? ` · ${MODES[filtreMode]}` : ""}${filtreSource ? ` · ${{ VENTE: "Ventes", ENCAISSEMENT: "Encaissements", MANUEL: "Opérations manuelles", CREDIT: "Ventes à crédit" }[filtreSource]}` : ""} · Solde : ${fcfa(totauxJournal.recettes - totauxJournal.depenses)}`;
+    `${libellePeriode}${filtreCanal ? ` · ${CANAUX[filtreCanal]}` : ""}${filtreSource ? ` · ${{ ENCAISSEMENT: "Encaissements", TRANSFERT: "Transferts", MANUEL: "Opérations manuelles" }[filtreSource]}` : ""} · Résultat : ${fcfa(totauxJournal.recettes - totauxJournal.depenses)}`;
 
+  const canalTexte = (l: LigneJournal) => (l.mode ? CANAUX[canalDuMode(l.mode)!] : "—");
   const ligneExport = (l: LigneJournal) => ({
     date: new Date(l.date).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }),
     operation: LIBELLE_CATEGORIE[l.categorie] || l.categorie,
     pointVente: l.details?.pointVente || l.libelle,
     localisation: l.details?.localisation || "—",
     client: l.details ? `${l.details.client}${l.details.telephone ? ` (${l.details.telephone})` : ""}` : "—",
-    agent: l.details?.agent || "—",
-    mode: l.mode ? MODES[l.mode] : l.credit > 0 ? "Crédit" : "—",
-    credit: l.credit,
-    recette: l.type === "RECETTE" ? l.montant : 0,
-    depense: l.type === "DEPENSE" ? l.montant : 0,
+    canal: canalTexte(l),
+    recette: l.type === "RECETTE" && l.source !== "TRANSFERT" ? l.montant : 0,
+    depense: l.type === "DEPENSE" && l.source !== "TRANSFERT" ? l.montant : 0,
   });
 
   async function exporterPdf() {
@@ -309,16 +325,15 @@ export default function CaissePage() {
         colonnes: [
           { cle: "date", label: "Date" },
           { cle: "operation", label: "Opération" },
-          { cle: "pointVente", label: "Point de vente" },
+          { cle: "pointVente", label: "Point de vente / libellé" },
           { cle: "localisation", label: "Localisation" },
           { cle: "client", label: "Client" },
-          { cle: "mode", label: "Mode" },
-          { cle: "credit", label: "À crédit", droite: true, montant: true },
+          { cle: "canal", label: "Canal" },
           { cle: "recette", label: "Recette", droite: true, montant: true },
           { cle: "depense", label: "Dépense", droite: true, montant: true },
         ],
         lignes: journal.map(ligneExport),
-        totaux: { credit: totauxJournal.credit, recette: totauxJournal.recettes, depense: totauxJournal.depenses },
+        totaux: { recette: totauxJournal.recettes, depense: totauxJournal.depenses },
       });
     } finally {
       setExportEnCours(null);
@@ -330,7 +345,7 @@ export default function CaissePage() {
     try {
       telechargerCsv(
         "journal-de-caisse",
-        ["Date", "Opération", "Libellé", "Point de vente", "Localisation", "Client", "Téléphone client", "Agent", "Mode", "Montant de la commande", "À crédit", "Reste dû actuel", "Recette", "Dépense"],
+        ["Date", "Opération", "Libellé", "Point de vente", "Localisation", "Client", "Téléphone client", "Agent", "Canal", "Montant de la commande", "Reste à encaisser", "Recette", "Dépense", "Transfert (montant)"],
         journal.map((l) => [
           new Date(l.date).toLocaleString("fr-FR"),
           LIBELLE_CATEGORIE[l.categorie] || l.categorie,
@@ -340,12 +355,12 @@ export default function CaissePage() {
           l.details?.client || "",
           l.details?.telephone || "",
           l.details?.agent || "",
-          l.mode ? MODES[l.mode] : l.credit > 0 ? "Crédit" : "",
+          canalTexte(l),
           l.details?.montantTotal ?? "",
-          l.credit,
           l.details?.reste ?? "",
-          l.type === "RECETTE" ? l.montant : 0,
-          l.type === "DEPENSE" ? l.montant : 0,
+          l.type === "RECETTE" && l.source !== "TRANSFERT" ? l.montant : 0,
+          l.type === "DEPENSE" && l.source !== "TRANSFERT" ? l.montant : 0,
+          l.source === "TRANSFERT" ? (l.type === "RECETTE" ? l.montant : -l.montant) : "",
         ])
       );
     } finally {
@@ -368,8 +383,8 @@ export default function CaissePage() {
             Caisse
           </h1>
           <p className="text-sm text-ink-muted">
-            Reliée aux commandes des commerciaux : ventes comptant, acomptes, paiements Orange Money / MTN MoMo et crédits y figurent
-            automatiquement. Chaque encaissement de crédit met à jour la commande.
+            {new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} — reliée aux commandes livrées et au stock.
+            Le solde ne bouge qu'à l'encaissement.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -379,7 +394,7 @@ export default function CaissePage() {
           </button>
           <button className="btn-secondary" disabled={!data || exportEnCours !== null} onClick={exporterCsv}>
             <IconDownload className="h-4 w-4" />
-            CSV
+            Excel (CSV)
           </button>
           <button className="btn-secondary" disabled={!data} onClick={() => window.print()}>
             <IconPrinter className="h-4 w-4" />
@@ -430,35 +445,40 @@ export default function CaissePage() {
 
       {data && (
         <>
+          {/* Soldes cumulés */}
+          <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4 no-print">
+            <Kpi label="Solde en caisse (cumul)" valeur={fcfa(data.global.solde)} ton={data.global.solde < 0 ? "danger" : "brass"} fort detail="Encaissements validés + autres recettes − dépenses" />
+            {(["ESPECES", "OM_MOMO", "BANQUE"] as Canal[]).map((c) => (
+              <Kpi
+                key={c}
+                label={`Solde ${CANAUX[c] === "Opération bancaire" ? "banque" : CANAUX[c].toLowerCase()}`}
+                valeur={fcfa(data.global.parCanal[c])}
+                ton={data.global.parCanal[c] < 0 ? "danger" : "ink"}
+                detail={
+                  c === "OM_MOMO" && (data.global.detailMobile.ORANGE_MONEY || data.global.detailMobile.MTN_MOMO)
+                    ? `Orange ${fcfa(data.global.detailMobile.ORANGE_MONEY)} · MTN ${fcfa(data.global.detailMobile.MTN_MOMO)}`
+                    : `période : ${data.resume.parCanal[c] >= 0 ? "+" : ""}${fcfa(data.resume.parCanal[c])}`
+                }
+              />
+            ))}
+          </div>
+
           <p className="section-eyebrow mb-3 no-print">{libellePeriode}</p>
-          <div className="mb-3 grid grid-cols-2 gap-3 lg:grid-cols-5 no-print">
-            <Kpi label="Solde en caisse (cumul)" valeur={fcfa(data.global.solde)} ton={data.global.solde < 0 ? "danger" : "brass"} fort />
+          <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4 no-print">
             <Kpi
               label="Recettes"
               valeur={fcfa(data.resume.recettes)}
               ton="ok"
-              detail={`ventes ${fcfa(data.resume.recettesVentes)} · encaiss. ${fcfa(data.resume.recettesEncaissements)}`}
+              detail={`${data.resume.nbEncaissements} encaissement${data.resume.nbEncaissements > 1 ? "s" : ""} : ${fcfa(data.resume.recettesEncaissements)}`}
             />
-            <Kpi label="Dépenses" valeur={fcfa(data.resume.depenses)} ton="warn" />
-            <Kpi label="Résultat de la période" valeur={fcfa(data.resume.solde)} ton={data.resume.solde < 0 ? "danger" : "ink"} />
+            <Kpi label="Dépenses" valeur={fcfa(data.resume.depenses)} ton="warn" detail="achats de stock inclus" />
+            <Kpi label="Résultat" valeur={fcfa(data.resume.solde)} ton={data.resume.solde < 0 ? "danger" : "ink"} detail="recettes − dépenses" />
             <Kpi
-              label="Crédits à encaisser"
-              valeur={fcfa(data.resume.creancesARecouvrer)}
+              label="Commandes à encaisser"
+              valeur={fcfa(data.resume.aEncaisser)}
               ton="danger"
-              detail={`${data.resume.nbCreances} commande${data.resume.nbCreances > 1 ? "s" : ""} · toutes périodes`}
+              detail={`${data.resume.nbAEncaisser} commande${data.resume.nbAEncaisser > 1 ? "s" : ""} livrée${data.resume.nbAEncaisser > 1 ? "s" : ""}${data.resume.nbEnRetard ? ` · ${data.resume.nbEnRetard} en retard` : ""} · toutes périodes`}
             />
-          </div>
-
-          <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4 no-print">
-            {(Object.keys(MODES) as Mode[])
-              .filter((m) => m !== "MOBILE_MONEY" || data.global.parMode.MOBILE_MONEY.recettes > 0)
-              .map((m) => (
-                <div key={m} className="rounded-lg border border-line bg-bg-card px-3 py-2.5">
-                  <p className="text-[11px] text-ink-muted">Solde {MODES[m]}</p>
-                  <p className={`font-display text-lg ${data.global.parMode[m].solde < 0 ? "text-danger" : "text-ink"}`}>{fcfa(data.global.parMode[m].solde)}</p>
-                  <p className="text-[11px] text-ink-muted">période : +{fcfa(data.resume.parMode[m] || 0)}</p>
-                </div>
-              ))}
           </div>
 
           <div className="mb-8 grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] no-print">
@@ -468,14 +488,14 @@ export default function CaissePage() {
                 <IconPlus className="h-4 w-4" />
                 Nouvelle opération
               </p>
-              <div className="mb-3 grid grid-cols-3 gap-1 rounded-lg border border-line p-1">
-                {([["ENCAISSEMENT", "Encaisser un crédit"], ["DEPENSE", "Dépense"], ["RECETTE", "Autre recette"]] as const).map(([t, l]) => (
+              <div className="mb-3 grid grid-cols-4 gap-1 rounded-lg border border-line p-1">
+                {([["ENCAISSEMENT", "Encaisser"], ["DEPENSE", "Dépense"], ["RECETTE", "Autre recette"], ["TRANSFERT", "Transfert"]] as const).map(([t, l]) => (
                   <button
                     key={t}
                     type="button"
                     onClick={() => changerOnglet(t)}
-                    className={`rounded-md px-2 py-2 text-xs font-medium transition sm:text-sm ${
-                      onglet === t ? (t === "DEPENSE" ? "bg-brass text-white" : "bg-ok text-white") : "text-ink-muted hover:text-ink"
+                    className={`rounded-md px-1.5 py-2 text-xs font-medium transition sm:text-sm ${
+                      onglet === t ? (t === "DEPENSE" ? "bg-brass text-white" : t === "TRANSFERT" ? "bg-ink text-white" : "bg-ok text-white") : "text-ink-muted hover:text-ink"
                     }`}
                   >
                     {l}
@@ -484,44 +504,46 @@ export default function CaissePage() {
               </div>
 
               <div className="grid gap-2">
-                {estEncaissement ? (
+                {estEncaissement && (
                   <>
                     <input
                       className="field-input"
-                      placeholder="Rechercher un point de vente, un quartier, un client…"
-                      value={rechercheCreance}
-                      onChange={(e) => setRechercheCreance(e.target.value)}
+                      placeholder="Rechercher un point de vente, un quartier, un commercial…"
+                      value={recherche}
+                      onChange={(e) => setRecherche(e.target.value)}
                     />
-                    <select className="field-input" value={commandeId} onChange={(e) => choisirCreance(e.target.value)} required>
+                    <select className="field-input" value={commandeId} onChange={(e) => choisirCommande(e.target.value)} required>
                       <option value="">
-                        {data.creances.length === 0 ? "Aucun crédit à encaisser" : `Crédit à encaisser… (${creancesFiltrees.length})`}
+                        {data.aEncaisser.length === 0 ? "Aucune commande livrée à encaisser" : `Choisir la commande à encaisser… (${aEncaisserFiltrees.length})`}
                       </option>
-                      {creancesFiltrees.map((c) => (
+                      {aEncaisserFiltrees.map((c) => (
                         <option key={c.commandeId} value={c.commandeId}>
                           {c.pointVente} — {c.localisation} — reste {fcfa(c.reste)}
                         </option>
                       ))}
                     </select>
-                    {creanceChoisie && (
+                    {commandeChoisie && (
                       <div className="rounded-lg border border-brass/30 bg-brass/5 p-3 text-sm">
-                        <p className="font-medium text-ink">{creanceChoisie.pointVente}</p>
+                        <p className="font-medium text-ink">{commandeChoisie.pointVente}</p>
                         <p className="mt-1 flex items-center gap-1.5 text-xs text-ink-muted">
-                          <IconPin className="h-3.5 w-3.5" /> {creanceChoisie.localisation}
+                          <IconPin className="h-3.5 w-3.5" /> {commandeChoisie.localisation}
                         </p>
                         <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-muted">
-                          <IconUser className="h-3.5 w-3.5" /> Client : {creanceChoisie.client}
-                          {creanceChoisie.telephone ? ` · ${creanceChoisie.telephone}` : ""}
+                          <IconUser className="h-3.5 w-3.5" /> Client : {commandeChoisie.client}
+                          {commandeChoisie.telephone ? ` · ${commandeChoisie.telephone}` : ""}
                         </p>
                         <p className="mt-1 text-xs text-ink-muted">
-                          Agent : {creanceChoisie.agent} · {creanceChoisie.modePaiementCommande} · commande du {new Date(creanceChoisie.date).toLocaleDateString("fr-FR")}
+                          Commercial : {commandeChoisie.agent} · commande du {new Date(commandeChoisie.date).toLocaleDateString("fr-FR")}
                         </p>
                         <p className="mt-1 text-xs text-ink">
-                          Total {fcfa(creanceChoisie.montantTotal)} · <strong className="text-danger">reste {fcfa(creanceChoisie.reste)}</strong>
+                          Total {fcfa(commandeChoisie.montantTotal)}
+                          {commandeChoisie.encaisse > 0 && <> · déjà encaissé {fcfa(commandeChoisie.encaisse)}</>} · <strong className="text-danger">reste {fcfa(commandeChoisie.reste)}</strong>
                         </p>
                       </div>
                     )}
                   </>
-                ) : (
+                )}
+                {!estEncaissement && !estTransfert && (
                   <select className="field-input" value={categorie} onChange={(e) => setCategorie(e.target.value)}>
                     {Object.entries(categories).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                   </select>
@@ -545,32 +567,53 @@ export default function CaissePage() {
                   className="field-input"
                   type="number"
                   min={1}
-                  max={estEncaissement && creanceChoisie ? creanceChoisie.reste : undefined}
-                  placeholder={estAchatStock ? "Coût total de l'achat (FCFA)" : estEncaissement ? "Montant encaissé (FCFA)" : "Montant (FCFA)"}
+                  max={estEncaissement && commandeChoisie ? commandeChoisie.reste : undefined}
+                  placeholder={estAchatStock ? "Coût total de l'achat (FCFA)" : estEncaissement ? "Montant reçu du superviseur (FCFA)" : "Montant (FCFA)"}
                   value={montant}
                   onChange={(e) => setMontant(e.target.value)}
                   required
                 />
+
+                {estTransfert && <p className="text-xs font-medium text-ink-muted">De</p>}
                 <div className="grid grid-cols-3 gap-1">
-                  {(["ESPECES", "ORANGE_MONEY", "MTN_MOMO"] as const).map((m) => (
+                  {(Object.keys(CANAUX) as Canal[]).map((c) => (
                     <button
-                      key={m}
+                      key={c}
                       type="button"
-                      onClick={() => setMode(m)}
+                      onClick={() => setCanal(c)}
                       className={`rounded-md border px-2 py-2 text-xs font-medium transition sm:text-sm ${
-                        mode === m ? "border-brass bg-brass text-white" : "border-line text-ink-muted hover:border-brass hover:text-brass"
+                        canal === c ? "border-brass bg-brass text-white" : "border-line text-ink-muted hover:border-brass hover:text-brass"
                       }`}
                     >
-                      {MODES[m]}
+                      {CANAUX[c]}
                     </button>
                   ))}
                 </div>
+                {estTransfert && (
+                  <>
+                    <p className="text-xs font-medium text-ink-muted">Vers</p>
+                    <div className="grid grid-cols-3 gap-1">
+                      {(Object.keys(CANAUX) as Canal[]).map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setVersCanal(c)}
+                          className={`rounded-md border px-2 py-2 text-xs font-medium transition sm:text-sm ${
+                            versCanal === c ? "border-brass bg-brass text-white" : "border-line text-ink-muted hover:border-brass hover:text-brass"
+                          }`}
+                        >
+                          {CANAUX[c]}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
                 <input
                   className="field-input"
-                  placeholder={estAchatStock || estEncaissement ? "Note (optionnel)" : "Libellé (ex. paiement de M. Nkoulou)"}
+                  placeholder={estAchatStock || estEncaissement || estTransfert ? "Note (optionnel)" : "Libellé (ex. paiement de M. Nkoulou)"}
                   value={libelle}
                   onChange={(e) => setLibelle(e.target.value)}
-                  required={!estAchatStock && !estEncaissement}
+                  required={!estAchatStock && !estEncaissement && !estTransfert}
                 />
                 <label className="flex items-center gap-2 text-xs text-ink-muted">
                   Date
@@ -578,10 +621,10 @@ export default function CaissePage() {
                 </label>
               </div>
 
-              {estEncaissement && creanceChoisie && montantNum > 0 && (
+              {estEncaissement && commandeChoisie && montantNum > 0 && (
                 <p className="mt-3 rounded-md bg-ok/10 px-3 py-2 text-xs text-ink">
-                  Reste dû après cet encaissement : <strong>{fcfa(Math.max(0, creanceChoisie.reste - montantNum))}</strong>
-                  {creanceChoisie.reste - montantNum <= 0 && " — la commande sera soldée."}
+                  Reste à encaisser après cette opération : <strong>{fcfa(Math.max(0, commandeChoisie.reste - montantNum))}</strong>
+                  {commandeChoisie.reste - montantNum <= 0 && " — la commande sera soldée."}
                 </p>
               )}
               {estAchatStock && produitChoisi && Number(cartons) > 0 && (
@@ -590,60 +633,75 @@ export default function CaissePage() {
                   {montantNum > 0 && <> · coût de {fcfa(montantNum / parseInt(cartons, 10))} / carton</>}
                 </p>
               )}
-              {montantNum > 0 && type === "DEPENSE" && (
-                <p className={`mt-2 text-xs ${soldeApres < 0 ? "font-medium text-danger" : "text-ink-muted"}`}>
-                  Solde de caisse après l'opération : {fcfa(soldeApres)}
-                  {soldeApres < 0 && " — la caisse serait en négatif."}
+              {(onglet === "DEPENSE" || estTransfert) && montantNum > 0 && (
+                <p className={`mt-2 text-xs ${soldeCanal - montantNum < 0 ? "font-medium text-danger" : "text-ink-muted"}`}>
+                  Solde {CANAUX[canal].toLowerCase()} après l'opération : {fcfa(soldeCanal - montantNum)}
+                  {soldeCanal - montantNum < 0 && (estTransfert ? " — transfert refusé (solde insuffisant)." : " — ce canal serait en négatif.")}
                 </p>
               )}
               {erreur && <p className="mt-2 text-sm text-danger">{erreur}</p>}
               <button className="btn-primary mt-4 w-full" type="submit" disabled={enCours}>
-                {enCours ? "Enregistrement…" : estEncaissement ? "Enregistrer l'encaissement" : "Enregistrer l'opération"}
+                {enCours ? "Enregistrement…" : estEncaissement ? "Encaisser" : estTransfert ? "Effectuer le transfert" : "Enregistrer l'opération"}
               </button>
             </form>
 
-            {/* Crédits à encaisser + Stock */}
+            {/* Commandes à encaisser + Stock */}
             <div className="space-y-4">
               <div className="field-card">
                 <p className="section-eyebrow mb-3">
                   <IconAlert className="h-4 w-4" />
-                  Crédits à encaisser ({data.creances.length})
+                  Commandes à encaisser ({data.aEncaisser.length})
                 </p>
-                {data.creances.length === 0 ? (
-                  <p className="text-sm text-ink-muted">Aucun crédit en cours : toutes les commandes sont soldées.</p>
+                {data.aEncaisser.length === 0 ? (
+                  <p className="text-sm text-ink-muted">
+                    Rien à encaisser. Une commande apparaît ici dès que « Effectuer la livraison » est cliqué dans la page Commandes.
+                  </p>
                 ) : (
-                  <div className="max-h-[320px] overflow-auto rounded-lg border border-line">
-                    <table className="w-full text-sm">
-                      <thead className="sticky top-0 bg-bg-elevated text-left text-ink-muted">
-                        <tr>
-                          <th className="px-3 py-2 font-medium">Point de vente</th>
-                          <th className="px-3 py-2 font-medium">Client</th>
-                          <th className="px-3 py-2 text-right font-medium">Reste dû</th>
-                          <th className="px-2 py-2" />
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {data.creances.map((c) => (
-                          <tr key={c.commandeId} className="border-t border-line">
-                            <td className="px-3 py-2">
-                              <p className="font-medium text-ink">{c.pointVente}</p>
-                              <p className="text-xs text-ink-muted">{c.localisation} · {c.modePaiementCommande}</p>
-                            </td>
-                            <td className="px-3 py-2 text-ink-muted">{c.client}</td>
-                            <td className="whitespace-nowrap px-3 py-2 text-right font-semibold text-danger">{fcfa(c.reste)}</td>
-                            <td className="px-2 py-2 text-right">
-                              <button
-                                type="button"
-                                className="rounded-md border border-brass px-2 py-1 text-xs font-medium text-brass hover:bg-brass hover:text-white"
-                                onClick={() => { changerOnglet("ENCAISSEMENT"); choisirCreance(c.commandeId); }}
-                              >
-                                Encaisser
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="max-h-[420px] space-y-4 overflow-auto">
+                    {[
+                      { titre: "En retard", liste: enRetard, ton: "text-danger" },
+                      { titre: "À encaisser", liste: aVenir, ton: "text-ink" },
+                    ]
+                      .filter((g) => g.liste.length > 0)
+                      .map((g) => (
+                        <div key={g.titre}>
+                          <div className="mb-1 flex items-center justify-between text-xs font-semibold uppercase tracking-wide">
+                            <span className={g.ton}>
+                              {g.titre} ({g.liste.length})
+                            </span>
+                            <span className="text-ink-muted">{fcfa(g.liste.reduce((s, c) => s + c.reste, 0))}</span>
+                          </div>
+                          <ul className="divide-y divide-line rounded-lg border border-line">
+                            {g.liste.map((c) => (
+                              <li key={c.commandeId} className="flex items-center justify-between gap-3 px-3 py-2.5">
+                                <div className="min-w-0">
+                                  <p className="truncate font-medium text-ink">{c.pointVente}</p>
+                                  <p className="text-xs text-ink-muted">
+                                    {c.agent} · commandée le {new Date(c.date).toLocaleDateString("fr-FR")}
+                                    {c.encaisse > 0 && ` · déjà encaissé ${fcfa(c.encaisse)}`}
+                                  </p>
+                                  {c.datePrevue && (
+                                    <p className={`flex items-center gap-1 text-xs ${c.enRetard ? "text-danger" : "text-ink-muted"}`}>
+                                      <IconCalendar className="h-3 w-3" />
+                                      Livraison / encaissement prévu le {new Date(c.datePrevue).toLocaleDateString("fr-FR")}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex flex-shrink-0 items-center gap-2">
+                                  <span className="rounded-full bg-brass/10 px-2.5 py-1 text-xs font-semibold text-brass">{fcfa(c.reste)}</span>
+                                  <button
+                                    type="button"
+                                    className="rounded-md bg-ink px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
+                                    onClick={() => { changerOnglet("ENCAISSEMENT"); choisirCommande(c.commandeId); }}
+                                  >
+                                    Encaisser
+                                  </button>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
                   </div>
                 )}
               </div>
@@ -698,14 +756,13 @@ export default function CaissePage() {
             <div className="flex flex-wrap gap-2 no-print">
               <select className="field-input max-w-[200px] py-1.5 text-sm" value={filtreSource} onChange={(e) => setFiltreSource(e.target.value as typeof filtreSource)} aria-label="Nature de l'opération">
                 <option value="">Toutes les opérations</option>
-                <option value="VENTE">Ventes (commerciaux)</option>
-                <option value="CREDIT">Ventes à crédit</option>
-                <option value="ENCAISSEMENT">Encaissements de crédit</option>
+                <option value="ENCAISSEMENT">Encaissements de commandes</option>
+                <option value="TRANSFERT">Transferts</option>
                 <option value="MANUEL">Opérations manuelles</option>
               </select>
-              <select className="field-input max-w-[180px] py-1.5 text-sm" value={filtreMode} onChange={(e) => setFiltreMode(e.target.value as typeof filtreMode)} aria-label="Mode de paiement">
-                <option value="">Tous les modes</option>
-                {(Object.keys(MODES) as Mode[]).map((m) => <option key={m} value={m}>{MODES[m]}</option>)}
+              <select className="field-input max-w-[200px] py-1.5 text-sm" value={filtreCanal} onChange={(e) => setFiltreCanal(e.target.value as typeof filtreCanal)} aria-label="Canal">
+                <option value="">Tous les canaux</option>
+                {(Object.keys(CANAUX) as Canal[]).map((c) => <option key={c} value={c}>{CANAUX[c]}</option>)}
               </select>
             </div>
           </div>
@@ -716,72 +773,75 @@ export default function CaissePage() {
                   <th className="px-4 py-3 font-medium">Date</th>
                   <th className="px-4 py-3 font-medium">Opération</th>
                   <th className="px-4 py-3 font-medium">Détail</th>
-                  <th className="px-4 py-3 font-medium">Mode</th>
-                  <th className="px-4 py-3 text-right font-medium">À crédit</th>
+                  <th className="px-4 py-3 font-medium">Canal</th>
                   <th className="px-4 py-3 text-right font-medium">Recette</th>
                   <th className="px-4 py-3 text-right font-medium">Dépense</th>
                   <th className="px-2 py-3 no-print" />
                 </tr>
               </thead>
               <tbody>
-                {journal.map((l) => (
-                  <tr key={l.id} className="border-t border-line align-top transition-colors hover:bg-bg-elevated">
-                    <td className="whitespace-nowrap px-4 py-3 text-ink-muted">
-                      {new Date(l.date).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${l.source === "VENTE" ? "bg-ok/10 text-ok" : l.source === "ENCAISSEMENT" ? "bg-ok/10 text-ok" : "bg-brass/10 text-brass"}`}>
-                        {LIBELLE_CATEGORIE[l.categorie] || l.categorie}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {l.details ? (
-                        <>
-                          <p className="font-medium text-ink">{l.details.pointVente}</p>
-                          <p className="text-xs text-ink-muted">
-                            {l.details.localisation} · Client : {l.details.client}
-                            {l.details.telephone ? ` (${l.details.telephone})` : ""} · Agent : {l.details.agent}
-                          </p>
-                          <p className="text-xs text-ink-muted">
-                            {l.source === "VENTE"
-                              ? `${l.quantiteCartons ?? 0} carton(s) · ${l.details.modePaiementCommande} · total ${fcfa(l.details.montantTotal)}${l.details.reste > 0 ? ` · reste dû ${fcfa(l.details.reste)}` : ""}`
-                              : `${l.libelle}${l.details.reste > 0 ? ` · reste dû ${fcfa(l.details.reste)}` : " · commande soldée"}`}
-                          </p>
-                        </>
-                      ) : (
-                        <p className="text-ink">{l.libelle}</p>
-                      )}
-                    </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-ink-muted">{l.mode ? MODES[l.mode] : l.credit > 0 ? "Crédit" : "—"}</td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right font-medium text-danger">{l.credit > 0 ? fcfa(l.credit) : ""}</td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right font-medium text-ok">{l.type === "RECETTE" && l.montant > 0 ? fcfa(l.montant) : ""}</td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right font-medium text-warn">{l.type === "DEPENSE" ? fcfa(l.montant) : ""}</td>
-                    <td className="px-2 py-3 text-right no-print">
-                      {l.annulable && (
-                        <button
-                          type="button"
-                          aria-label="Annuler cette opération"
-                          title="Annuler cette opération"
-                          onClick={() => setASupprimer(l)}
-                          className="rounded-md p-1.5 text-ink-muted hover:bg-danger/10 hover:text-danger"
-                        >
-                          <IconTrash className="h-4 w-4" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                {journal.map((l) => {
+                  const transfert = l.source === "TRANSFERT";
+                  return (
+                    <tr key={l.id} className="border-t border-line align-top transition-colors hover:bg-bg-elevated">
+                      <td className="whitespace-nowrap px-4 py-3 text-ink-muted">
+                        {new Date(l.date).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${l.source === "ENCAISSEMENT" ? "bg-ok/10 text-ok" : transfert ? "bg-ink/10 text-ink" : "bg-brass/10 text-brass"}`}>
+                          {LIBELLE_CATEGORIE[l.categorie] || l.categorie}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {l.details ? (
+                          <>
+                            <p className="font-medium text-ink">{l.details.pointVente}</p>
+                            <p className="text-xs text-ink-muted">
+                              {l.details.localisation} · Client : {l.details.client}
+                              {l.details.telephone ? ` (${l.details.telephone})` : ""} · Commercial : {l.details.agent}
+                            </p>
+                            <p className="text-xs text-ink-muted">
+                              {l.libelle}
+                              {l.details.reste > 0 ? ` · reste à encaisser ${fcfa(l.details.reste)}` : " · commande soldée"}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-ink">{l.libelle}</p>
+                        )}
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-ink-muted">{canalTexte(l)}</td>
+                      <td className={`whitespace-nowrap px-4 py-3 text-right font-medium ${transfert ? "text-ink-muted" : "text-ok"}`}>
+                        {l.type === "RECETTE" && l.montant > 0 ? fcfa(l.montant) : ""}
+                      </td>
+                      <td className={`whitespace-nowrap px-4 py-3 text-right font-medium ${transfert ? "text-ink-muted" : "text-warn"}`}>
+                        {l.type === "DEPENSE" ? fcfa(l.montant) : ""}
+                      </td>
+                      <td className="px-2 py-3 text-right no-print">
+                        {l.annulable && (
+                          <button
+                            type="button"
+                            aria-label="Annuler cette opération"
+                            title="Annuler cette opération"
+                            onClick={() => setASupprimer(l)}
+                            className="rounded-md p-1.5 text-ink-muted hover:bg-danger/10 hover:text-danger"
+                          >
+                            <IconTrash className="h-4 w-4" />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
                 {journal.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-10 text-center text-ink-muted">Aucune opération sur cette période.</td>
+                    <td colSpan={7} className="px-4 py-10 text-center text-ink-muted">Aucune opération sur cette période.</td>
                   </tr>
                 )}
               </tbody>
               {journal.length > 0 && (
                 <tfoot className="border-t border-line bg-bg-elevated font-semibold text-ink">
                   <tr>
-                    <td className="px-4 py-3" colSpan={4}>Total</td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right text-danger">{fcfa(totauxJournal.credit)}</td>
+                    <td className="px-4 py-3" colSpan={4}>Total (hors transferts)</td>
                     <td className="whitespace-nowrap px-4 py-3 text-right text-ok">{fcfa(totauxJournal.recettes)}</td>
                     <td className="whitespace-nowrap px-4 py-3 text-right text-warn">{fcfa(totauxJournal.depenses)}</td>
                     <td className="no-print" />
@@ -802,9 +862,13 @@ export default function CaissePage() {
         message={
           aSupprimer?.categorie === "REAPPROVISIONNEMENT"
             ? "Cet achat de stock sera retiré de la caisse et les cartons ajoutés seront retirés du stock."
-            : aSupprimer?.categorie === "ENCAISSEMENT_CREDIT"
-              ? "Cet encaissement sera retiré de la caisse et la somme redeviendra due sur la commande du commercial."
-              : "Cette opération sera retirée du journal de caisse."
+            : aSupprimer?.categorie === "ENCAISSEMENT_COMMANDE"
+              ? "Cet encaissement sera retiré de la caisse et la somme redeviendra « à encaisser » pour cette commande."
+              : aSupprimer?.categorie === "ENCAISSEMENT_CREDIT"
+                ? "Cet encaissement sera retiré de la caisse et la somme redeviendra due sur la commande du commercial."
+                : aSupprimer?.categorie === "TRANSFERT"
+                  ? "Le transfert sera annulé des deux côtés (sortie et entrée)."
+                  : "Cette opération sera retirée du journal de caisse."
         }
         confirmLabel="Annuler l'opération"
         cancelLabel="Garder"

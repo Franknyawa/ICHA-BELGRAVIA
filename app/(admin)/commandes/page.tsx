@@ -5,6 +5,7 @@ import { useEcriture } from "@/lib/useEcriture";
 import { usePolling } from "@/lib/usePolling";
 import { IconReceipt, IconCheckCircle, IconClock, IconDownload, IconStorefront, IconAlert } from "@/components/icons";
 import { genererBonLivraisonPdf } from "@/lib/bonLivraisonPdf";
+import { genererFacturePdf } from "@/lib/facturePdf";
 import GammeTabs from "@/components/GammeTabs";
 import { libelleGamme, styleBadgeGamme, type GammeInfo } from "@/lib/gammesClient";
 import { Spinner, ChargementPage } from "@/components/Spinner";
@@ -18,6 +19,7 @@ type Commande = {
   montantTotal: string;
   modePaiement: string;
   resteAPayer: string;
+  montantRecu?: string;
   observations: string | null;
   pointVente: { nomEtablissement: string; nomVendeur: string | null; telVendeur: string | null; quartier: string | null; ville: { nom: string } | null };
   commercial: { prenom: string; nom: string };
@@ -29,7 +31,7 @@ type Compteurs = { NON_TRAITEE: number; EN_COURS_LIVRAISON: number; LIVREE: numb
 const ONGLETS: { valeur: string; label: string; icon: typeof IconReceipt }[] = [
   { valeur: "", label: "Toutes", icon: IconReceipt },
   { valeur: "NON_TRAITEE", label: "Non traitées", icon: IconAlert },
-  { valeur: "EN_COURS_LIVRAISON", label: "En attente", icon: IconClock },
+  { valeur: "EN_COURS_LIVRAISON", label: "À livrer", icon: IconClock },
   { valeur: "LIVREE", label: "Livrées", icon: IconCheckCircle },
 ];
 
@@ -42,7 +44,7 @@ const STATUT_BADGE: Record<string, string> = {
 };
 const STATUT_LABEL: Record<string, string> = {
   NON_TRAITEE: "Non traitée",
-  EN_COURS_LIVRAISON: "En cours de livraison",
+  EN_COURS_LIVRAISON: "Validée — livraison à effectuer",
   LIVREE: "Livrée",
 };
 
@@ -56,6 +58,7 @@ export default function CommandesPage() {
   const [nouvelles, setNouvelles] = useState(0);
   const [chargement, setChargement] = useState(true);
   const [enCours, setEnCours] = useState<string | null>(null);
+  const [datesPrevues, setDatesPrevues] = useState<Record<string, string>>({});
   const ecriture = useEcriture("commandes");
 
   const charger = useCallback(async () => {
@@ -124,13 +127,37 @@ export default function CommandesPage() {
     });
   }
 
-  async function changerStatut(id: string, statut: string, commande: Commande) {
+  // Facture et bon de commande : même document, titre différent.
+  async function telechargerFacture(commande: Commande, titre?: string) {
+    await genererFacturePdf({
+      titre,
+      numero: commande.id.slice(0, 8).toUpperCase(),
+      date: new Date(commande.dateCommande),
+      gammeNom: commande.gamme ? libelleGamme(commande.gamme) : undefined,
+      pointVenteNom: commande.pointVente.nomEtablissement,
+      villeNom: commande.pointVente.ville?.nom,
+      quartier: commande.pointVente.quartier,
+      commercialNom: `${commande.commercial.prenom} ${commande.commercial.nom}`,
+      lignes: commande.lignes.map((l) => ({
+        produitNom: l.produit?.nom || l.libelleLibre || "Produit",
+        quantiteCartons: l.quantite,
+        prixCarton: Number(l.prixUnitaire),
+        sousTotal: l.quantite * Number(l.prixUnitaire),
+      })),
+      montantTotal: Number(commande.montantTotal),
+      modePaiement: commande.modePaiement,
+      montantRecu: Number(commande.montantRecu ?? 0),
+      resteAPayer: Number(commande.resteAPayer),
+    });
+  }
+
+  async function changerStatut(id: string, statut: string, commande: Commande, dateLivraison?: string) {
     setEnCours(id);
     try {
       const res = await fetch(`/api/commandes/${id}/statut`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ statut }),
+        body: JSON.stringify({ statut, ...(dateLivraison ? { dateLivraison } : {}) }),
       });
       if (res.ok) {
         if (statut === "LIVREE") {
@@ -268,30 +295,51 @@ export default function CommandesPage() {
                   <span className="font-display text-xl text-ink">{Number(c.montantTotal).toLocaleString("fr-FR")} FCFA</span>
                   <div className="flex items-center gap-2">
                     {ecriture && c.statut === "NON_TRAITEE" && (
-                      <button
-                        className="btn-primary"
-                        disabled={enCours === c.id}
-                        onClick={() => changerStatut(c.id, "EN_COURS_LIVRAISON", c)}
-                      >
-                        <IconCheckCircle className="h-4 w-4" />
-                        {enCours === c.id ? <Spinner className="h-4 w-4" /> : "Valider"}
-                      </button>
+                      <>
+                        <label className="flex items-center gap-1.5 text-xs text-ink-muted">
+                          Livraison prévue
+                          <input
+                            type="date"
+                            className="field-input w-[140px] py-1.5"
+                            value={datesPrevues[c.id] ?? (c.dateLivraison ? c.dateLivraison.slice(0, 10) : "")}
+                            onChange={(e) => setDatesPrevues((d) => ({ ...d, [c.id]: e.target.value }))}
+                          />
+                        </label>
+                        <button
+                          className="btn-primary"
+                          disabled={enCours === c.id}
+                          onClick={() => changerStatut(c.id, "EN_COURS_LIVRAISON", c, datesPrevues[c.id] || (c.dateLivraison ? c.dateLivraison.slice(0, 10) : undefined))}
+                        >
+                          <IconCheckCircle className="h-4 w-4" />
+                          {enCours === c.id ? <Spinner className="h-4 w-4" /> : "Valider et autoriser la livraison"}
+                        </button>
+                      </>
                     )}
                     {ecriture && c.statut === "EN_COURS_LIVRAISON" && (
                       <button
-                        className="btn-secondary"
+                        className="btn-primary"
                         disabled={enCours === c.id}
                         onClick={() => changerStatut(c.id, "LIVREE", c)}
                       >
                         <IconClock className="h-4 w-4" />
-                        {enCours === c.id ? <Spinner className="h-4 w-4" /> : "Marquer livrée"}
+                        {enCours === c.id ? <Spinner className="h-4 w-4" /> : "Effectuer la livraison"}
                       </button>
                     )}
-                    {c.statut === "LIVREE" && (
-                      <button className="btn-secondary" onClick={() => telechargerBonLivraison(c)}>
-                        <IconDownload className="h-4 w-4" />
-                        Bon de livraison
-                      </button>
+                    {c.statut !== "NON_TRAITEE" && (
+                      <>
+                        <button className="btn-secondary" onClick={() => telechargerFacture(c)}>
+                          <IconDownload className="h-4 w-4" />
+                          Facture
+                        </button>
+                        <button className="btn-secondary" onClick={() => telechargerFacture(c, "BON DE COMMANDE")}>
+                          <IconDownload className="h-4 w-4" />
+                          Bon de commande
+                        </button>
+                        <button className="btn-secondary" onClick={() => telechargerBonLivraison(c)}>
+                          <IconDownload className="h-4 w-4" />
+                          Bon de livraison
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
