@@ -49,16 +49,30 @@ export async function genererRapportConcurrence(f: {
   villeId?: string | null;
   quartier?: string | null;
   pointVenteId?: string | null;
+  // Types d'établissement : "inclure" = uniquement ces types, "exclure" = tous sauf ces types.
+  typeIds?: string[];
+  typeMode?: "inclure" | "exclure";
   // FORT | MOYEN | FAIBLE | NON_EVALUE : potentiel estimé lors de la dernière visite du point.
   potentiel?: string | null;
 }): Promise<RapportConcurrence> {
   const plage = intervalleJours(f.dateFrom, f.dateTo);
+
+  // Un point peut avoir plusieurs types (type principal + types liés) : il correspond
+  // dès que l'un d'eux figure dans la sélection.
+  const typeIds = (f.typeIds ?? []).filter(Boolean);
+  const correspondType = { OR: [{ typeId: { in: typeIds } }, { typesLies: { some: { typeId: { in: typeIds } } } }] };
+  // « Tous sauf… » : les points sans type renseigné restent inclus (un NOT SQL les écarterait).
+  const sansType = {
+    AND: [{ OR: [{ typeId: null }, { typeId: { notIn: typeIds } }] }, { typesLies: { none: { typeId: { in: typeIds } } } }],
+  };
+  const filtreType = typeIds.length === 0 ? {} : f.typeMode === "exclure" ? sansType : correspondType;
 
   const visites = await prisma.visite.findMany({
     where: {
       ...(plage ? { dateVisite: plage } : {}),
       ...(f.pointVenteId ? { pointVenteId: f.pointVenteId } : {}),
       pointVente: {
+        ...filtreType,
         ...(f.villeId ? { villeId: f.villeId } : {}),
         ...(f.quartier ? { quartier: { contains: f.quartier, mode: "insensitive" as const } } : {}),
       },

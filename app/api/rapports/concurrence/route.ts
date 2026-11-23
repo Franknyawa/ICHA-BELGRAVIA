@@ -17,6 +17,8 @@ export async function GET(req: NextRequest) {
     villeId: p.get("villeId"),
     quartier: p.get("quartier")?.trim() || null,
     pointVenteId: p.get("pointVenteId"),
+    typeIds: (p.get("typeIds") || "").split(",").map((s) => s.trim()).filter(Boolean).slice(0, 50),
+    typeMode: p.get("typeMode") === "exclure" ? "exclure" : "inclure",
     potentiel: p.get("potentiel"),
   });
   return NextResponse.json(rapport);

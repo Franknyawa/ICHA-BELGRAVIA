@@ -11,7 +11,7 @@ import type { RapportConcurrence } from "@/lib/concurrence";
 type Onglet = "TOUTES" | "RTD" | "MOUSSEUX" | "NON_CLASSEE";
 // Une couleur par catégorie pour les distinguer d'un coup d'œil (barres, pastilles, onglets).
 const COULEUR: Record<string, string> = { RTD: "#2E8B7A", MOUSSEUX: "#B8892B", NON_CLASSEE: "#8A8A8A" };
-const FILTRES_VIDES = { dateFrom: "", dateTo: "", villeId: "", quartier: "", pointVenteId: "", potentiel: "" };
+const FILTRES_VIDES = { dateFrom: "", dateTo: "", villeId: "", quartier: "", pointVenteId: "", potentiel: "", typeMode: "inclure" as "inclure" | "exclure" };
 const LIBELLE_POTENTIEL: Record<string, string> = { FORT: "Fort", MOYEN: "Moyen", FAIBLE: "Faible", NON_EVALUE: "Non évalué" };
 type PointSuggere = { id: string; nomEtablissement: string; quartier: string | null; ville: { nom: string } | null };
 const fcfa = (n: number | null) => (n === null ? "—" : `${n.toLocaleString("fr-FR")} FCFA`);
@@ -20,6 +20,8 @@ const pct = (n: number) => `${n.toLocaleString("fr-FR", { maximumFractionDigits:
 export default function ConcurrencePage() {
   const [filtres, setFiltres] = useState(FILTRES_VIDES);
   const [villes, setVilles] = useState<{ id: string; nom: string }[]>([]);
+  const [types, setTypes] = useState<{ id: string; nom: string }[]>([]);
+  const [typeIds, setTypeIds] = useState<string[]>([]);
   const [rapport, setRapport] = useState<RapportConcurrence | null>(null);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState("");
@@ -53,12 +55,16 @@ export default function ConcurrencePage() {
   const [exportEnCours, setExportEnCours] = useState<"pdf" | "csv" | null>(null);
 
   useEffect(() => {
-    fetch("/api/referentiels").then((r) => r.json()).then((d) => setVilles(d.villes || [])).catch(() => {});
+    fetch("/api/referentiels").then((r) => r.json()).then((d) => { setVilles(d.villes || []); setTypes(d.types || []); }).catch(() => {});
   }, []);
 
   useEffect(() => {
     const s = new URLSearchParams();
-    for (const [k, v] of Object.entries(filtres)) if (v) s.set(k, v);
+    for (const [k, v] of Object.entries(filtres)) if (v && k !== "typeMode") s.set(k, v);
+    if (typeIds.length) {
+      s.set("typeIds", typeIds.join(","));
+      s.set("typeMode", filtres.typeMode);
+    }
     setChargement(true);
     setErreur("");
     const t = setTimeout(
@@ -73,7 +79,7 @@ export default function ConcurrencePage() {
       filtres.quartier ? 350 : 0
     );
     return () => clearTimeout(t);
-  }, [filtres]);
+  }, [filtres, typeIds]);
 
   const visibles = (rapport?.categories ?? []).filter((c) => onglet === "TOUTES" || c.categorie === onglet);
   const libelleOnglet = onglet === "TOUTES" ? "" : (rapport?.categories.find((c) => c.categorie === onglet)?.libelle ?? "");
@@ -85,6 +91,10 @@ export default function ConcurrencePage() {
     const ville = villes.find((v) => v.id === filtres.villeId);
     if (ville) p.push(`Ville : ${ville.nom}`);
     if (filtres.quartier) p.push(`Quartier : ${filtres.quartier}`);
+    if (typeIds.length) {
+      const noms = types.filter((t) => typeIds.includes(t.id)).map((t) => t.nom).join(", ");
+      p.push(filtres.typeMode === "exclure" ? `Tous types sauf : ${noms}` : `Types : ${noms}`);
+    }
     if (pointChoisi) p.push(`Point de vente : ${pointChoisi.nomEtablissement}`);
     if (filtres.potentiel) p.push(`Potentiel : ${LIBELLE_POTENTIEL[filtres.potentiel]}`);
     p.push(`${rapport?.totalPoints ?? 0} point(s) recensé(s)`);
@@ -218,8 +228,54 @@ export default function ConcurrencePage() {
             </ul>
           )}
         </div>
-        {(filtres.dateFrom || filtres.dateTo || filtres.villeId || filtres.quartier || filtres.pointVenteId || filtres.potentiel) && (
-          <button className="btn-secondary" onClick={() => { setFiltres(FILTRES_VIDES); setPointChoisi(null); setRecherchePoint(""); }}>Réinitialiser</button>
+        {(filtres.dateFrom || filtres.dateTo || filtres.villeId || filtres.quartier || filtres.pointVenteId || filtres.potentiel || typeIds.length > 0) && (
+          <button className="btn-secondary" onClick={() => { setFiltres(FILTRES_VIDES); setTypeIds([]); setPointChoisi(null); setRecherchePoint(""); }}>Réinitialiser</button>
+        )}
+
+        {types.length > 0 && (
+          <div className="mt-2 w-full border-t border-line pt-3">
+            <div className="mb-2 flex flex-wrap items-center gap-3">
+              <span className="text-sm font-semibold text-ink">Type de point de vente</span>
+              <div className="inline-flex overflow-hidden rounded-full border border-line text-sm font-semibold" role="group" aria-label="Mode du filtre par type">
+                {(["inclure", "exclure"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    aria-pressed={filtres.typeMode === m}
+                    onClick={() => setFiltres({ ...filtres, typeMode: m })}
+                    className={`px-4 py-1.5 transition-colors ${filtres.typeMode === m ? "bg-brass text-bg" : "text-ink-muted hover:text-brass"}`}
+                  >
+                    {m === "inclure" ? "Uniquement" : "Tous sauf"}
+                  </button>
+                ))}
+              </div>
+              {typeIds.length > 0 && (
+                <button type="button" className="text-sm text-ink-muted underline hover:text-brass" onClick={() => setTypeIds([])}>
+                  Tout désélectionner
+                </button>
+              )}
+              {typeIds.length === 0 && <span className="text-xs text-ink-muted">Aucun type coché : tous les types sont inclus.</span>}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {types.map((t) => {
+                const coche = typeIds.includes(t.id);
+                const exclu = coche && filtres.typeMode === "exclure";
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    aria-pressed={coche}
+                    onClick={() => setTypeIds(coche ? typeIds.filter((x) => x !== t.id) : [...typeIds, t.id])}
+                    className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors ${
+                      coche ? (exclu ? "border-danger bg-danger/10 text-danger line-through" : "border-brass bg-brass/15 text-brass") : "border-line text-ink-muted hover:border-brass hover:text-brass"
+                    }`}
+                  >
+                    {t.nom}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         )}
       </div>
 
