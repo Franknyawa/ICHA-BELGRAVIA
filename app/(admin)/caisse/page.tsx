@@ -714,22 +714,63 @@ export default function CaissePage() {
             </div>
           </div>
 
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <p className="section-eyebrow">
-              <IconReceipt className="h-4 w-4" />
-              Journal de caisse
-            </p>
-            <div className="flex flex-wrap gap-2 no-print">
-              <select className="field-input max-w-[200px] py-1.5 text-sm" value={filtreSource} onChange={(e) => setFiltreSource(e.target.value as typeof filtreSource)} aria-label="Nature de l'opération">
-                <option value="">Toutes les opérations</option>
-                <option value="ENCAISSEMENT">Encaissements de commandes</option>
-                <option value="TRANSFERT">Transferts</option>
-                <option value="MANUEL">Opérations manuelles</option>
-              </select>
-              <select className="field-input max-w-[200px] py-1.5 text-sm" value={filtreCanal} onChange={(e) => setFiltreCanal(e.target.value as typeof filtreCanal)} aria-label="Canal">
-                <option value="">Tous les canaux</option>
-                {(Object.keys(CANAUX) as Canal[]).map((c) => <option key={c} value={c}>{CANAUX[c]}</option>)}
-              </select>
+          <div className="mb-3 rounded-xl border border-line bg-bg-card p-4">
+            <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+              <div className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brass/10 text-brass">
+                  <IconReceipt className="h-5 w-5" />
+                </span>
+                <div>
+                  <h2 className="text-lg leading-tight text-ink">Journal de caisse</h2>
+                  <p className="text-xs font-medium text-ink-muted">
+                    {journal.length} opération{journal.length > 1 ? "s" : ""} sur la période
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <div className="rounded-lg bg-ok/10 px-3 py-1.5">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-ok">Recettes</p>
+                  <p className="montant text-base text-ok">{fcfa(totauxJournal.recettes)}<span className="montant-unite">FCFA</span></p>
+                </div>
+                <div className="rounded-lg bg-warn/15 px-3 py-1.5">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-warn">Dépenses</p>
+                  <p className="montant text-base text-warn">{fcfa(totauxJournal.depenses)}<span className="montant-unite">FCFA</span></p>
+                </div>
+              </div>
+            </div>
+            <div className="no-print mt-4 grid gap-3 border-t border-line/70 pt-3 lg:grid-cols-2">
+              <div>
+                <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-muted">Nature de l'opération</p>
+                <div className="flex flex-wrap gap-1.5" role="group" aria-label="Nature de l'opération">
+                  {([["", "Toutes"], ["ENCAISSEMENT", "Encaissements"], ["TRANSFERT", "Transferts"], ["MANUEL", "Manuelles"]] as const).map(([v, label]) => (
+                    <button
+                      key={v}
+                      type="button"
+                      aria-pressed={filtreSource === v}
+                      onClick={() => setFiltreSource(v as typeof filtreSource)}
+                      className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${filtreSource === v ? "border-brass bg-brass text-bg" : "border-line bg-bg-elevated text-ink-muted hover:border-brass/50 hover:text-ink"}`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-ink-muted">Canal</p>
+                <div className="flex flex-wrap gap-1.5" role="group" aria-label="Canal">
+                  {([["", "Tous"], ...(Object.keys(CANAUX) as Canal[]).map((c) => [c, CANAUX[c]])] as [string, string][]).map(([v, label]) => (
+                    <button
+                      key={v}
+                      type="button"
+                      aria-pressed={filtreCanal === v}
+                      onClick={() => setFiltreCanal(v as typeof filtreCanal)}
+                      className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${filtreCanal === v ? "border-brass bg-brass text-bg" : "border-line bg-bg-elevated text-ink-muted hover:border-brass/50 hover:text-ink"}`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
           <div className="overflow-x-auto rounded-lg border border-line">
