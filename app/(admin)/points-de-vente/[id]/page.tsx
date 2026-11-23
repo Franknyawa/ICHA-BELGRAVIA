@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { nombreFr } from "@/lib/format";
 import { libelleTypes } from "@/lib/typesEtablissement";
 import { IconStorefront, IconPhone, IconPin, IconReceipt, IconClipboard, IconCamera, IconClose } from "@/components/icons";
 import { Spinner, ChargementPage } from "@/components/Spinner";
+import DetailVisite, { type VisiteDetail } from "@/components/DetailVisite";
 
 type Ligne = { id: string; quantite: number; prixUnitaire: string; produit: { nom: string } | null };
 type Commande = {
@@ -17,14 +19,7 @@ type Commande = {
   commercial: { nom: string; prenom: string };
   lignes: Ligne[];
 };
-type Visite = {
-  id: string;
-  dateVisite: string;
-  potentielEstime: string | null;
-  veutCommander: boolean | null;
-  observations: string | null;
-  commercial: { nom: string; prenom: string };
-};
+type Visite = VisiteDetail;
 type Photo = { id: string; url: string; createdAt: string };
 type Fiche = {
   id: string;
@@ -77,6 +72,13 @@ export default function FichePointVentePage() {
     return () => window.removeEventListener("keydown", fermer);
   }, [photoAgrandie]);
 
+  // Lien direct vers une visite (#visite-ID) : on l'ouvre et on y défile.
+  useEffect(() => {
+    if (!fiche || typeof window === "undefined" || !window.location.hash.startsWith("#visite-")) return;
+    const el = document.getElementById(window.location.hash.slice(1)) as HTMLDetailsElement | null;
+    if (el) { el.open = true; el.scrollIntoView({ block: "start" }); }
+  }, [fiche]);
+
   if (chargement) return <ChargementPage label="Chargement de la fiche…" />;
   if (!fiche) return <p className="text-sm text-danger">Fiche introuvable.</p>;
 
@@ -84,7 +86,7 @@ export default function FichePointVentePage() {
   const resteAPayerTotal = fiche.commandes.reduce((s, c) => s + Number(c.resteAPayer), 0);
 
   return (
-    <div className="max-w-4xl">
+    <div className="w-full">
       <Link href="/points-de-vente" className="mb-3 inline-block text-sm text-ink-muted hover:text-brass">
         ← Tous les points de vente
       </Link>
@@ -140,17 +142,17 @@ export default function FichePointVentePage() {
 
       <div className={`mb-5 grid gap-3 ${voitCommandes ? "sm:grid-cols-3" : "sm:grid-cols-1"}`}>
         <div className="field-card text-center">
-          <p className="text-2xl font-display text-ink">{fiche.visites.length}</p>
+          <p className="montant text-2xl text-ink">{fiche.visites.length}</p>
           <p className="text-xs text-ink-muted">Visite(s)</p>
         </div>
         {voitCommandes && (<>
         <div className="field-card text-center">
-          <p className="text-2xl font-display text-ink">{montantTotalCommandes.toLocaleString("fr-FR")}</p>
+          <p className="montant text-2xl text-ink">{nombreFr(montantTotalCommandes)}</p>
           <p className="text-xs text-ink-muted">Total commandé (FCFA)</p>
         </div>
         <div className="field-card text-center">
-          <p className={`text-2xl font-display ${resteAPayerTotal > 0 ? "text-danger" : "text-ok"}`}>
-            {resteAPayerTotal.toLocaleString("fr-FR")}
+          <p className={`montant text-2xl ${resteAPayerTotal > 0 ? "text-danger" : "text-ok"}`}>
+            {nombreFr(resteAPayerTotal)}
           </p>
           <p className="text-xs text-ink-muted">Reste à payer (FCFA)</p>
         </div>
@@ -158,7 +160,7 @@ export default function FichePointVentePage() {
       </div>
 
       <div className="mb-5">
-        <h2 className="mb-2 flex items-center gap-2 font-display text-lg text-ink">
+        <h2 className="mb-2 flex items-center gap-2 text-lg text-ink">
           <IconCamera className="h-4 w-4 text-brass" />
           Photos ({fiche.photos.length})
         </h2>
@@ -194,7 +196,7 @@ export default function FichePointVentePage() {
 
       {voitCommandes && (
       <div className="mb-5">
-        <h2 className="mb-2 flex items-center gap-2 font-display text-lg text-ink">
+        <h2 className="mb-2 flex items-center gap-2 text-lg text-ink">
           <IconReceipt className="h-4 w-4 text-brass" />
           Commandes ({fiche.commandes.length})
         </h2>
@@ -206,7 +208,7 @@ export default function FichePointVentePage() {
                   {new Date(c.createdAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })} ·{" "}
                   {c.commercial.prenom} {c.commercial.nom} · {MODE_LABEL[c.modePaiement] || c.modePaiement}
                 </p>
-                <span className="font-display text-lg text-ink">{Number(c.montantTotal).toLocaleString("fr-FR")}</span>
+                <span className="montant text-lg text-ink">{nombreFr(c.montantTotal)}</span>
               </div>
               <p className="text-xs text-ink-muted">
                 {c.lignes.map((l) => `${l.quantite}× ${l.produit?.nom}`).join(" · ")}
@@ -226,24 +228,25 @@ export default function FichePointVentePage() {
       )}
 
       <div>
-        <h2 className="mb-2 flex items-center gap-2 font-display text-lg text-ink">
+        <h2 className="mb-2 flex items-center gap-2 text-lg text-ink">
           <IconPhone className="h-4 w-4 text-brass" />
           Historique des visites ({fiche.visites.length})
         </h2>
         <div className="space-y-2">
-          {fiche.visites.map((v) => (
-            <div key={v.id} className="field-card">
-              <div className="mb-1 flex items-center justify-between">
-                <p className="text-sm text-ink-muted">
-                  {new Date(v.dateVisite).toLocaleDateString("fr-FR")} · {v.commercial.prenom} {v.commercial.nom}
-                </p>
-                <span className="text-xs font-medium text-ink-muted">
-                  Potentiel : {v.potentielEstime || "—"} · Veut commander :{" "}
-                  {v.veutCommander === null ? "—" : v.veutCommander ? "Oui" : "Non"}
+          {fiche.visites.map((v, i) => (
+            <details key={v.id} id={`visite-${v.id}`} open={i === 0} className="group field-card !p-0">
+              <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 px-4 py-3">
+                <span className="text-sm font-bold text-ink">
+                  {new Date(v.dateVisite).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" })} · {v.commercial.prenom} {v.commercial.nom}
                 </span>
+                <span className="text-xs font-semibold text-ink-muted">
+                  Potentiel : {v.potentielEstime || "—"} · Veut commander : {v.veutCommander === null ? "—" : v.veutCommander ? "Oui" : "Non"}
+                </span>
+              </summary>
+              <div className="border-t border-line p-3">
+                <DetailVisite v={v} />
               </div>
-              {v.observations && <p className="text-sm text-ink-muted">{v.observations}</p>}
-            </div>
+            </details>
           ))}
           {fiche.visites.length === 0 && (
             <p className="field-card text-center text-sm text-ink-muted">Aucune visite enregistrée.</p>

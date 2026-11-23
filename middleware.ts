@@ -67,6 +67,7 @@ export const config = {
     "/clients/:path*",
     "/alertes/:path*",
     "/caisse/:path*",
+    "/objectifs/:path*",
     "/archives/:path*",
   ],
 };

@@ -202,3 +202,36 @@ input[type="date"].field-input {
   padding-left: 0.6rem;
   padding-right: 0.4rem;
 }
+
+/* Back-office : police nette et lisible dans toutes les sections, titres de page en exergue */
+.admin-main {
+  font-family: var(--font-menu), system-ui, sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.admin-main h1 {
+  font-family: var(--font-menu), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.85rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  padding: 0.15rem 0 0.15rem 0.85rem;
+  border-left: 5px solid rgb(var(--color-brass));
+  margin-bottom: 1rem;
+}
+.admin-main h1 > svg { height: 1.5rem; width: 1.5rem; }
+.admin-main h2 {
+  font-family: var(--font-menu), system-ui, sans-serif;
+  font-weight: 800;
+}
+.admin-main .section-eyebrow {
+  font-family: var(--font-menu), system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+.admin-main .field-label { font-weight: 600; }
+.admin-main table th { font-weight: 800; }
+@media print {
+  .admin-main h1 { border-left-width: 3px; font-size: 1.4rem; }
+}

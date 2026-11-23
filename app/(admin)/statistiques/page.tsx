@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { IconDownload, IconStorefront, IconCheckCircle, IconClipboard, IconTrend, IconChart } from "@/components/icons";
+import { IconDownload, IconStorefront, IconCheckCircle, IconClipboard, IconTrend, IconMap, IconRoute } from "@/components/icons";
+import SuiviTerrain from "@/components/SuiviTerrain";
+import { peut } from "@/lib/permissions";
 import { Spinner, ChargementPage } from "@/components/Spinner";
 
 const CarteBelgravia = dynamic(() => import("@/components/CarteBelgravia"), {
@@ -25,6 +27,13 @@ type PointCarte = { id: string; nom: string; statut: string; lat: number; lng: n
 export default function StatistiquesPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [points, setPoints] = useState<PointCarte[] | null>(null);
+  const [vue, setVue] = useState<"points" | "suivi">("points");
+  const [peutSuivre, setPeutSuivre] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/me").then((r) => r.json()).then((d) => setPeutSuivre(peut(d.role, "tracking"))).catch(() => {});
+    if (new URLSearchParams(window.location.search).get("vue") === "suivi") setVue("suivi");
+  }, []);
 
   useEffect(() => {
     fetch("/api/statistiques").then((r) => r.json()).then(setStats);
@@ -35,14 +44,35 @@ export default function StatistiquesPage() {
     <div>
       <div className="mb-5 flex items-center justify-between">
         <h1 className="flex items-center gap-2 font-display text-2xl text-ink">
-          <IconChart className="h-5 w-5 text-brass" />
-          Statistiques
+          <IconMap className="h-5 w-5 text-brass" />
+          Carte
         </h1>
-        <a href="/api/visites/export" className="btn-secondary">
-          <IconDownload className="h-4 w-4" />
-          Exporter en CSV
-        </a>
+        {vue === "points" && (
+          <a href="/api/visites/export" className="btn-secondary">
+            <IconDownload className="h-4 w-4" />
+            Exporter en CSV
+          </a>
+        )}
       </div>
+
+      {peutSuivre && (
+        <div className="mb-5 inline-flex rounded-lg border border-line bg-bg-elevated p-1">
+          {([["points", "Points de vente", IconStorefront], ["suivi", "Suivi des commerciaux", IconRoute]] as const).map(([v, label, Ic]) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setVue(v)}
+              className={`flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-bold transition-colors ${vue === v ? "bg-brass text-bg shadow-sm" : "text-ink-muted hover:text-ink"}`}
+            >
+              <Ic className="h-4 w-4" />
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {vue === "suivi" && peutSuivre && <SuiviTerrain />}
+      {vue === "points" && (<>
 
       {stats && (
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -72,6 +102,7 @@ export default function StatistiquesPage() {
           <Repartitions titre="Par agent" data={stats.parAgent} />
         </div>
       )}
+      </>)}
     </div>
   );
 }

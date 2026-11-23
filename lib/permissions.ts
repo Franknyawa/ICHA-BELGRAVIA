@@ -22,6 +22,7 @@ export type Module =
   | "tracking"
   | "stock"
   | "caisse"
+  | "objectifs"
   | "archives"
   | "produits"
   | "utilisateurs"
@@ -29,12 +30,12 @@ export type Module =
 
 const TOUS: Module[] = [
   "tableau_de_bord", "visites", "alertes", "commandes", "points_de_vente", "rapports",
-  "carte", "tracking", "stock", "caisse", "archives", "produits", "utilisateurs", "parametres",
+  "carte", "tracking", "stock", "caisse", "objectifs", "archives", "produits", "utilisateurs", "parametres",
 ];
 
 const ACCES: Record<RoleApp, readonly Module[]> = {
   COMMERCIAL: [],
-  SUPERVISEUR: ["visites", "alertes", "commandes", "points_de_vente", "rapports", "stock"],
+  SUPERVISEUR: ["visites", "alertes", "commandes", "points_de_vente", "rapports", "stock", "objectifs"],
   ADMIN: TOUS.filter((m) => m !== "utilisateurs" && m !== "parametres"),
   SUPER_ADMIN: TOUS,
 };
@@ -101,6 +102,7 @@ const PAGES: { prefixe: string; module: Module }[] = [
   { prefixe: "/tracking", module: "tracking" },
   { prefixe: "/stock", module: "stock" },
   { prefixe: "/caisse", module: "caisse" },
+  { prefixe: "/objectifs", module: "objectifs" },
   { prefixe: "/archives", module: "archives" },
   { prefixe: "/produits", module: "produits" },
   { prefixe: "/utilisateurs", module: "utilisateurs" },

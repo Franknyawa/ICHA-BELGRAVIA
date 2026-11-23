@@ -235,8 +235,9 @@ export default function CommandesPage() {
       { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ statut, ...(dateLivraison ? { dateLivraison } : {}) }) },
       c.id
     );
-    // Bon de livraison généré dès la confirmation de livraison (re-téléchargeable ensuite).
-    if (ok && statut === "LIVREE") await telechargerBonLivraison(c).catch(() => {});
+    // Aucun document n'est téléchargé automatiquement : bon de commande, bon de livraison et facture
+    // se téléchargent à la demande avec les boutons de la carte.
+    void ok;
   }
 
   async function annulerDoublon() {

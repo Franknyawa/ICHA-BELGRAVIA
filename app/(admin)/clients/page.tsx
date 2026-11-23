@@ -55,7 +55,7 @@ export default function ClientsPage() {
   const totalReste = filtres.reduce((s, c) => s + c.reste, 0);
 
   return (
-    <div className="max-w-5xl">
+    <div className="w-full">
       <h1 className="mb-1 flex items-center gap-2 font-display text-2xl text-ink">
         <IconUsers className="h-5 w-5 text-brass" />
         Clients

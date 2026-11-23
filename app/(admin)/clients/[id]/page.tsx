@@ -128,7 +128,7 @@ export default function ClientProfilPage() {
   const carte = client.latitude != null && client.longitude != null ? `https://www.google.com/maps?q=${client.latitude},${client.longitude}` : null;
 
   return (
-    <div className="max-w-5xl space-y-4">
+    <div className="w-full space-y-4">
       <div className="no-print flex flex-wrap items-center justify-between gap-2">
         <Link href="/clients" className="text-sm font-medium text-ink-muted hover:text-brass">← Retour aux clients</Link>
         <div className="flex flex-wrap gap-2">

@@ -124,6 +124,7 @@ model User {
   pointsVenteCrees PointVente[]
   visites          Visite[]
   commandes        Commande[]
+  objectifs        ObjectifCommercial[]
   sessions         Session[]
   notifications    Notification[]
 
@@ -584,4 +585,22 @@ model OperationCaisse {
 enum TypeOperationCaisse {
   RECETTE
   DEPENSE
+}
+
+/// Objectifs mensuels d'un commercial (0 = indicateur non fixé). Mois au format "AAAA-MM" (heure du Cameroun).
+model ObjectifCommercial {
+  id            String   @id @default(uuid())
+  commercialId  String   @map("commercial_id")
+  commercial    User     @relation(fields: [commercialId], references: [id], onDelete: Cascade)
+  mois          String
+  chiffreAffaires Decimal @default(0) @db.Decimal(14, 2) @map("chiffre_affaires")
+  nouveauxPv    Int      @default(0) @map("nouveaux_pv")
+  visites       Int      @default(0)
+  commandes     Int      @default(0)
+  cartons       Int      @default(0)
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([commercialId, mois])
+  @@index([mois])
+  @@map("objectifs_commerciaux")
 }

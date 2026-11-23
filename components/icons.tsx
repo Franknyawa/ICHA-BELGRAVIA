@@ -359,3 +359,14 @@ export function IconCopy({ className }: Props) {
     </svg>
   );
 }
+
+export function IconTarget({ className }: Props) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} {...base}>
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="12" r="4.5" />
+      <circle cx="12" cy="12" r="0.8" />
+      <path d="M12 3.5V1.5M12 22.5v-2M3.5 12h-2M22.5 12h-2" />
+    </svg>
+  );
+}

@@ -13,14 +13,13 @@ import {
   IconGlass,
   IconMap,
   IconGear,
-  IconPin,
   IconDownload,
   IconTrend,
   IconList,
   IconAlert,
   IconWallet,
   IconArchive,
-  IconRoute,
+  IconTarget,
 } from "@/components/icons";
 
 type Lien = {
@@ -52,10 +51,9 @@ const SECTIONS: { titre: string; liens: Lien[] }[] = [
   {
     titre: "Terrain",
     liens: [
-      { href: "/dashboard", libelle: "Visites terrain", module: "visites", Icone: IconRoute },
       { href: "/points-de-vente", libelle: "Points de vente", module: "points_de_vente", Icone: IconStorefront },
       { href: "/statistiques", libelle: "Carte", module: "carte", Icone: IconMap },
-      { href: "/tracking", libelle: "Tracking", module: "tracking", Icone: IconPin },
+      { href: "/objectifs", libelle: "Objectifs", module: "objectifs", Icone: IconTarget },
     ],
   },
   {
