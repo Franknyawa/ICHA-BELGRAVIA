@@ -52,6 +52,7 @@ export async function exporterRapportPdf(data: ExportRapportData) {
   doc.text(`Généré le ${new Date().toLocaleDateString("fr-FR")}`, largeur - 14, 33, { align: "right" });
 
   const formatCell = (colonne: Colonne, valeur: string | number) => {
+    if (valeur === null || valeur === undefined || valeur === "" || valeur === "—") return "—";
     if (colonne.montant) return data.colonnes.length > 10 ? formaterMontant(Number(valeur)) : `${formaterMontant(Number(valeur))} FCFA`;
     if (colonne.pourcentage) return `${Number(valeur).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`;
     return String(valeur ?? "—") || "—";
@@ -73,7 +74,7 @@ export async function exporterRapportPdf(data: ExportRapportData) {
           ]
         : data.colonnes.map((c) => formatCell(c, ligne[c.cle]))
     ),
-    foot: [
+    foot: Object.keys(data.totaux).length === 0 ? undefined : [
       data.colonnes.map((c, i) => {
         if (i === 0) return "Total";
         if (c.cle in data.totaux) return formatCell(c, data.totaux[c.cle]);

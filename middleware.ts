@@ -61,6 +61,7 @@ export const config = {
     "/tracking/:path*",
     "/points-de-vente/:path*",
     "/rapports/:path*",
+    "/concurrence/:path*",
     "/stock/:path*",
     "/factures/:path*",
     "/alertes/:path*",

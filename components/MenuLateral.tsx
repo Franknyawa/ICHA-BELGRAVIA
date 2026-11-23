@@ -38,6 +38,7 @@ const SECTIONS: { titre: string; liens: Lien[] }[] = [
       { href: "/tableau-de-bord", libelle: "Tableau de bord", module: "tableau_de_bord", Icone: IconChart },
       { href: "/alertes", libelle: "Alertes", module: "alertes", Icone: IconAlert, badge: "/api/alertes/count" },
       { href: "/rapports", libelle: "Rapports", module: "rapports", Icone: IconTrend },
+      { href: "/concurrence", libelle: "Concurrence", module: "rapports", Icone: IconGlass },
     ],
   },
   {
