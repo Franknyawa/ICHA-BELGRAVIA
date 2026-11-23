@@ -8,6 +8,9 @@ import { NOM_APP } from "@/lib/marque";
 import { Spinner, ChargementPage } from "@/components/Spinner";
 import type { RapportConcurrence } from "@/lib/concurrence";
 
+type Onglet = "TOUTES" | "RTD" | "MOUSSEUX" | "NON_CLASSEE";
+// Une couleur par catégorie pour les distinguer d'un coup d'œil (barres, pastilles, onglets).
+const COULEUR: Record<string, string> = { RTD: "#2E8B7A", MOUSSEUX: "#B8892B", NON_CLASSEE: "#8A8A8A" };
 const FILTRES_VIDES = { dateFrom: "", dateTo: "", villeId: "", quartier: "" };
 const fcfa = (n: number | null) => (n === null ? "—" : `${n.toLocaleString("fr-FR")} FCFA`);
 const pct = (n: number) => `${n.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`;
@@ -18,6 +21,7 @@ export default function ConcurrencePage() {
   const [rapport, setRapport] = useState<RapportConcurrence | null>(null);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState("");
+  const [onglet, setOnglet] = useState<Onglet>("TOUTES");
   const [exportEnCours, setExportEnCours] = useState<"pdf" | "csv" | null>(null);
 
   useEffect(() => {
@@ -43,8 +47,12 @@ export default function ConcurrencePage() {
     return () => clearTimeout(t);
   }, [filtres]);
 
+  const visibles = (rapport?.categories ?? []).filter((c) => onglet === "TOUTES" || c.categorie === onglet);
+  const libelleOnglet = onglet === "TOUTES" ? "" : (rapport?.categories.find((c) => c.categorie === onglet)?.libelle ?? "");
+
   const resumeFiltres = () => {
     const p: string[] = [];
+    if (libelleOnglet) p.push(`Catégorie : ${libelleOnglet}`);
     if (filtres.dateFrom || filtres.dateTo) p.push(`Période : ${filtres.dateFrom || "…"} → ${filtres.dateTo || "…"}`);
     const ville = villes.find((v) => v.id === filtres.villeId);
     if (ville) p.push(`Ville : ${ville.nom}`);
@@ -58,13 +66,13 @@ export default function ConcurrencePage() {
     setExportEnCours("pdf");
     try {
       const lignes: Record<string, string | number>[] = [];
-      for (const c of rapport.categories) {
+      for (const c of visibles) {
         lignes.push({ __groupe: `${c.libelle} — ${c.marques.length} marque${c.marques.length > 1 ? "s" : ""} · présente dans ${c.pointsCouverts} point${c.pointsCouverts > 1 ? "s" : ""} (${pct(c.pourcentageCouverture)})` });
         for (const m of c.marques)
           lignes.push({ marque: m.nom, nbPoints: m.nbPoints, pourcentage: m.pourcentage, prixMoyen: m.prixMoyen ?? "—", prixMin: m.prixMin ?? "—", prixMax: m.prixMax ?? "—" });
       }
       await exporterRapportPdf({
-        titre: "Marques concurrentes",
+        titre: libelleOnglet ? `Marques concurrentes - ${libelleOnglet}` : "Marques concurrentes",
         sousTitre: resumeFiltres(),
         colonnes: [
           { cle: "marque", label: "Marque" },
@@ -87,15 +95,15 @@ export default function ConcurrencePage() {
     setExportEnCours("csv");
     try {
       const lignes: (string | number | null)[][] = [];
-      for (const c of rapport.categories)
+      for (const c of visibles)
         for (const m of c.marques) lignes.push([c.libelle, m.nom, m.nbPoints, rapport.totalPoints, m.pourcentage, m.prixMoyen, m.prixMin, m.prixMax, m.nbPrix]);
-      telechargerCsv("marques-concurrentes", ["Catégorie", "Marque", "Points de vente", "Total points recensés", "% de présence", "Prix moyen (FCFA)", "Prix min (FCFA)", "Prix max (FCFA)", "Relevés de prix"], lignes);
+      telechargerCsv(onglet === "TOUTES" ? "marques-concurrentes" : `marques-concurrentes-${onglet.toLowerCase()}`, ["Catégorie", "Marque", "Points de vente", "Total points recensés", "% de présence", "Prix moyen (FCFA)", "Prix min (FCFA)", "Prix max (FCFA)", "Relevés de prix"], lignes);
     } finally {
       setExportEnCours(null);
     }
   }
 
-  const aDesDonnees = !!rapport && rapport.categories.length > 0;
+  const aDesDonnees = visibles.length > 0;
 
   return (
     <div className="pb-16">
@@ -150,6 +158,29 @@ export default function ConcurrencePage() {
         )}
       </div>
 
+      {rapport && rapport.categories.length > 0 && (
+        <div className="mb-6 flex flex-wrap gap-2 no-print" role="tablist" aria-label="Catégorie">
+          {([{ cle: "TOUTES", libelle: "Toutes les catégories", nb: rapport.categories.reduce((s, c) => s + c.marques.length, 0) }, ...rapport.categories.map((c) => ({ cle: c.categorie, libelle: c.libelle, nb: c.marques.length }))] as { cle: Onglet; libelle: string; nb: number }[]).map((o) => {
+            const actif = onglet === o.cle;
+            return (
+              <button
+                key={o.cle}
+                role="tab"
+                aria-selected={actif}
+                onClick={() => setOnglet(o.cle)}
+                className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                  actif ? "border-brass bg-brass text-bg" : "border-line text-ink-muted hover:border-brass hover:text-brass"
+                }`}
+              >
+                {o.cle !== "TOUTES" && <span className="h-2.5 w-2.5 rounded-full" style={{ background: COULEUR[o.cle] }} />}
+                {o.libelle}
+                <span className={`rounded-full px-2 py-0.5 text-xs ${actif ? "bg-bg/25" : "bg-brass/10"}`}>{o.nb}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {chargement && !rapport ? (
         <ChargementPage />
       ) : erreur ? (
@@ -163,17 +194,20 @@ export default function ConcurrencePage() {
             {filtres.dateFrom || filtres.dateTo ? " dans la période" : ""}.
           </p>
 
-          {rapport!.categories.map((c) => (
+          {visibles.map((c) => (
             <section key={c.categorie} className="mb-8 break-inside-avoid">
               <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="font-display text-xl text-ink">{c.libelle}</h2>
+                <h2 className="flex items-center gap-2 font-display text-xl text-ink">
+                  <span className="h-3 w-3 rounded-full" style={{ background: COULEUR[c.categorie] }} />
+                  {c.libelle}
+                </h2>
                 <p className="text-sm text-ink-muted">
                   {c.marques.length} marque{c.marques.length > 1 ? "s" : ""} · au moins une présente dans {c.pointsCouverts} point{c.pointsCouverts > 1 ? "s" : ""} ({pct(c.pourcentageCouverture)})
                 </p>
               </div>
               <div className="overflow-x-auto rounded-xl border border-line bg-bg-elevated">
                 <table className="w-full min-w-[640px] text-left text-sm">
-                  <thead className="bg-brass/10 text-xs uppercase tracking-wider text-ink-muted">
+                  <thead className="text-xs uppercase tracking-wider text-ink-muted" style={{ background: `${COULEUR[c.categorie]}1F`, borderTop: `3px solid ${COULEUR[c.categorie]}` }}>
                     <tr>
                       <th className="px-4 py-3">Marque</th>
                       <th className="px-4 py-3 text-right">Points de vente</th>
@@ -190,8 +224,8 @@ export default function ConcurrencePage() {
                         <td className="px-4 py-3 text-right tabular-nums">{m.nbPoints}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div className="h-2 flex-1 overflow-hidden rounded-full bg-brass/15" role="img" aria-label={`${pct(m.pourcentage)} des points`}>
-                              <div className="h-full rounded-full bg-brass" style={{ width: `${Math.min(100, m.pourcentage)}%` }} />
+                            <div className="h-2 flex-1 overflow-hidden rounded-full bg-line/60" role="img" aria-label={`${pct(m.pourcentage)} des points`}>
+                              <div className="h-full rounded-full" style={{ width: `${Math.min(100, m.pourcentage)}%`, background: COULEUR[c.categorie] }} />
                             </div>
                             <span className="w-14 text-right tabular-nums">{pct(m.pourcentage)}</span>
                           </div>

@@ -24,7 +24,7 @@ export type RapportConcurrence = {
   categories: CategorieConcurrence[];
 };
 
-const LIBELLES = { MOUSSEUX: "Vins mousseux", RTD: "Cocktails prêts à boire (RTD)", NON_CLASSEE: "Catégorie non renseignée" } as const;
+const LIBELLES = { MOUSSEUX: "Vins mousseux", RTD: "Cocktails / RTD", NON_CLASSEE: "Catégorie non renseignée" } as const;
 
 /** « Moët », « MOET  » et « moet » désignent la même marque. */
 export function cleMarque(nom: string): string {
@@ -104,7 +104,7 @@ export async function genererRapportConcurrence(f: {
     for (const c of categoriesDuPoint) pointsParCategorie.set(c, (pointsParCategorie.get(c) ?? 0) + 1);
   }
 
-  const ordre: CategorieConcurrence["categorie"][] = ["MOUSSEUX", "RTD", "NON_CLASSEE"];
+  const ordre: CategorieConcurrence["categorie"][] = ["RTD", "MOUSSEUX", "NON_CLASSEE"];
   const categories: CategorieConcurrence[] = ordre
     .filter((c) => parCategorie.has(c))
     .map((categorie) => {
