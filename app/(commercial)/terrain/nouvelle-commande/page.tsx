@@ -69,7 +69,13 @@ function NouvelleCommandeInner() {
   const [envoi, setEnvoi] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [messageInfo, setMessageInfo] = useState<string | null>(null);
-  const [confirmation, setConfirmation] = useState<{ variante: "succes" | "local"; detail: string } | null>(null);
+  const [nomAgent, setNomAgent] = useState("—");
+  const [confirmation, setConfirmation] = useState<{ variante: "succes" | "local"; detail: string; numero: string } | null>(null);
+
+  // Nom de l'agent pour la facture (hors ligne : reste « — », la facture admin est correcte).
+  useEffect(() => {
+    fetch("/api/me").then((r) => (r.ok ? r.json() : null)).then((m) => m && setNomAgent(`${m.prenom} ${m.nom}`)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch("/api/referentiels")
@@ -209,7 +215,7 @@ function NouvelleCommandeInner() {
       villeNom: client.ville,
       quartier: client.quartier,
       gammeNom: gammeChoisie ? libelleGamme(gammeChoisie) : undefined,
-      commercialNom: "—", // affiché correctement depuis la liste admin ; ici l'agent connaît déjà son nom
+      commercialNom: nomAgent,
       lignes: lignesRetenues.map((l) => ({
         produitNom: l.produit.nom,
         quantiteCartons: l.quantite,
@@ -252,23 +258,13 @@ function NouvelleCommandeInner() {
         titre: client.nomEtablissement,
         payload,
       });
-      // La facture est générée immédiatement après l'enregistrement réussi,
-      // avec le numéro attribué par le serveur (8 premiers caractères de
-      // l'id, en majuscules — cohérent avec la liste admin des factures).
-      let factureOk = false;
-      try {
-        await genererFacture((resultat as any).numero || uuidCommande.slice(0, 8).toUpperCase(), new Date());
-        factureOk = true;
-      } catch {
-        // La commande est déjà enregistrée : un échec de génération du PDF
-        // (rare, ex. navigateur qui bloque le téléchargement) ne doit pas
-        // bloquer le retour à l'accueil — la facture reste régénérable
-        // depuis l'admin (onglet Factures).
-      }
+      // La facture n'est plus téléchargée d'office : elle est proposée sur l'écran de
+      // confirmation, avec le numéro attribué par le serveur (8 premiers caractères de l'id).
       const numero = (resultat as any).numero as string | undefined;
       setConfirmation({
         variante: "succes",
-        detail: `${client.nomEtablissement}${numero ? ` · n° ${numero}` : ""} · ${montantTotal.toLocaleString("fr-FR")} FCFA.${factureOk ? " La facture a été téléchargée." : " La facture reste disponible depuis l'administration."}`,
+        numero: numero || uuidCommande.slice(0, 8).toUpperCase(),
+        detail: `${client.nomEtablissement}${numero ? ` · n° ${numero}` : ""} · ${montantTotal.toLocaleString("fr-FR")} FCFA.`,
       });
     } catch (e) {
       const err = e instanceof ErreurEnvoi ? e : null;
@@ -282,21 +278,14 @@ function NouvelleCommandeInner() {
       } else {
         // Hors-ligne ou serveur indisponible : la commande est déjà sauvegardée sur l'appareil.
         // Le prix affiché vient du même barème que celui du serveur (lib/pricing.ts).
-        let factureOk = false;
-        try {
-          await genererFacture(uuidCommande.slice(0, 8).toUpperCase(), new Date());
-          factureOk = true;
-        } catch {
-          /* la facture reste régénérable depuis l'admin */
-        }
-        const noteFacture = factureOk ? " La facture a été téléchargée." : "";
         setErreur(null);
         setConfirmation({
           variante: "local",
+          numero: uuidCommande.slice(0, 8).toUpperCase(),
           detail:
             err.genre === "RESEAU"
-              ? `Pas de connexion : elle est gardée sur l'appareil et partira automatiquement au retour du réseau.${noteFacture}`
-              : `Le serveur est momentanément indisponible (${err.message}) : elle est gardée sur l'appareil et sera réessayée automatiquement.${noteFacture}`,
+              ? "Pas de connexion : elle est gardée sur l'appareil et partira automatiquement au retour du réseau."
+              : `Le serveur est momentanément indisponible (${err.message}) : elle est gardée sur l'appareil et sera réessayée automatiquement.`,
         });
       }
     } finally {
@@ -312,7 +301,12 @@ function NouvelleCommandeInner() {
           titre={confirmation.variante === "succes" ? "Commande enregistrée" : "Commande gardée sur l'appareil"}
           detail={confirmation.detail}
           libelleBouton="Retour à l'accueil"
-          delaiAuto={confirmation.variante === "local" ? 4500 : 3200}
+          delaiAuto={null}
+          action={{
+            libelle: "Télécharger la facture",
+            libelleFait: "Facture téléchargée",
+            executer: () => genererFacture(confirmation.numero, new Date()),
+          }}
           onContinuer={() => router.push("/terrain")}
         />
       )}

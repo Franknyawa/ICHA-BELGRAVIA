@@ -263,11 +263,24 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize,
+      // Champs strictement nécessaires : « commercial: true » renvoyait toute la
+      // fiche utilisateur (dont le hash du mot de passe) et rendait la liste lourde.
       include: {
-        pointVente: { include: { ville: true } },
-        commercial: true,
+        pointVente: {
+          select: {
+            id: true,
+            nomEtablissement: true,
+            nomVendeur: true,
+            telVendeur: true,
+            nomPatron: true,
+            telPatron: true,
+            quartier: true,
+            ville: { select: { nom: true } },
+          },
+        },
+        commercial: { select: { id: true, nom: true, prenom: true } },
         gamme: true,
-        lignes: { include: { produit: true } },
+        lignes: { include: { produit: { select: { id: true, nom: true } } } },
       },
     }),
     prisma.commande.groupBy({ by: ["statut"], where: whereSansStatut, _count: true }),

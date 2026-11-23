@@ -101,6 +101,8 @@ export type AEncaisser = DetailsCommande & {
   datePrevue: string | null; // livraison / encaissement prévu
   enRetard: boolean;
   encaisse: number;
+  /** Canal le plus probable (selon le paiement déclaré par le commercial) : présélectionné à l'encaissement. */
+  canalSuggere: Canal;
 };
 
 export type LigneJournal = {
@@ -232,6 +234,7 @@ export async function valoriserStock() {
       nom: pr.nom,
       gammeCode: pr.gamme?.code ?? null,
       cartons,
+      seuilAlerte: pr.stock?.seuilAlerte ?? 0,
       prixVenteCarton,
       coutMoyenCarton,
       valeurVente: cartons * prixVenteCarton,

@@ -1,5 +1,6 @@
 "use client";
 
+import { nombreFr } from "@/lib/format";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   IconWallet,
@@ -41,6 +42,7 @@ type AEncaisser = Details & {
   datePrevue: string | null;
   enRetard: boolean;
   encaisse: number;
+  canalSuggere: Canal;
 };
 type LigneJournal = {
   id: string;
@@ -61,6 +63,7 @@ type LigneStock = {
   nom: string;
   gammeCode: string | null;
   cartons: number;
+  seuilAlerte: number;
   prixVenteCarton: number;
   coutMoyenCarton: number | null;
   valeurVente: number;
@@ -120,7 +123,7 @@ const LIBELLE_CATEGORIE: Record<string, string> = {
   ...CATEGORIES_DEPENSE,
 };
 
-const fcfa = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
+const fcfa = (n: number) => `${nombreFr(n)} FCFA`;
 const jourFr = (iso: string) => {
   const [a, m, j] = iso.split("-");
   return `${j}/${m}/${a}`;
@@ -215,6 +218,7 @@ export default function CaissePage() {
     setCommandeId(id);
     const c = data?.aEncaisser.find((x) => x.commandeId === id);
     setMontant(c ? String(c.reste) : "");
+    if (c) setCanal(c.canalSuggere);
     setErreur(null);
   }
 
@@ -669,7 +673,7 @@ export default function CaissePage() {
                             <span className={g.ton}>
                               {g.titre} ({g.liste.length})
                             </span>
-                            <span className="text-ink-muted">{fcfa(g.liste.reduce((s, c) => s + c.reste, 0))}</span>
+                            <span className="montant text-sm text-ink">{fcfa(g.liste.reduce((s, c) => s + c.reste, 0))}</span>
                           </div>
                           <ul className="divide-y divide-line rounded-lg border border-line">
                             {g.liste.map((c) => (
@@ -688,7 +692,7 @@ export default function CaissePage() {
                                   )}
                                 </div>
                                 <div className="flex flex-shrink-0 items-center gap-2">
-                                  <span className="rounded-full bg-brass/10 px-2.5 py-1 text-xs font-semibold text-brass">{fcfa(c.reste)}</span>
+                                  <span className="montant rounded-full bg-brass/15 px-3 py-1 text-sm text-brass">{fcfa(c.reste)}<span className="montant-unite">FCFA</span></span>
                                   <button
                                     type="button"
                                     className="rounded-md bg-ink px-3 py-1.5 text-xs font-medium text-white hover:opacity-90"
@@ -706,45 +710,7 @@ export default function CaissePage() {
                 )}
               </div>
 
-              <div className="field-card">
-                <p className="section-eyebrow mb-3">
-                  <IconBox className="h-4 w-4" />
-                  Stock présent
-                </p>
-                <div className="mb-3 grid grid-cols-3 gap-2 text-center">
-                  <Mini label="Cartons en stock" valeur={data.stock.totalCartons.toLocaleString("fr-FR")} />
-                  <Mini label="Valeur à la vente" valeur={fcfa(data.stock.valeurVente)} />
-                  <Mini label="Valeur au coût" valeur={data.stock.valeurCout > 0 ? fcfa(data.stock.valeurCout) : "—"} />
-                </div>
-                <div className="overflow-x-auto rounded-lg border border-line">
-                  <table className="w-full text-sm">
-                    <thead className="bg-bg-elevated text-left text-ink-muted">
-                      <tr>
-                        <th className="px-3 py-2 font-medium">Produit</th>
-                        <th className="px-3 py-2 text-right font-medium">Cartons</th>
-                        <th className="px-3 py-2 text-right font-medium">Prix vente</th>
-                        <th className="px-3 py-2 text-right font-medium">Coût moyen</th>
-                        <th className="px-3 py-2 text-right font-medium">Valeur vente</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.stock.lignes.map((l) => (
-                        <tr key={l.produitId} className="border-t border-line">
-                          <td className="px-3 py-2 text-ink">{l.nom}</td>
-                          <td className="px-3 py-2 text-right font-medium text-ink">{l.cartons}</td>
-                          <td className="px-3 py-2 text-right text-ink-muted">{fcfa(l.prixVenteCarton)}</td>
-                          <td className="px-3 py-2 text-right text-ink-muted">{l.coutMoyenCarton !== null ? fcfa(l.coutMoyenCarton) : "—"}</td>
-                          <td className="px-3 py-2 text-right text-ink">{fcfa(l.valeurVente)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <p className="mt-2 text-xs text-ink-muted">
-                  Valeur à la vente : cartons × prix du palier « 1 carton ». Le coût moyen vient des achats de stock saisis ici ou dans l'onglet Stock
-                  {data.stock.coutInconnu && " — certains produits n'ont pas encore d'achat enregistré."}
-                </p>
-              </div>
+              <BlocStock stock={data.stock} />
             </div>
           </div>
 
@@ -810,10 +776,10 @@ export default function CaissePage() {
                         )}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-ink-muted">{canalTexte(l)}</td>
-                      <td className={`whitespace-nowrap px-4 py-3 text-right font-medium ${transfert ? "text-ink-muted" : "text-ok"}`}>
+                      <td className={`montant whitespace-nowrap px-4 py-3 text-right text-base ${transfert ? "text-ink-muted" : "text-ok"}`}>
                         {l.type === "RECETTE" && l.montant > 0 ? fcfa(l.montant) : ""}
                       </td>
-                      <td className={`whitespace-nowrap px-4 py-3 text-right font-medium ${transfert ? "text-ink-muted" : "text-warn"}`}>
+                      <td className={`montant whitespace-nowrap px-4 py-3 text-right text-base ${transfert ? "text-ink-muted" : "text-warn"}`}>
                         {l.type === "DEPENSE" ? fcfa(l.montant) : ""}
                       </td>
                       <td className="px-2 py-3 text-right no-print">
@@ -894,23 +860,102 @@ function Kpi({
   fort?: boolean;
 }) {
   const couleur = { brass: "text-brass", ok: "text-ok", warn: "text-warn", danger: "text-danger", ink: "text-ink" }[ton];
+  const [nombre, unite] = valeur.endsWith(" FCFA") ? [valeur.slice(0, -5), "FCFA"] : [valeur, ""];
   return (
-    <div className={`field-card ${fort ? "col-span-2 border-brass/30 bg-gradient-to-br from-bg-card to-bg-elevated lg:col-span-1" : ""}`}>
-      <p className="mb-1 flex items-center gap-1.5 text-xs text-ink-muted">
+    <div className={`field-card ${fort ? "col-span-2 border-brass/40 bg-gradient-to-br from-brass/10 to-bg-card lg:col-span-1" : ""}`}>
+      <p className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-ink-muted">
         {fort && <IconTrend className="h-3.5 w-3.5 text-brass" />}
         {label}
       </p>
-      <p className={`font-display text-xl sm:text-2xl ${couleur}`}>{valeur}</p>
-      {detail && <p className="mt-0.5 text-[11px] text-ink-muted">{detail}</p>}
+      <p className={`montant text-2xl sm:text-[1.75rem] ${couleur}`}>
+        {nombre}
+        {unite && <span className="montant-unite">{unite}</span>}
+      </p>
+      {detail && <p className="mt-1 text-[11px] font-medium text-ink-muted">{detail}</p>}
     </div>
   );
 }
 
-function Mini({ label, valeur }: { label: string; valeur: string }) {
+function Mini({ label, valeur, ton = "ink" }: { label: string; valeur: string; ton?: "ink" | "ok" | "brass" }) {
+  const [nombre, unite] = valeur.endsWith(" FCFA") ? [valeur.slice(0, -5), "FCFA"] : [valeur, ""];
+  const couleur = { ink: "text-ink", ok: "text-ok", brass: "text-brass" }[ton];
   return (
-    <div className="rounded-lg bg-bg-elevated px-2 py-2.5">
-      <p className="text-[11px] text-ink-muted">{label}</p>
-      <p className="font-display text-base text-ink sm:text-lg">{valeur}</p>
+    <div className="rounded-xl bg-bg-elevated px-3 py-3 text-center">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">{label}</p>
+      <p className={`montant mt-1 text-xl sm:text-2xl ${couleur}`}>
+        {nombre}
+        {unite && <span className="montant-unite">{unite}</span>}
+      </p>
+    </div>
+  );
+}
+
+/** Bloc stock : chiffres clés, une carte par produit en stock (niveau visuel), rupture à part. */
+function BlocStock({ stock }: { stock: Donnees["stock"] }) {
+  const enStock = stock.lignes.filter((l) => l.cartons > 0).sort((a, b) => b.cartons - a.cartons);
+  const ruptures = stock.lignes.filter((l) => l.cartons <= 0);
+  const max = Math.max(1, ...enStock.map((l) => l.cartons));
+  return (
+    <div className="field-card">
+      <p className="section-eyebrow mb-3">
+        <IconBox className="h-4 w-4" />
+        Stock présent
+      </p>
+      <div className="mb-4 grid grid-cols-3 gap-2">
+        <Mini label="Cartons en stock" valeur={nombreFr(stock.totalCartons)} />
+        <Mini label="Valeur à la vente" valeur={fcfa(stock.valeurVente)} ton="ok" />
+        <Mini label="Valeur au coût" valeur={stock.valeurCout > 0 ? fcfa(stock.valeurCout) : "—"} ton="brass" />
+      </div>
+
+      <div className="grid gap-2.5 sm:grid-cols-2">
+        {enStock.map((l) => {
+          const bas = l.seuilAlerte > 0 && l.cartons <= l.seuilAlerte;
+          return (
+            <div key={l.produitId} className={`rounded-xl border p-3 ${bas ? "border-warn/50 bg-warn/5" : "border-line bg-bg-card"}`}>
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-bold leading-tight text-ink">{l.nom}</p>
+                {bas && <span className="shrink-0 rounded-full bg-warn/20 px-2 py-0.5 text-[10px] font-bold text-warn">Stock bas</span>}
+              </div>
+              <p className="montant mt-1.5 text-3xl text-ink">
+                {nombreFr(l.cartons)}
+                <span className="montant-unite">cartons</span>
+              </p>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-bg-elevated" aria-hidden>
+                <div className={`h-full rounded-full ${bas ? "bg-warn" : "bg-ok"}`} style={{ width: `${Math.max(4, Math.round((l.cartons / max) * 100))}%` }} />
+              </div>
+              <div className="mt-2 flex items-baseline justify-between text-[11px] font-medium text-ink-muted">
+                <span>
+                  Prix <b className="montant text-xs text-ink">{fcfa(l.prixVenteCarton)}</b>
+                </span>
+                <span>
+                  Valeur <b className="montant text-xs text-ok">{fcfa(l.valeurVente)}</b>
+                </span>
+                {l.coutMoyenCarton !== null && (
+                  <span>
+                    Coût <b className="montant text-xs text-ink">{fcfa(l.coutMoyenCarton)}</b>
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {enStock.length === 0 && <p className="text-sm text-ink-muted">Aucun produit en stock.</p>}
+
+      {ruptures.length > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          <span className="rounded-full bg-danger/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-danger">En rupture ({ruptures.length})</span>
+          {ruptures.map((l) => (
+            <span key={l.produitId} className="rounded-full border border-line px-2.5 py-1 text-xs font-medium text-ink-muted">
+              {l.nom}
+            </span>
+          ))}
+        </div>
+      )}
+      <p className="mt-3 text-xs text-ink-muted">
+        Valeur à la vente : cartons × prix du palier « 1 carton ». Le coût moyen vient des achats de stock saisis ici ou dans l'onglet Stock
+        {stock.coutInconnu && " — certains produits n'ont pas encore d'achat enregistré."}
+      </p>
     </div>
   );
 }

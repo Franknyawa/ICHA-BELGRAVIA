@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { IconDownload, IconCheckCircle } from "@/components/icons";
 
 type Props = {
   titre: string;
@@ -9,16 +10,20 @@ type Props = {
   variante: "succes" | "local";
   libelleBouton: string;
   onContinuer: () => void;
-  /** Redirection automatique après ce délai (ms). */
-  delaiAuto?: number;
+  /** Redirection automatique après ce délai (ms) ; null = pas de redirection automatique. */
+  delaiAuto?: number | null;
+  /** Action facultative proposée à l'utilisateur (ex. télécharger la facture) : jamais déclenchée d'office. */
+  action?: { libelle: string; libelleFait: string; executer: () => Promise<void> };
 };
 
 /**
  * Écran de confirmation plein écran après un enregistrement : coche animée,
  * message clair, bouton pour continuer (et redirection automatique).
  */
-export default function ConfirmationEnregistrement({ titre, detail, variante, libelleBouton, onContinuer, delaiAuto = 2600 }: Props) {
+export default function ConfirmationEnregistrement({ titre, detail, variante, libelleBouton, onContinuer, delaiAuto = 2600, action }: Props) {
+  const [etat, setEtat] = useState<"repos" | "encours" | "fait" | "echec">("repos");
   useEffect(() => {
+    if (delaiAuto === null) return;
     const t = setTimeout(onContinuer, delaiAuto);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -49,7 +54,26 @@ export default function ConfirmationEnregistrement({ titre, detail, variante, li
       </div>
       <h2 className="mt-6 font-display text-3xl italic text-ink">{titre}</h2>
       {detail && <p className="mt-2 max-w-xs text-sm text-ink-muted">{detail}</p>}
-      <button type="button" className="btn-primary mt-8 w-full max-w-xs py-3.5" onClick={onContinuer}>
+      {action && (
+        <button
+          type="button"
+          className="btn-secondary mt-6 w-full max-w-xs py-3.5"
+          disabled={etat === "encours"}
+          onClick={async () => {
+            setEtat("encours");
+            try {
+              await action.executer();
+              setEtat("fait");
+            } catch {
+              setEtat("echec");
+            }
+          }}
+        >
+          {etat === "fait" ? <IconCheckCircle className="h-4 w-4 text-ok" /> : <IconDownload className="h-4 w-4" />}
+          {etat === "encours" ? "Génération…" : etat === "fait" ? action.libelleFait : etat === "echec" ? "Échec — réessayer" : action.libelle}
+        </button>
+      )}
+      <button type="button" className={`btn-primary w-full max-w-xs py-3.5 ${action ? "mt-3" : "mt-8"}`} onClick={onContinuer}>
         {libelleBouton}
       </button>
     </div>

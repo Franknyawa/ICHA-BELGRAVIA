@@ -13,6 +13,7 @@ import {
   canalDe,
   enregistrerAchatStock,
   encaisseParCommande,
+  modeDeVente,
   modeOperation,
   modePourCanal,
   soldeGlobal,
@@ -151,6 +152,7 @@ export async function GET(req: NextRequest) {
         datePrevue: prevue ? prevue.toISOString() : null,
         enRetard: !!prevue && prevue.getTime() < debut,
         encaisse,
+        canalSuggere: canalDe(modeDeVente(c)),
       };
     })
     .filter((c) => c.reste > 0)
