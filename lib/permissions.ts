@@ -93,6 +93,7 @@ const PAGES: { prefixe: string; module: Module }[] = [
   { prefixe: "/alertes", module: "alertes" },
   { prefixe: "/commandes", module: "commandes" },
   { prefixe: "/factures", module: "commandes" },
+  { prefixe: "/clients", module: "commandes" },
   { prefixe: "/points-de-vente", module: "points_de_vente" },
   { prefixe: "/rapports", module: "rapports" },
   { prefixe: "/concurrence", module: "rapports" },

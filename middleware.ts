@@ -64,6 +64,7 @@ export const config = {
     "/concurrence/:path*",
     "/stock/:path*",
     "/factures/:path*",
+    "/clients/:path*",
     "/alertes/:path*",
     "/caisse/:path*",
     "/archives/:path*",

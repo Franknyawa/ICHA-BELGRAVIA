@@ -122,16 +122,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       return NextResponse.json({ ok: true });
     }
 
-    // --- Réactiver une commande livrée : elle repasse « livraison à effectuer » ---------------
+    // --- Réactiver : la commande revient « à traiter », comme si le commercial venait de la saisir ---------------
     if (b.action === "REACTIVER") {
       await transaction(async (tx) => {
         const c = await tx.commande.findUnique({ where: { id: params.id }, select: SELECT });
         if (!c) throw new Refus(404, "Commande introuvable.");
-        if (c.statut !== "LIVREE") throw new Refus(409, "Seule une commande livrée peut être réactivée.");
+        if (c.statut !== "LIVREE" && c.statut !== "EN_COURS_LIVRAISON") {
+          throw new Refus(409, "Seule une commande validée ou livrée peut être réactivée.");
+        }
         if (await aDesEncaissements(tx, c.id)) {
           throw new Refus(409, "Des encaissements existent en caisse pour cette commande : annulez-les d'abord dans la Caisse.");
         }
-        await tx.commande.update({ where: { id: c.id }, data: { statut: "EN_COURS_LIVRAISON", livreeLe: null } });
+        await tx.commande.update({ where: { id: c.id }, data: { statut: "NON_TRAITEE", livreeLe: null, dateLivraison: null } });
       });
       return NextResponse.json({ ok: true });
     }

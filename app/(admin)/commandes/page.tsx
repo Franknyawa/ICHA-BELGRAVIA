@@ -293,11 +293,11 @@ export default function CommandesPage() {
           { n: compteurs.LIVREE, l: "Livrées", i: IconCheckCircle, c: "bg-ok/15 text-ok" },
         ].map((k) => (
           <div key={k.l} className="field-card flex items-center gap-3">
-            <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${k.c}`}>
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${k.c}`}>
               <k.i className="h-5 w-5" />
             </span>
             <div>
-              <p className="montant text-3xl text-ink">{k.n}</p>
+              <p className="montant text-2xl text-ink">{k.n}</p>
               <p className="text-xs font-semibold text-ink-muted">{k.l}</p>
             </div>
           </div>
@@ -367,16 +367,16 @@ export default function CommandesPage() {
                 const mode = modeAffiche(c);
                 const credit = c.modePaiement === "CREDIT_PARTIEL" || c.modePaiement === "CREDIT_TOTAL";
                 return (
-                  <article key={c.id} className={`rounded-2xl border p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5 ${STYLE_CARTE[c.statut]}`}>
+                  <article key={c.id} className={`rounded-xl border p-3 shadow-sm transition-shadow hover:shadow-md sm:px-4 ${STYLE_CARTE[c.statut]}`}>
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="flex min-w-0 items-start gap-3">
-                        <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${c.statut === "LIVREE" ? "bg-ok/20 text-ok" : "bg-brass/10 text-brass"}`}>
-                          <IconStorefront className="h-5 w-5" />
+                        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${c.statut === "LIVREE" ? "bg-ok/20 text-ok" : "bg-brass/10 text-brass"}`}>
+                          <IconStorefront className="h-4 w-4" />
                         </span>
                         <div className="min-w-0">
-                          <h3 className="truncate font-menu text-lg font-extrabold leading-tight text-ink">{c.pointVente.nomEtablissement}</h3>
+                          <h3 className="truncate font-menu text-base font-extrabold leading-tight text-ink">{c.pointVente.nomEtablissement}</h3>
                           {contact && (
-                            <p className="mt-0.5 text-sm font-bold text-ink">
+                            <p className="text-[13px] font-bold text-ink">
                               <span className="font-semibold text-ink-muted">Vendeur / répondant : </span>
                               {contact}
                             </p>
@@ -398,17 +398,17 @@ export default function CommandesPage() {
                     </div>
 
                     {/* Produits */}
-                    <div className="mt-3 flex flex-wrap gap-1.5">
+                    <div className="mt-2 flex flex-wrap gap-1">
                       {c.lignes.map((l) => (
-                        <span key={l.id} className="inline-flex items-center rounded-lg bg-bg-card/80 px-2.5 py-1 text-xs font-semibold text-ink ring-1 ring-line">
+                        <span key={l.id} className="inline-flex items-center rounded-md bg-bg-card/80 px-2 py-0.5 text-xs font-semibold text-ink ring-1 ring-line">
                           {l.produit?.nom || l.libelleLibre} <span className="montant ml-1.5 text-sm text-brass">× {l.quantite}</span>
                         </span>
                       ))}
                     </div>
 
                     {/* Montant + paiement + téléphone */}
-                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-                      <p className="montant text-3xl text-ink">
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                      <p className="montant text-2xl text-ink">
                         {fcfa(c.montantTotal)}
                         <span className="montant-unite">FCFA</span>
                       </p>
@@ -431,7 +431,7 @@ export default function CommandesPage() {
                         </span>
                       )}
                       {tel && (
-                        <a href={`tel:${tel.replace(/\s/g, "")}`} aria-label={`Appeler ${contact || c.pointVente.nomEtablissement}`} title={tel} className="flex h-9 w-9 items-center justify-center rounded-full bg-ok/15 text-ok hover:bg-ok hover:text-white">
+                        <a href={`tel:${tel.replace(/\s/g, "")}`} aria-label={`Appeler ${contact || c.pointVente.nomEtablissement}`} title={tel} className="flex h-8 w-8 items-center justify-center rounded-full bg-ok/15 text-ok hover:bg-ok hover:text-white">
                           <IconPhone className="h-4 w-4" />
                         </a>
                       )}
@@ -443,7 +443,7 @@ export default function CommandesPage() {
                     </div>
 
                     {/* Dates */}
-                    <div className="mt-2 space-y-0.5 text-xs font-medium text-ink-muted">
+                    <div className="mt-1.5 space-y-0 text-xs font-medium text-ink-muted">
                       <p>Commandée le {heureFr(c.dateCommande)}</p>
                       {prevue && (
                         <p className="flex flex-wrap items-center gap-1.5">
@@ -458,14 +458,14 @@ export default function CommandesPage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line/70 pt-3">
+                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-line/70 pt-2.5 [&_.btn-primary]:px-3 [&_.btn-primary]:py-1.5 [&_.btn-primary]:text-sm [&_.btn-secondary]:px-2.5 [&_.btn-secondary]:py-1.5 [&_.btn-secondary]:text-xs">
                       {ecriture && c.statut === "NON_TRAITEE" && (
                         <>
                           <label className="flex items-center gap-1.5 text-xs font-medium text-ink-muted">
                             Livraison prévue
                             <input
                               type="date"
-                              className="field-input w-[140px] py-1.5"
+                              className="field-input w-[11.5rem] py-1.5"
                               value={datesPrevues[c.id] ?? (c.dateLivraison ? c.dateLivraison.slice(0, 10) : "")}
                               onChange={(e) => setDatesPrevues((d) => ({ ...d, [c.id]: e.target.value }))}
                             />
@@ -488,7 +488,19 @@ export default function CommandesPage() {
                           Modifier
                         </button>
                       )}
-                      <span className="ml-auto flex flex-wrap gap-2">
+                      {ecriture && (c.statut === "LIVREE" || c.statut === "EN_COURS_LIVRAISON") && (
+                        <button className="btn-secondary" disabled={occupe} onClick={() => patch(c.id, { action: "REACTIVER" })} title="Remettre la commande à l'état « à traiter »">
+                          <IconRefresh className="h-4 w-4" />
+                          Réactiver
+                        </button>
+                      )}
+                      {ecriture && c.statut === "LIVREE" && (
+                        <button className="btn-secondary !text-[rgb(126,34,206)]" disabled={occupe} onClick={() => setASupprimer(c)}>
+                          <IconCopy className="h-4 w-4" />
+                          Doublon livré
+                        </button>
+                      )}
+                      <span className="ml-auto flex flex-wrap gap-1.5">
                         {c.statut !== "NON_TRAITEE" && (
                           <>
                             <button className="btn-secondary" onClick={() => telechargerFacture(c, "BON DE COMMANDE")}>
@@ -508,18 +520,6 @@ export default function CommandesPage() {
                       </span>
                     </div>
 
-                    {ecriture && c.statut === "LIVREE" && (
-                      <div className="mt-3 flex flex-wrap justify-end gap-2 rounded-xl bg-ok/10 px-3 py-2.5">
-                        <button className="btn-secondary" disabled={occupe} onClick={() => patch(c.id, { action: "REACTIVER" })}>
-                          <IconRefresh className="h-4 w-4" />
-                          Réactiver
-                        </button>
-                        <button className="btn-secondary !text-[rgb(126,34,206)]" disabled={occupe} onClick={() => setASupprimer(c)}>
-                          <IconCopy className="h-4 w-4" />
-                          Annuler un doublon livré
-                        </button>
-                      </div>
-                    )}
                   </article>
                 );
               })}

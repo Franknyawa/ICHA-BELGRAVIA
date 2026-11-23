@@ -195,3 +195,10 @@
   margin-left: 0.25em;
   opacity: 0.75;
 }
+
+/* Champs date : assez larges pour afficher jour/mois/année sans coupure */
+input[type="date"].field-input {
+  min-width: 11.5rem;
+  padding-left: 0.6rem;
+  padding-right: 0.4rem;
+}
