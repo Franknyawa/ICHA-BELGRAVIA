@@ -1,8 +1,8 @@
 "use client";
 
 import { libelleModePaiement } from "./pricing";
-import { NOM_APP, NOM_APP_COMPLET, SIGNATURE_APP } from "./marque";
-import { ajouterLogoPdf } from "./logoPdf";
+import { ajouterLogoPdf, ajouterFiligrane } from "./logoPdf";
+import { montantEnLettres } from "./enLettres";
 
 /**
  * Formate un montant avec un point comme séparateur de milliers
@@ -27,6 +27,8 @@ export function formaterMontant(n: number): string {
  */
 
 export type FactureLigne = {
+  /** Code / référence (ex. code de la gamme). */
+  code?: string;
   produitNom: string;
   quantiteCartons: number;
   prixCarton: number;
@@ -43,6 +45,8 @@ export type FactureData = {
   villeNom?: string | null;
   quartier?: string | null;
   commercialNom: string;
+  /** Libellé devant le nom du commercial (« Agent de facturation » par défaut). */
+  libelleAgent?: string;
   lignes: FactureLigne[];
   montantTotal: number;
   modePaiement: string; // valeur de l'enum ModePaiement
@@ -60,185 +64,176 @@ export type FactureData = {
   signatures?: boolean;
 };
 
-const COULEUR_EMERAUDE: [number, number, number] = [15, 61, 46]; // #0f3d2e
-const COULEUR_OR: [number, number, number] = [166, 124, 35]; // brass
-const COULEUR_IVOIRE: [number, number, number] = [250, 247, 238];
-const COULEUR_ALERTE: [number, number, number] = [178, 58, 46]; // #b23a2e
-const COULEUR_TEXTE_ATT: [number, number, number] = [90, 100, 92];
-const COULEUR_ENCRE: [number, number, number] = [26, 46, 34];
+const BLEU: [number, number, number] = [31, 58, 138];
+const VERT: [number, number, number] = [52, 148, 120];
+const ENCRE: [number, number, number] = [22, 30, 46];
+const GRIS: [number, number, number] = [100, 110, 125];
+const ALERTE: [number, number, number] = [178, 58, 46];
 
+/** Montant lisible par jsPDF : espace simple comme séparateur de milliers (« 27 000 »). */
+const fm = (n: number) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+const MENTION: Record<string, string> = {
+  FACTURE: "la présente facture",
+  "BON DE COMMANDE": "le présent bon de commande",
+  "FACTURE RETOUR": "la présente facture retour",
+  "FACTURE D'AVOIR": "la présente facture d'avoir",
+};
+
+/**
+ * Facture PDF (FV), bon de commande (BC), facture retour (FR) et facture d'avoir (FA) : même mise en page —
+ * bandeau bleu avec logo et date, blocs « document » / « point de vente », tableau Code · Désignation ·
+ * Quantité · Prix unitaire · Remise · Prix total, totaux, montant en lettres, logo SIRI en filigrane.
+ */
 export async function genererFacturePdf(data: FactureData) {
   const { default: jsPDF } = await import("jspdf");
   const autoTable = (await import("jspdf-autotable")).default;
 
   const doc = new jsPDF();
-  const largeur = doc.internal.pageSize.getWidth();
+  const L = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const titre = data.titre || "FACTURE";
 
-  // --- En-tête -----------------------------------------------------------
-  doc.setFillColor(...COULEUR_EMERAUDE);
-  doc.rect(0, 0, largeur, 38, "F");
-  doc.setFillColor(...COULEUR_OR);
-  doc.rect(0, 34, largeur, 4, "F");
+  // --- Bandeau -----------------------------------------------------------
+  doc.setFillColor(...BLEU);
+  doc.rect(0, 0, L, 40, "F");
+  doc.setFillColor(...VERT);
+  doc.rect(0, 40, L, 4, "F");
 
-  const largeurLogo = await ajouterLogoPdf(doc, 14, 4, 26);
-  const xTexte = largeurLogo ? 14 + largeurLogo + 6 : 14;
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(14, 6, 34, 28, 4, 4, "F");
+  await ajouterLogoPdf(doc, 19, 13, 14);
 
-  doc.setTextColor(...COULEUR_IVOIRE);
-  doc.setFont("times", "italic");
-  doc.setFontSize(20);
-  doc.text(NOM_APP, xTexte, 18);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.text(data.gammeNom ? `${SIGNATURE_APP} — Gamme ${data.gammeNom}` : SIGNATURE_APP, xTexte, 25);
-
+  doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
-  doc.text(data.titre || "FACTURE", largeur - 14, 16, { align: "right" });
+  doc.setFontSize(17);
+  doc.text("SIRI IMPORT", 56, 19);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.text(`N° ${data.numero}`, largeur - 14, 22, { align: "right" });
-  doc.text(data.date.toLocaleDateString("fr-FR"), largeur - 14, 27, { align: "right" });
-  if (data.reference) doc.text(`Réf. facture ${data.reference}`, largeur - 14, 32, { align: "right" });
+  doc.setFontSize(8);
+  doc.text("Importation, Commerce Général, Prestation de Services", 56, 26);
+  if (data.gammeNom) doc.text(`Gamme ${data.gammeNom}`, 56, 31);
 
-  // --- Bloc infos ----------------------------------------------------------
-  const yInfos = 48;
-  const largeurColonne = (largeur - 28 - 6) / 2;
-
-  doc.setFillColor(245, 241, 228);
-  doc.roundedRect(14, yInfos, largeurColonne, 24, 2, 2, "F");
-  doc.roundedRect(14 + largeurColonne + 6, yInfos, largeurColonne, 24, 2, 2, "F");
-
-  doc.setTextColor(...COULEUR_TEXTE_ATT);
-  doc.setFontSize(7.5);
+  doc.setFontSize(8);
+  doc.setTextColor(200, 212, 240);
+  doc.text("Date et Heure", L - 14, 14, { align: "right" });
+  doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.text("POINT DE VENTE", 18, yInfos + 7);
-  doc.text("VENDU PAR", 14 + largeurColonne + 10, yInfos + 7);
-
-  doc.setTextColor(...COULEUR_ENCRE);
   doc.setFontSize(11);
-  doc.text(data.pointVenteNom, 18, yInfos + 14);
-  doc.text(data.commercialNom, 14 + largeurColonne + 10, yInfos + 14);
+  doc.text(data.date.toLocaleDateString("fr-FR"), L - 14, 21, { align: "right" });
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(200, 212, 240);
+  doc.text(`à ${data.date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`, L - 14, 27, { align: "right" });
 
-  doc.setTextColor(...COULEUR_TEXTE_ATT);
+  // --- Blocs ---------------------------------------------------------------
+  const y0 = 54;
+  const w = (L - 28 - 6) / 2;
+  const h = 34;
+  doc.setLineWidth(0.4);
+  doc.setFillColor(240, 245, 255);
+  doc.setDrawColor(...VERT);
+  doc.roundedRect(14, y0, w, h, 3, 3, "FD");
+  doc.setFillColor(246, 248, 251);
+  doc.setDrawColor(215, 221, 230);
+  doc.roundedRect(14 + w + 6, y0, w, h, 3, 3, "FD");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(7.5);
+  doc.setTextColor(...BLEU);
+  doc.text(titre, 19, y0 + 8);
+  doc.setTextColor(...GRIS);
+  doc.text("POINT DE VENTE", 14 + w + 11, y0 + 8);
+
+  doc.setTextColor(...ENCRE);
+  doc.setFontSize(13);
+  doc.text(data.numero, 19, y0 + 16);
+  doc.text(doc.splitTextToSize(data.pointVenteNom, w - 10)[0], 14 + w + 11, y0 + 16);
+
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  const localisation = [data.quartier, data.villeNom].filter(Boolean).join(", ");
-  if (localisation) doc.text(localisation, 18, yInfos + 20);
-  doc.text(
-    `Le ${data.date.toLocaleDateString("fr-FR")} à ${data.date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`,
-    14 + largeurColonne + 10,
-    yInfos + 20
-  );
+  doc.setTextColor(...GRIS);
+  doc.text(`${data.libelleAgent || "Agent de facturation"} : ${data.commercialNom}`, 19, y0 + 23);
+  if (data.reference) doc.text(`Facture d'origine : ${data.reference}`, 19, y0 + 29);
+  const lieu = [data.villeNom ? `Ville : ${data.villeNom}` : "", data.quartier ? `Quartier : ${data.quartier}` : ""].filter(Boolean);
+  lieu.forEach((t, i) => doc.text(t, 14 + w + 11, y0 + 23 + i * 6));
 
-  // --- Tableau produits ----------------------------------------------------
+  // --- Tableau ---------------------------------------------------------------
   autoTable(doc, {
-    startY: yInfos + 32,
-    head: [["Produit", "Cartons", "Prix/carton", "Sous-total"]],
-    body: data.lignes.map((l) => [
-      l.produitNom,
-      String(l.quantiteCartons),
-      `${formaterMontant(l.prixCarton)} FCFA`,
-      `${formaterMontant(l.sousTotal)} FCFA`,
-    ]),
-    theme: "striped",
-    headStyles: { fillColor: COULEUR_EMERAUDE, textColor: 255, fontStyle: "bold", fontSize: 9 },
-    alternateRowStyles: { fillColor: [250, 247, 238] },
-    styles: { fontSize: 9.5, textColor: COULEUR_ENCRE, cellPadding: 3 },
+    startY: y0 + h + 10,
+    head: [["Code /\nRéférence", "Désignation", "Quantité\n(cartons)", "Prix unitaire", "Remise", "Prix total"]],
+    body: data.lignes.map((l) => [l.code || "—", l.produitNom, String(l.quantiteCartons), fm(l.prixCarton), "—", fm(l.sousTotal)]),
+    theme: "grid",
+    headStyles: { fillColor: BLEU, textColor: 255, fontStyle: "bold", fontSize: 8.5, valign: "middle", lineColor: [255, 255, 255] },
+    bodyStyles: { fontSize: 9, textColor: ENCRE, cellPadding: 3, lineColor: [221, 227, 236], valign: "middle" },
+    alternateRowStyles: { fillColor: [245, 248, 252] },
     columnStyles: {
-      1: { halign: "center" },
-      2: { halign: "right" },
-      3: { halign: "right" },
+      0: { fontStyle: "bold", cellWidth: 26 },
+      2: { halign: "center", cellWidth: 26 },
+      3: { halign: "right", cellWidth: 28 },
+      4: { halign: "center", cellWidth: 20 },
+      5: { halign: "right", fontStyle: "bold", cellWidth: 30 },
     },
     margin: { left: 14, right: 14 },
   });
 
-  // --- Bloc totaux ---------------------------------------------------------
-  const finTableau = (doc as any).lastAutoTable.finalY + 8;
-  const largeurBoiteTotal = 76;
-  const xBoiteTotal = largeur - 14 - largeurBoiteTotal;
+  // --- Totaux ----------------------------------------------------------------
+  let y = (doc as any).lastAutoTable.finalY + 10;
+  if (y > H - 70) {
+    doc.addPage();
+    y = 24;
+  }
+  const xl = L - 14 - 84;
+  const ligne = (label: string, valeur: string, opts: { fort?: boolean; couleur?: [number, number, number] } = {}) => {
+    doc.setFont("helvetica", opts.fort ? "bold" : "normal");
+    doc.setFontSize(opts.fort ? 11 : 9.5);
+    doc.setTextColor(...(opts.fort ? ENCRE : GRIS));
+    doc.text(label, xl, y);
+    doc.setFont("helvetica", opts.fort ? "bold" : "normal");
+    doc.setTextColor(...(opts.couleur || ENCRE));
+    doc.text(valeur, L - 14, y, { align: "right" });
+    y += opts.fort ? 8 : 6.5;
+  };
+  doc.setDrawColor(215, 221, 230);
+  doc.setLineWidth(0.3);
+  doc.line(xl, y - 6, L - 14, y - 6);
 
-  let y = finTableau;
-  doc.setFontSize(9.5);
   if (data.totaux) {
-    for (const t of data.totaux) {
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(...(t.alerte ? COULEUR_ALERTE : COULEUR_TEXTE_ATT));
-      doc.text(t.label, xBoiteTotal, y);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(...(t.alerte ? COULEUR_ALERTE : COULEUR_ENCRE));
-      doc.text(t.valeur, largeur - 14, y, { align: "right" });
-      y += 6;
-    }
-    y -= 6;
+    data.totaux.forEach((t, i) => ligne(t.label, t.valeur, { fort: i === 0, couleur: t.alerte ? ALERTE : undefined }));
   } else {
-  doc.setTextColor(...COULEUR_TEXTE_ATT);
-  doc.setFont("helvetica", "normal");
-  doc.text("Montant total", xBoiteTotal, y);
-  doc.setTextColor(...COULEUR_ENCRE);
-  doc.setFont("helvetica", "bold");
-  doc.text(`${formaterMontant(data.montantTotal)} FCFA`, largeur - 14, y, { align: "right" });
-
-  y += 6;
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...COULEUR_TEXTE_ATT);
-  doc.text("Mode de paiement", xBoiteTotal, y);
-  doc.setTextColor(...COULEUR_ENCRE);
-  doc.text(libelleModePaiement(data.modePaiement), largeur - 14, y, { align: "right" });
-
-  y += 6;
-  doc.setTextColor(...COULEUR_TEXTE_ATT);
-  doc.text("Montant reçu", xBoiteTotal, y);
-  doc.setTextColor(...COULEUR_EMERAUDE);
-  doc.setFont("helvetica", "bold");
-  doc.text(`${formaterMontant(data.montantRecu)} FCFA`, largeur - 14, y, { align: "right" });
-
-  if (data.resteAPayer > 0) {
-    y += 8;
-    doc.setFillColor(250, 235, 232);
-    doc.roundedRect(xBoiteTotal - 4, y - 5, largeurBoiteTotal + 4, 9, 1.5, 1.5, "F");
-    doc.setTextColor(...COULEUR_ALERTE);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text("Reste à payer", xBoiteTotal, y);
-    doc.text(`${formaterMontant(data.resteAPayer)} FCFA`, largeur - 14, y, { align: "right" });
+    ligne("Montant total", `${fm(data.montantTotal)} FCFA`, { fort: true });
+    ligne("Moyen de paiement", libelleModePaiement(data.modePaiement));
+    ligne("Déjà réglé", `${fm(data.montantRecu)} FCFA`, { couleur: VERT });
+    if (data.resteAPayer > 0) ligne("Reste à payer", `${fm(data.resteAPayer)} FCFA`, { couleur: ALERTE });
   }
-  }
+
+  // --- Montant en lettres, motif ---------------------------------------------
+  y += 4;
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(9.5);
+  doc.setTextColor(...ENCRE);
+  const phrase = `Arrêter ${MENTION[titre] || "le présent document"} à la somme en Francs de : ${montantEnLettres(data.montantTotal)}.`;
+  const lp = doc.splitTextToSize(phrase, L - 28) as string[];
+  doc.text(lp, 14, y);
+  y += lp.length * 5 + 4;
+
   if (data.motif) {
-    y += 10;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
-    doc.setTextColor(...COULEUR_TEXTE_ATT);
+    doc.setTextColor(...GRIS);
     doc.text("MOTIF", 14, y);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9.5);
-    doc.setTextColor(...COULEUR_ENCRE);
-    const lignesMotif = doc.splitTextToSize(data.motif, largeur - 28) as string[];
-    doc.text(lignesMotif, 14, y + 5);
-    y += 5 + lignesMotif.length * 4.5;
+    doc.setTextColor(...ENCRE);
+    const lm = doc.splitTextToSize(data.motif, L - 28) as string[];
+    doc.text(lm, 14, y + 5);
   }
 
-  // --- Signatures ------------------------------------------------------
-  if (data.signatures !== false) {
-    const ySignatures = Math.max(y + 30, doc.internal.pageSize.getHeight() - 45);
-    doc.setDrawColor(210, 200, 175);
-    doc.setLineWidth(0.3);
-    doc.line(14, ySignatures, 90, ySignatures);
-    doc.line(largeur - 90, ySignatures, largeur - 14, ySignatures);
-    doc.setFontSize(8.5);
-    doc.setTextColor(...COULEUR_TEXTE_ATT);
-    doc.setFont("helvetica", "normal");
-    doc.text("Signature du client", 14, ySignatures + 5);
-    doc.text(`Signature — ${data.commercialNom}`, largeur - 90, ySignatures + 5);
+  // --- Filigrane sur chaque page -----------------------------------------------
+  const pages = doc.getNumberOfPages();
+  for (let p = 1; p <= pages; p++) {
+    doc.setPage(p);
+    await ajouterFiligrane(doc);
   }
-
-  // --- Pied de page --------------------------------------------------------
-  const hauteurPage = doc.internal.pageSize.getHeight();
-  doc.setDrawColor(226, 220, 200);
-  doc.line(14, hauteurPage - 14, largeur - 14, hauteurPage - 14);
-  doc.setFontSize(8);
-  doc.setTextColor(150, 145, 130);
-  doc.setFont("helvetica", "italic");
-  doc.text(`Merci pour votre confiance — ${NOM_APP_COMPLET}`, largeur / 2, hauteurPage - 8, { align: "center" });
 
   doc.save(`${data.nomFichier || `facture-${data.pointVenteNom.replace(/\s+/g, "-").toLowerCase()}-${data.numero.replace(/\s+/g, "-")}`}.pdf`);
 }

@@ -54,7 +54,7 @@ export async function telechargerFactureVente(c: FactureVente) {
     villeNom: c.pointVente.ville?.nom,
     quartier: c.pointVente.quartier,
     commercialNom: `${c.commercial.prenom} ${c.commercial.nom}`,
-    lignes: c.lignes.map((l) => ({ produitNom: l.libelle, quantiteCartons: l.quantite, prixCarton: l.prixUnitaire, sousTotal: l.sousTotal })),
+    lignes: c.lignes.map((l) => ({ code: c.gamme?.code, produitNom: l.libelle, quantiteCartons: l.quantite, prixCarton: l.prixUnitaire, sousTotal: l.sousTotal })),
     montantTotal: c.montantTotal,
     modePaiement: c.modePaiement,
     montantRecu: c.encaisse,
@@ -75,7 +75,7 @@ export async function telechargerFactureVente(c: FactureVente) {
 
 export async function telechargerDocumentCorrectif(d: DocumentCorrectifListe) {
   const lignes = d.lignes.length
-    ? d.lignes.map((l) => ({ produitNom: l.libelle, quantiteCartons: l.quantite, prixCarton: l.prixUnitaire, sousTotal: l.sousTotal }))
+    ? d.lignes.map((l) => ({ code: d.commande.gamme?.code, produitNom: l.libelle, quantiteCartons: l.quantite, prixCarton: l.prixUnitaire, sousTotal: l.sousTotal }))
     : [{ produitNom: "Correction commerciale (montant libre)", quantiteCartons: 1, prixCarton: d.montant, sousTotal: d.montant }];
   const estFR = d.type === "FR";
   await genererFacturePdf({

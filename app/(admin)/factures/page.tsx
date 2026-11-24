@@ -154,8 +154,8 @@ export default function FacturationPage() {
             <option value="">Toutes les villes</option>
             {ref?.villes?.map((v) => <option key={v.id} value={v.id}>{v.nom}</option>)}
           </select>
-          <input type="date" className="field-input !w-auto" aria-label="Du" value={brouillon.dateFrom} onChange={(e) => setBrouillon({ ...brouillon, dateFrom: e.target.value })} />
-          <input type="date" className="field-input !w-auto" aria-label="Au" value={brouillon.dateTo} onChange={(e) => setBrouillon({ ...brouillon, dateTo: e.target.value })} />
+          <input type="date" className="field-input !w-40" aria-label="Du" value={brouillon.dateFrom} onChange={(e) => setBrouillon({ ...brouillon, dateFrom: e.target.value })} />
+          <input type="date" className="field-input !w-40" aria-label="Au" value={brouillon.dateTo} onChange={(e) => setBrouillon({ ...brouillon, dateTo: e.target.value })} />
           <button type="submit" className="btn-primary">Filtrer</button>
           {(filtreActif || JSON.stringify(brouillon) !== JSON.stringify(VIDE)) && (
             <button type="button" className="btn-secondary" onClick={reinitialiser}>Réinitialiser</button>

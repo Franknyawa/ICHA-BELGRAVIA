@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { peut } from "@/lib/permissions";
+import { dateValide, debutJour, ajouterJours } from "@/lib/dates";
 import { prochainNumero } from "@/lib/numerotation";
 import { calculerCommande, calculerPaiement, type ModePaiementValue } from "@/lib/pricing";
 import { assurerGammes } from "@/lib/gammes";
@@ -232,6 +233,9 @@ export async function GET(req: NextRequest) {
   const gammeId = searchParams.get("gammeId") || undefined;
   const dateFrom = searchParams.get("dateFrom");
   const dateTo = searchParams.get("dateTo");
+  const q = (searchParams.get("q") || "").trim().slice(0, 80);
+  const du = dateValide(dateFrom) ? debutJour(dateFrom) : null;
+  const au = dateValide(dateTo) ? debutJour(ajouterJours(dateTo, 1)) : null;
 
   const where = {
     // Les archives n'apparaissent plus dans les listes de l'admin (voir l'onglet
@@ -242,12 +246,23 @@ export async function GET(req: NextRequest) {
     ...(modePaiement ? { modePaiement: modePaiement as any } : {}),
     ...(statut ? { statut: statut as any } : {}),
     ...(gammeId ? { gammeId } : {}),
-    ...(dateFrom || dateTo
+    ...(du || au ? { createdAt: { ...(du ? { gte: du } : {}), ...(au ? { lt: au } : {}) } } : {}),
+    // Recherche libre : point de vente, interlocuteur (vendeur / patron), téléphone, quartier, commercial, numéros de documents.
+    ...(q
       ? {
-          createdAt: {
-            ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
-            ...(dateTo ? { lte: new Date(`${dateTo}T23:59:59`) } : {}),
-          },
+          OR: [
+            { pointVente: { nomEtablissement: { contains: q, mode: "insensitive" as const } } },
+            { pointVente: { nomVendeur: { contains: q, mode: "insensitive" as const } } },
+            { pointVente: { nomPatron: { contains: q, mode: "insensitive" as const } } },
+            { pointVente: { telVendeur: { contains: q } } },
+            { pointVente: { telPatron: { contains: q } } },
+            { pointVente: { quartier: { contains: q, mode: "insensitive" as const } } },
+            { commercial: { nom: { contains: q, mode: "insensitive" as const } } },
+            { commercial: { prenom: { contains: q, mode: "insensitive" as const } } },
+            { numeroBC: { contains: q, mode: "insensitive" as const } },
+            { numeroBL: { contains: q, mode: "insensitive" as const } },
+            { numeroFV: { contains: q, mode: "insensitive" as const } },
+          ],
         }
       : {}),
   };

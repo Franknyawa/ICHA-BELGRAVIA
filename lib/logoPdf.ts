@@ -40,3 +40,39 @@ export async function ajouterLogoPdf(
     return 0;
   }
 }
+
+let cacheGrand: Promise<string | null> | null = null;
+
+/**
+ * Filigrane : logo centré sur la page, très pâle, posé par-dessus le contenu (opacité faible : le texte
+ * reste parfaitement lisible). À appeler une fois par page, après le dessin du contenu.
+ */
+export async function ajouterFiligrane(doc: any, opacite = 0.08, largeurMm = 130): Promise<void> {
+  if (!cacheGrand) {
+    cacheGrand = fetch("/siri-or.png")
+      .then((r) => (r.ok ? r.blob() : Promise.reject()))
+      .then(
+        (blob) =>
+          new Promise<string | null>((resolve) => {
+            const l = new FileReader();
+            l.onload = () => resolve(typeof l.result === "string" ? l.result : null);
+            l.onerror = () => resolve(null);
+            l.readAsDataURL(blob);
+          })
+      )
+      .catch(() => null);
+  }
+  const data = await cacheGrand;
+  if (!data) return;
+  const L = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const h = largeurMm / RATIO;
+  try {
+    doc.saveGraphicsState();
+    doc.setGState(new doc.GState({ opacity: opacite }));
+    doc.addImage(data, "PNG", (L - largeurMm) / 2, (H - h) / 2 + 10, largeurMm, h);
+    doc.restoreGraphicsState();
+  } catch {
+    /* sans filigrane, le document reste valide */
+  }
+}

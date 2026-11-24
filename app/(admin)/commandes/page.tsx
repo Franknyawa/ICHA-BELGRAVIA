@@ -117,6 +117,23 @@ export default function CommandesPage() {
   const [aModifier, setAModifier] = useState<Commande | null>(null);
   const [aSupprimer, setASupprimer] = useState<Commande | null>(null);
   const ecriture = useEcriture("commandes");
+  // Filtres : recherche libre (différée), ville, commercial, période.
+  const [recherche, setRecherche] = useState("");
+  const [q, setQ] = useState("");
+  const [filtreVille, setFiltreVille] = useState("");
+  const [filtreAgent, setFiltreAgent] = useState("");
+  const [dateDu, setDateDu] = useState("");
+  const [dateAu, setDateAu] = useState("");
+  const [villes, setVilles] = useState<{ id: string; nom: string }[]>([]);
+  const [agents, setAgents] = useState<{ id: string; nom: string; prenom: string }[]>([]);
+  useEffect(() => {
+    const t = setTimeout(() => setQ(recherche.trim()), 350);
+    return () => clearTimeout(t);
+  }, [recherche]);
+  useEffect(() => {
+    fetch("/api/referentiels").then((r) => r.json()).then((d) => setVilles(d.villes || [])).catch(() => {});
+    fetch("/api/utilisateurs?role=COMMERCIAL").then((r) => r.json()).then((d) => setAgents(d.users || [])).catch(() => {});
+  }, []);
 
   // Chargement d'une page : la 1re remplace la liste, les suivantes s'ajoutent.
   const charger = useCallback(
@@ -127,6 +144,11 @@ export default function CommandesPage() {
         const params = new URLSearchParams({ page: String(p) });
         if (onglet) params.set("statut", onglet);
         if (filtreGamme) params.set("gammeId", filtreGamme);
+        if (q) params.set("q", q);
+        if (filtreVille) params.set("villeId", filtreVille);
+        if (filtreAgent) params.set("commercialId", filtreAgent);
+        if (dateDu) params.set("dateFrom", dateDu);
+        if (dateAu) params.set("dateTo", dateAu);
         const res = await fetch(`/api/commandes?${params.toString()}`);
         const data = await res.json();
         setCommandes((cur) => (p === 1 ? data.items || [] : [...cur, ...(data.items || [])]));
@@ -138,7 +160,7 @@ export default function CommandesPage() {
         setPlusEnCours(false);
       }
     },
-    [onglet, filtreGamme]
+    [onglet, filtreGamme, q, filtreVille, filtreAgent, dateDu, dateAu]
   );
 
   useEffect(() => {
@@ -223,6 +245,7 @@ export default function CommandesPage() {
       quartier: c.pointVente.quartier,
       commercialNom: `${c.commercial.prenom} ${c.commercial.nom}`,
       lignes: c.lignes.map((l) => ({
+        code: c.gamme?.code,
         produitNom: l.produit?.nom || l.libelleLibre || "Produit",
         quantiteCartons: l.quantite,
         prixCarton: Number(l.prixUnitaire),
@@ -313,6 +336,57 @@ export default function CommandesPage() {
 
       <div className="mb-3">
         <GammeTabs gammes={gammes} value={filtreGamme} onChange={setFiltreGamme} />
+      </div>
+
+      <div className="field-card mb-4 space-y-2">
+        <div className="relative">
+          <svg viewBox="0 0 24 24" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            className="field-input !pl-9"
+            placeholder="Rechercher : point de vente, interlocuteur, téléphone, quartier, commercial"
+            value={recherche}
+            onChange={(e) => setRecherche(e.target.value)}
+            aria-label="Recherche"
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <select className="field-input" aria-label="Statut" value={onglet} onChange={(e) => setOnglet(e.target.value)}>
+            <option value="">Tous les statuts</option>
+            <option value="NON_TRAITEE">Non traitées</option>
+            <option value="EN_COURS_LIVRAISON">À livrer</option>
+            <option value="LIVREE">Livrées</option>
+          </select>
+          <select className="field-input" aria-label="Ville" value={filtreVille} onChange={(e) => setFiltreVille(e.target.value)}>
+            <option value="">Toutes les villes</option>
+            {villes.map((v) => <option key={v.id} value={v.id}>{v.nom}</option>)}
+          </select>
+          <select className="field-input" aria-label="Commercial" value={filtreAgent} onChange={(e) => setFiltreAgent(e.target.value)}>
+            <option value="">Tous les commerciaux</option>
+            {agents.map((a) => <option key={a.id} value={a.id}>{a.prenom} {a.nom}</option>)}
+          </select>
+          <input type="date" className="field-input !w-40" aria-label="Du" value={dateDu} onChange={(e) => setDateDu(e.target.value)} />
+          <input type="date" className="field-input !w-40" aria-label="Au" value={dateAu} onChange={(e) => setDateAu(e.target.value)} />
+          {(recherche || filtreVille || filtreAgent || dateDu || dateAu || onglet) && (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => {
+                setRecherche("");
+                setQ("");
+                setFiltreVille("");
+                setFiltreAgent("");
+                setDateDu("");
+                setDateAu("");
+                setOnglet("");
+              }}
+            >
+              Réinitialiser
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="mb-5 flex flex-wrap gap-2">

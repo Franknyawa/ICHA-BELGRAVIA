@@ -245,6 +245,6 @@ input[type="date"].field-input {
 .admin-main select.field-input {
   width: auto;
   max-width: 100%;
-  min-width: 13rem;
+  min-width: 12rem;
   text-overflow: clip;
 }

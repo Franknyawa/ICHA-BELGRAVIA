@@ -218,6 +218,7 @@ function NouvelleCommandeInner() {
       gammeNom: gammeChoisie ? libelleGamme(gammeChoisie) : undefined,
       commercialNom: nomAgent,
       lignes: lignesRetenues.map((l) => ({
+        code: gammeChoisie?.code,
         produitNom: l.produit.nom,
         quantiteCartons: l.quantite,
         prixCarton,

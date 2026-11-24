@@ -36,6 +36,7 @@ export default function FactureButton({ commande }: { commande: Commande }) {
         quartier: commande.pointVente.quartier,
         commercialNom: `${commande.commercial.prenom} ${commande.commercial.nom}`,
         lignes: commande.lignes.map((l) => ({
+          code: commande.gamme?.code,
           produitNom: l.produit?.nom || "Produit",
           quantiteCartons: l.quantite,
           prixCarton: Number(l.prixUnitaire),

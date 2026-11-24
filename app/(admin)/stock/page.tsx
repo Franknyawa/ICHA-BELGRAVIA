@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { peut } from "@/lib/permissions";
 import { useEcriture } from "@/lib/useEcriture";
-import { IconList, IconAlert, IconPlus, IconCheckCircle, IconGlass } from "@/components/icons";
+import { IconList, IconAlert, IconPlus, IconCheckCircle, IconGlass, IconBox } from "@/components/icons";
+import { nombreFr } from "@/lib/format";
 import GammeTabs from "@/components/GammeTabs";
 import { styleBadgeGamme, libelleGamme, type GammeInfo } from "@/lib/gammesClient";
 import { Spinner, ChargementPage } from "@/components/Spinner";
@@ -28,8 +29,27 @@ type Mouvement = {
   produit: { nom: string };
 };
 
-const TYPE_LABEL: Record<string, string> = { ENTREE: "Entrée", SORTIE: "Sortie", AJUSTEMENT: "Ajustement" };
-const TYPE_STYLE: Record<string, string> = { ENTREE: "text-ok", SORTIE: "text-ink-muted", AJUSTEMENT: "text-brass" };
+type HorsVente = { AVARIE: { cartons: number; operations: number }; ECHANTILLON: { cartons: number; operations: number } };
+const VIDE_HV: HorsVente = { AVARIE: { cartons: 0, operations: 0 }, ECHANTILLON: { cartons: 0, operations: 0 } };
+
+/** Libellé et couleur d'un mouvement : la nature (vente, avarie, échantillon, retour…) prime sur le type brut. */
+function natureMouvement(m: Pick<Mouvement, "type" | "referenceType">): { label: string; style: string; signe: "+" | "-" | "" } {
+  if (m.referenceType === "AVARIE") return { label: "Avarie", style: "text-danger", signe: "-" };
+  if (m.referenceType === "ECHANTILLON") return { label: "Échantillon", style: "text-[rgb(126,34,206)]", signe: "-" };
+  if (m.referenceType === "RETOUR") return { label: "Retour client", style: "text-ok", signe: "+" };
+  if (m.type === "SORTIE") return { label: m.referenceType === "COMMANDE" ? "Vente" : "Sortie", style: "text-ink-muted", signe: "-" };
+  if (m.type === "ENTREE") return { label: "Entrée", style: "text-ok", signe: "+" };
+  return { label: "Ajustement", style: "text-brass", signe: "" };
+}
+const TYPES_HISTORIQUE = [
+  ["", "Tous les mouvements"],
+  ["ENTREE", "Entrées"],
+  ["VENTE", "Ventes"],
+  ["RETOUR", "Retours clients"],
+  ["AVARIE", "Avaries"],
+  ["ECHANTILLON", "Échantillons"],
+  ["AJUSTEMENT", "Ajustements"],
+] as const;
 
 export default function StockPage() {
   const [items, setItems] = useState<StockItem[]>([]);
@@ -46,22 +66,77 @@ export default function StockPage() {
   const [voitCout, setVoitCout] = useState(false); // le coût d'achat alimente la caisse
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
+  // Sorties hors vente (avaries / échantillons)
+  const [hvProduit, setHvProduit] = useState("");
+  const [hvType, setHvType] = useState<"AVARIE" | "ECHANTILLON">("AVARIE");
+  const [hvQuantite, setHvQuantite] = useState("");
+  const [hvMotif, setHvMotif] = useState("");
+  const [hvErreur, setHvErreur] = useState<string | null>(null);
+  const [hvEnCours, setHvEnCours] = useState(false);
+  const [horsVente, setHorsVente] = useState<HorsVente>(VIDE_HV);
+  // Historique : filtres + pagination
+  const [hDu, setHDu] = useState("");
+  const [hAu, setHAu] = useState("");
+  const [hProduit, setHProduit] = useState("");
+  const [hType, setHType] = useState("");
+  const [hPage, setHPage] = useState(1);
+  const [hTotal, setHTotal] = useState(0);
+  const [hTaille, setHTaille] = useState(25);
 
   async function chargerStock() {
     const res = await fetch("/api/stock");
     const data = await res.json();
     setItems(data.items || []);
   }
-  async function chargerMouvements() {
-    const res = await fetch("/api/stock/mouvements");
+  async function chargerMouvements(page = hPage) {
+    const s = new URLSearchParams({ page: String(page) });
+    if (hDu) s.set("dateFrom", hDu);
+    if (hAu) s.set("dateTo", hAu);
+    if (hProduit) s.set("produitId", hProduit);
+    if (hType) s.set("type", hType);
+    const res = await fetch(`/api/stock/mouvements?${s}`);
     const data = await res.json();
     setMouvements(data.items || []);
+    setHTotal(data.total || 0);
+    setHTaille(data.pageSize || 25);
+    setHorsVente(data.horsVente || VIDE_HV);
   }
 
   async function chargerTout() {
     setChargement(true);
     await Promise.all([chargerStock(), chargerMouvements()]);
     setChargement(false);
+  }
+
+  // Tout changement de filtre repart de la première page.
+  useEffect(() => {
+    setHPage(1);
+    chargerMouvements(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hDu, hAu, hProduit, hType]);
+
+  async function retirerDuStock(e: React.FormEvent) {
+    e.preventDefault();
+    setHvErreur(null);
+    setHvEnCours(true);
+    try {
+      const res = await fetch("/api/stock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ produitId: hvProduit, type: hvType, quantiteCartons: parseInt(hvQuantite, 10), note: hvMotif }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        return setHvErreur(data.error || "Retrait impossible.");
+      }
+      setHvProduit("");
+      setHvQuantite("");
+      setHvMotif("");
+      await Promise.all([chargerStock(), chargerMouvements(1)]);
+      setHPage(1);
+    } finally {
+      setHvEnCours(false);
+    }
   }
 
   useEffect(() => {
@@ -233,11 +308,11 @@ export default function StockPage() {
               ? "md:grid-cols-[minmax(0,2fr)_minmax(0,1.6fr)_minmax(0,1.1fr)_minmax(0,1.7fr)_minmax(0,2fr)_auto]"
               : "md:grid-cols-[minmax(0,2fr)_minmax(0,1.6fr)_minmax(0,1.2fr)_minmax(0,2fr)_auto]"
           }`}>
-          <select className="field-input" value={produitId} onChange={(e) => setProduitId(e.target.value)} required>
+          <select className="field-input !min-w-0" value={produitId} onChange={(e) => setProduitId(e.target.value)} required>
             <option value="">Produit…</option>
             {itemsAffiches.map((i) => <option key={i.produitId} value={i.produitId}>{i.nom}</option>)}
           </select>
-          <select className="field-input" value={type} onChange={(e) => setType(e.target.value as "ENTREE" | "AJUSTEMENT")}>
+          <select className="field-input !min-w-0" value={type} onChange={(e) => setType(e.target.value as "ENTREE" | "AJUSTEMENT")}>
             <option value="ENTREE">Entrée (+)</option>
             <option value="AJUSTEMENT">Ajustement (valeur exacte)</option>
           </select>
@@ -273,8 +348,66 @@ export default function StockPage() {
       </div>
       )}
 
+      <section className="mb-8">
+        <p className="section-eyebrow mb-1">
+          <IconBox className="h-4 w-4" />
+          Sorties hors vente
+        </p>
+        <p className="mb-3 text-xs font-medium text-ink-muted">
+          Le stock diminue mais rien n'est facturé. Les totaux suivent la période choisie dans l'historique.
+        </p>
+        <div className="mb-3 grid gap-3 sm:grid-cols-2">
+          <div className="field-card !border-danger/30 !bg-danger/[0.04]">
+            <span className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-danger/10 text-danger"><IconAlert className="h-5 w-5" /></span>
+            <p className="text-base font-extrabold text-ink">Avaries</p>
+            <p className="text-xs font-medium text-ink-muted">Produit abîmé, périmé ou perdu</p>
+            <p className="mt-2 text-2xl font-extrabold text-ink"><span className="montant">{nombreFr(horsVente.AVARIE.cartons)}</span> <span className="text-xs font-bold text-ink-muted">cartons</span></p>
+            <p className="text-xs font-medium text-ink-muted"><span className="montant">{horsVente.AVARIE.operations}</span> opération{horsVente.AVARIE.operations > 1 ? "s" : ""}</p>
+          </div>
+          <div className="field-card !border-[rgb(126,34,206)]/25 !bg-[rgb(126,34,206)]/[0.04]">
+            <span className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-[rgb(126,34,206)]/10 text-[rgb(126,34,206)]"><IconGlass className="h-5 w-5" /></span>
+            <p className="text-base font-extrabold text-ink">Échantillons</p>
+            <p className="text-xs font-medium text-ink-muted">Offerts pour faire tester le produit</p>
+            <p className="mt-2 text-2xl font-extrabold text-ink"><span className="montant">{nombreFr(horsVente.ECHANTILLON.cartons)}</span> <span className="text-xs font-bold text-ink-muted">cartons</span></p>
+            <p className="text-xs font-medium text-ink-muted"><span className="montant">{horsVente.ECHANTILLON.operations}</span> opération{horsVente.ECHANTILLON.operations > 1 ? "s" : ""}</p>
+          </div>
+        </div>
+        {ecriture && (
+          <form onSubmit={retirerDuStock} className="field-card grid gap-2 md:grid-cols-[minmax(0,2.2fr)_minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,2.2fr)_auto]">
+            <select className="field-input !min-w-0" value={hvProduit} onChange={(e) => setHvProduit(e.target.value)} required aria-label="Produit">
+              <option value="">Produit…</option>
+              {itemsAffiches.map((i) => (
+                <option key={i.produitId} value={i.produitId}>{i.nom} — {i.quantiteCartons} carton{i.quantiteCartons !== 1 ? "s" : ""} en stock</option>
+              ))}
+            </select>
+            <select className="field-input !min-w-0" value={hvType} onChange={(e) => setHvType(e.target.value as "AVARIE" | "ECHANTILLON")} aria-label="Nature de la sortie">
+              <option value="AVARIE">Avarie</option>
+              <option value="ECHANTILLON">Échantillon</option>
+            </select>
+            <input className="field-input" type="number" min={1} placeholder="Cartons" value={hvQuantite} onChange={(e) => setHvQuantite(e.target.value)} required aria-label="Quantité en cartons" />
+            <input className="field-input" placeholder={hvType === "AVARIE" ? "Motif (ex : cartons mouillés)" : "Motif (ex : dégustation chez un client)"} value={hvMotif} onChange={(e) => setHvMotif(e.target.value)} required minLength={3} aria-label="Motif" />
+            <button className="btn-primary" type="submit" disabled={hvEnCours}>{hvEnCours ? "…" : "Retirer du stock"}</button>
+          </form>
+        )}
+        {hvErreur && <p className="mt-2 text-sm font-bold text-danger" role="alert">{hvErreur}</p>}
+      </section>
+
       <div>
-        <p className="section-eyebrow mb-3">Historique des mouvements</p>
+        <div className="mb-3 flex flex-wrap items-baseline gap-2">
+          <p className="section-eyebrow">Historique des mouvements</p>
+          <span className="text-xs font-medium text-ink-muted"><span className="montant">{nombreFr(hTotal)}</span> au total</span>
+        </div>
+        <div className="mb-3 flex flex-wrap gap-2">
+          <input type="date" className="field-input !w-40" aria-label="Du" value={hDu} onChange={(e) => setHDu(e.target.value)} />
+          <input type="date" className="field-input !w-40" aria-label="Au" value={hAu} onChange={(e) => setHAu(e.target.value)} />
+          <select className="field-input" aria-label="Produit" value={hProduit} onChange={(e) => setHProduit(e.target.value)}>
+            <option value="">Tous les produits</option>
+            {items.map((i) => <option key={i.produitId} value={i.produitId}>{i.nom}</option>)}
+          </select>
+          <select className="field-input" aria-label="Type de mouvement" value={hType} onChange={(e) => setHType(e.target.value)}>
+            {TYPES_HISTORIQUE.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+        </div>
         <div className="overflow-x-auto rounded-lg border border-line">
           <table className="w-full text-sm">
             <thead className="bg-bg-elevated text-left text-ink-muted">
@@ -287,32 +420,40 @@ export default function StockPage() {
               </tr>
             </thead>
             <tbody>
-              {mouvements.map((m) => (
-                <tr key={m.id} className="border-t border-line transition-colors hover:bg-bg-elevated">
-                  <td className="px-4 py-3 text-ink-muted">
-                    {new Date(m.createdAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
-                  </td>
-                  <td className="px-4 py-3 text-ink">{m.produit.nom}</td>
-                  <td className={`px-4 py-3 font-medium ${TYPE_STYLE[m.type] || "text-ink-muted"}`}>
-                    {TYPE_LABEL[m.type] || m.type}
-                  </td>
-                  <td className="px-4 py-3 text-ink-muted">
-                    {m.type === "SORTIE" ? "-" : m.quantiteCartons >= 0 ? "+" : ""}
-                    {m.quantiteCartons}
-                  </td>
-                  <td className="px-4 py-3 text-ink-muted">{m.note || (m.referenceType === "COMMANDE" ? "Commande" : "—")}</td>
-                </tr>
-              ))}
+              {mouvements.map((m) => {
+                const nat = natureMouvement(m);
+                return (
+                  <tr key={m.id} className="border-t border-line transition-colors hover:bg-bg-elevated">
+                    <td className="px-4 py-3 text-ink-muted">
+                      {new Date(m.createdAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}
+                    </td>
+                    <td className="px-4 py-3 text-ink">{m.produit.nom}</td>
+                    <td className={`px-4 py-3 font-medium ${nat.style}`}>{nat.label}</td>
+                    <td className="montant px-4 py-3 text-ink-muted">
+                      {nat.signe || (m.quantiteCartons >= 0 ? "+" : "")}
+                      {nat.signe ? Math.abs(m.quantiteCartons) : m.quantiteCartons}
+                    </td>
+                    <td className="px-4 py-3 text-ink-muted">{m.note || (m.referenceType === "COMMANDE" ? "Commande" : "—")}</td>
+                  </tr>
+                );
+              })}
               {!chargement && mouvements.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-ink-muted">
-                    Aucun mouvement enregistré.
+                    Aucun mouvement pour ces filtres.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
+        {hTotal > hTaille && (
+          <div className="mt-3 flex items-center justify-center gap-3">
+            <button className="btn-secondary" disabled={hPage <= 1} onClick={() => { const p = hPage - 1; setHPage(p); chargerMouvements(p); }}>Précédent</button>
+            <span className="text-sm font-medium text-ink-muted">Page <span className="montant">{hPage}</span> / <span className="montant">{Math.ceil(hTotal / hTaille)}</span></span>
+            <button className="btn-secondary" disabled={hPage * hTaille >= hTotal} onClick={() => { const p = hPage + 1; setHPage(p); chargerMouvements(p); }}>Suivant</button>
+          </div>
+        )}
       </div>
     </div>
   );
