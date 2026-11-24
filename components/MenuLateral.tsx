@@ -44,7 +44,7 @@ const SECTIONS: { titre: string; liens: Lien[] }[] = [
     titre: "Ventes",
     liens: [
       { href: "/commandes", libelle: "Commandes", module: "commandes", Icone: IconReceipt, badge: "/api/commandes/count" },
-      { href: "/factures", libelle: "Factures", module: "commandes", Icone: IconDownload },
+      { href: "/factures", libelle: "Facturation", module: "commandes", Icone: IconDownload },
       { href: "/clients", libelle: "Clients", module: "commandes", Icone: IconUsers },
     ],
   },

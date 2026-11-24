@@ -15,7 +15,7 @@ export async function GET() {
   if (!aAcces(session, "commandes")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const commandes = await prisma.commande.findMany({
-    select: { id: true, pointVenteId: true, statut: true, montantTotal: true, dateCommande: true },
+    select: { id: true, pointVenteId: true, statut: true, montantTotal: true, avoirsTotal: true, dateCommande: true },
   });
   const encaisse = await encaisseParCommande(commandes.map((c) => c.id));
 
@@ -25,7 +25,7 @@ export async function GET() {
     const a = parPv.get(c.pointVenteId) || { commandes: 0, facture: 0, encaisse: 0, derniere: c.dateCommande };
     a.commandes += 1;
     if (c.statut !== "NON_TRAITEE") {
-      a.facture += Number(c.montantTotal);
+      a.facture += Number(c.montantTotal) - Number(c.avoirsTotal);
       a.encaisse += encaisse.get(c.id) || 0;
     }
     if (c.dateCommande > a.derniere) a.derniere = c.dateCommande;

@@ -12,6 +12,7 @@ import { genererFacturePdf } from "@/lib/facturePdf";
 import GammeTabs from "@/components/GammeTabs";
 import { libelleGamme, type GammeInfo } from "@/lib/gammesClient";
 import { Spinner, ChargementPage } from "@/components/Spinner";
+import { nombreFr } from "@/lib/format";
 
 type Produit = { id: string; nom: string; volumeMl: number; gammeId: string | null };
 type PalierGamme = PalierPrix & { gammeId: string | null };
@@ -264,7 +265,7 @@ function NouvelleCommandeInner() {
       setConfirmation({
         variante: "succes",
         numero: numero || uuidCommande.slice(0, 8).toUpperCase(),
-        detail: `${client.nomEtablissement}${numero ? ` · n° ${numero}` : ""} · ${montantTotal.toLocaleString("fr-FR")} FCFA.`,
+        detail: `${client.nomEtablissement}${numero ? ` · n° ${numero}` : ""} · ${nombreFr(montantTotal)} FCFA.`,
       });
     } catch (e) {
       const err = e instanceof ErreurEnvoi ? e : null;
@@ -432,7 +433,7 @@ function NouvelleCommandeInner() {
                 return (
                   <div key={p.cartonsMin} className={["flex justify-between rounded px-2 py-1", actif ? "bg-brass/10 text-brass font-medium" : "text-ink-muted"].join(" ")}>
                     <span>{p.cartonsMax === null ? `${p.cartonsMin} cartons et plus` : `${p.cartonsMin} à ${p.cartonsMax} cartons`}</span>
-                    <span>{p.prixCarton.toLocaleString("fr-FR")} FCFA</span>
+                    <span>{nombreFr(p.prixCarton)} FCFA</span>
                   </div>
                 );
               })}
@@ -488,11 +489,11 @@ function NouvelleCommandeInner() {
             </div>
             <div className="flex items-center justify-between text-ink-muted">
               <span>Prix appliqué / carton</span>
-              <span className="font-medium text-ink">{prixCarton.toLocaleString("fr-FR")} FCFA</span>
+              <span className="font-medium text-ink">{nombreFr(prixCarton)} FCFA</span>
             </div>
             <div className="flex items-center justify-between border-t border-line pt-2">
               <span className="font-medium text-ink-muted">Total général</span>
-              <span className="font-display text-2xl text-ink">{montantTotal.toLocaleString("fr-FR")} FCFA</span>
+              <span className="font-display text-2xl text-ink">{nombreFr(montantTotal)} FCFA</span>
             </div>
           </div>
         )}
@@ -576,12 +577,12 @@ function NouvelleCommandeInner() {
           <div className="space-y-1 border-t border-line pt-3 text-sm">
             <div className="flex items-center justify-between text-ink-muted">
               <span>Montant reçu</span>
-              <span className="font-medium text-ok">{montantRecu.toLocaleString("fr-FR")} FCFA</span>
+              <span className="font-medium text-ok">{nombreFr(montantRecu)} FCFA</span>
             </div>
             {resteAPayer > 0 && (
               <div className="flex items-center justify-between rounded-md bg-danger/10 px-2.5 py-1.5">
                 <span className="font-medium text-danger">Reste à payer</span>
-                <span className="font-bold text-danger">{resteAPayer.toLocaleString("fr-FR")} FCFA</span>
+                <span className="font-bold text-danger">{nombreFr(resteAPayer)} FCFA</span>
               </div>
             )}
           </div>

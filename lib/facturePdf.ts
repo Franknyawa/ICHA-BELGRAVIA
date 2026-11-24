@@ -48,6 +48,16 @@ export type FactureData = {
   modePaiement: string; // valeur de l'enum ModePaiement
   montantRecu: number;
   resteAPayer: number;
+  /** Facture retour / avoir : facture de vente d'origine. */
+  reference?: string;
+  /** Motif (FR/FA), imprimé sous le tableau. */
+  motif?: string;
+  /** Remplace le bloc « montant / mode / reçu » (FR/FA, BC). */
+  totaux?: { label: string; valeur: string; alerte?: boolean }[];
+  /** Préfixe du nom de fichier (ex. numéro de document). */
+  nomFichier?: string;
+  /** Signatures : masquées pour les documents correctifs si false. */
+  signatures?: boolean;
 };
 
 const COULEUR_EMERAUDE: [number, number, number] = [15, 61, 46]; // #0f3d2e
@@ -88,6 +98,7 @@ export async function genererFacturePdf(data: FactureData) {
   doc.setFontSize(9);
   doc.text(`N° ${data.numero}`, largeur - 14, 22, { align: "right" });
   doc.text(data.date.toLocaleDateString("fr-FR"), largeur - 14, 27, { align: "right" });
+  if (data.reference) doc.text(`Réf. facture ${data.reference}`, largeur - 14, 32, { align: "right" });
 
   // --- Bloc infos ----------------------------------------------------------
   const yInfos = 48;
@@ -148,6 +159,18 @@ export async function genererFacturePdf(data: FactureData) {
 
   let y = finTableau;
   doc.setFontSize(9.5);
+  if (data.totaux) {
+    for (const t of data.totaux) {
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(...(t.alerte ? COULEUR_ALERTE : COULEUR_TEXTE_ATT));
+      doc.text(t.label, xBoiteTotal, y);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...(t.alerte ? COULEUR_ALERTE : COULEUR_ENCRE));
+      doc.text(t.valeur, largeur - 14, y, { align: "right" });
+      y += 6;
+    }
+    y -= 6;
+  } else {
   doc.setTextColor(...COULEUR_TEXTE_ATT);
   doc.setFont("helvetica", "normal");
   doc.text("Montant total", xBoiteTotal, y);
@@ -179,18 +202,34 @@ export async function genererFacturePdf(data: FactureData) {
     doc.text("Reste à payer", xBoiteTotal, y);
     doc.text(`${formaterMontant(data.resteAPayer)} FCFA`, largeur - 14, y, { align: "right" });
   }
+  }
+  if (data.motif) {
+    y += 10;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...COULEUR_TEXTE_ATT);
+    doc.text("MOTIF", 14, y);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...COULEUR_ENCRE);
+    const lignesMotif = doc.splitTextToSize(data.motif, largeur - 28) as string[];
+    doc.text(lignesMotif, 14, y + 5);
+    y += 5 + lignesMotif.length * 4.5;
+  }
 
   // --- Signatures ------------------------------------------------------
-  const ySignatures = Math.max(y + 30, doc.internal.pageSize.getHeight() - 45);
-  doc.setDrawColor(210, 200, 175);
-  doc.setLineWidth(0.3);
-  doc.line(14, ySignatures, 90, ySignatures);
-  doc.line(largeur - 90, ySignatures, largeur - 14, ySignatures);
-  doc.setFontSize(8.5);
-  doc.setTextColor(...COULEUR_TEXTE_ATT);
-  doc.setFont("helvetica", "normal");
-  doc.text("Signature du client", 14, ySignatures + 5);
-  doc.text(`Signature — ${data.commercialNom}`, largeur - 90, ySignatures + 5);
+  if (data.signatures !== false) {
+    const ySignatures = Math.max(y + 30, doc.internal.pageSize.getHeight() - 45);
+    doc.setDrawColor(210, 200, 175);
+    doc.setLineWidth(0.3);
+    doc.line(14, ySignatures, 90, ySignatures);
+    doc.line(largeur - 90, ySignatures, largeur - 14, ySignatures);
+    doc.setFontSize(8.5);
+    doc.setTextColor(...COULEUR_TEXTE_ATT);
+    doc.setFont("helvetica", "normal");
+    doc.text("Signature du client", 14, ySignatures + 5);
+    doc.text(`Signature — ${data.commercialNom}`, largeur - 90, ySignatures + 5);
+  }
 
   // --- Pied de page --------------------------------------------------------
   const hauteurPage = doc.internal.pageSize.getHeight();
@@ -201,5 +240,5 @@ export async function genererFacturePdf(data: FactureData) {
   doc.setFont("helvetica", "italic");
   doc.text(`Merci pour votre confiance — ${NOM_APP_COMPLET}`, largeur / 2, hauteurPage - 8, { align: "center" });
 
-  doc.save(`facture-${data.pointVenteNom.replace(/\s+/g, "-").toLowerCase()}-${data.numero}.pdf`);
+  doc.save(`${data.nomFichier || `facture-${data.pointVenteNom.replace(/\s+/g, "-").toLowerCase()}-${data.numero.replace(/\s+/g, "-")}`}.pdf`);
 }

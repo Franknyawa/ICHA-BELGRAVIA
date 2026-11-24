@@ -6,13 +6,14 @@ import { IconClose, IconPrinter } from "@/components/icons";
 import { Spinner } from "@/components/Spinner";
 import { NOM_APP, SIGNATURE_APP } from "@/lib/marque";
 import type { DetailRapport } from "@/lib/rapportDetail";
+import { nombreFr } from "@/lib/format";
 
-const fcfa = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
+const fcfa = (n: number) => `${nombreFr(Math.round(n))} FCFA`;
 
 /** 484 120 -> "484 k", 1 250 000 -> "1,25 M" : tient au-dessus d'une barre étroite. */
 function compact(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} M`;
-  if (n >= 1000) return `${Math.round(n / 1000).toLocaleString("fr-FR")} k`;
+  if (n >= 1000) return `${nombreFr(Math.round(n / 1000))} k`;
   return String(Math.round(n));
 }
 
@@ -199,7 +200,7 @@ export default function ApercuRapport({
                   <div key={k.label} className="bloc-impression rounded-lg border border-line p-3">
                     <p className="text-[11px] text-ink-muted">{k.label}</p>
                     <p className="font-display text-xl text-ink tabular-nums">
-                      {k.montant ? fcfa(Number(k.valeur)) : Number(k.valeur).toLocaleString("fr-FR")}
+                      {k.montant ? fcfa(Number(k.valeur)) : nombreFr(Number(k.valeur))}
                     </p>
                   </div>
                 ))}
@@ -228,7 +229,7 @@ export default function ApercuRapport({
                     droite={[1, 2, 3]}
                     lignes={detail.parProduit.map((p) => [
                       p.label,
-                      p.cartons.toLocaleString("fr-FR"),
+                      nombreFr(p.cartons),
                       fcfa(p.montantTotal),
                       `${p.partCA.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`,
                     ])}
@@ -245,7 +246,7 @@ export default function ApercuRapport({
                     lignes={detail.classement.lignes.map((l) => [
                       l.sousLabel ? `${l.label} (${l.sousLabel})` : l.label,
                       l.commandes,
-                      l.cartons.toLocaleString("fr-FR"),
+                      nombreFr(l.cartons),
                       fcfa(l.montantTotal),
                     ])}
                   />

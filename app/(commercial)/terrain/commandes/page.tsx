@@ -5,6 +5,7 @@ import Link from "next/link";
 import { IconReceipt } from "@/components/icons";
 import FactureButton from "@/components/FactureButton";
 import { libelleModePaiement } from "@/lib/pricing";
+import { nombreFr } from "@/lib/format";
 
 type Ligne = { id: string; quantite: number; prixUnitaire: string; sousTotal: string; produit: { nom: string } | null };
 type Commande = {
@@ -68,13 +69,13 @@ export default function MesCommandesPage() {
                 <p className={`mt-1 text-xs font-semibold ${STATUT_STYLE[c.statut]}`}>{STATUT_LABEL[c.statut]}</p>
               </div>
               <div className="flex flex-col items-end gap-1.5">
-                <span className="font-display text-lg text-ink">{Number(c.montantTotal).toLocaleString("fr-FR")}</span>
+                <span className="font-display text-lg text-ink">{nombreFr(Number(c.montantTotal))}</span>
                 <FactureButton commande={c} />
               </div>
             </div>
             {Number(c.resteAPayer) > 0 && (
               <p className="text-sm font-medium text-danger">
-                Reste à payer : {Number(c.resteAPayer).toLocaleString("fr-FR")} FCFA
+                Reste à payer : {nombreFr(Number(c.resteAPayer))} FCFA
               </p>
             )}
           </div>

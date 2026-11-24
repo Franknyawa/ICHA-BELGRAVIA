@@ -17,6 +17,7 @@ import {
 import { IconBox, IconTrend } from "@/components/icons";
 import { Spinner } from "@/components/Spinner";
 import { styleBadgeGamme } from "@/lib/gammesClient";
+import { nombreFr } from "@/lib/format";
 
 type Mesure = "cartons" | "montantTotal";
 type Point = { label: string; cartons: number; montantTotal: number };
@@ -68,13 +69,13 @@ const PERIODES = [
 const OR = "rgb(var(--color-brass))";
 const ENCRE_DISCRETE = "rgb(var(--color-ink-muted))";
 
-const fcfa = (n: number) => `${Math.round(n).toLocaleString("fr-FR")} FCFA`;
-const nombre = (n: number) => Math.round(n).toLocaleString("fr-FR");
+const fcfa = (n: number) => `${nombreFr(Math.round(n))} FCFA`;
+const nombre = (n: number) => nombreFr(Math.round(n));
 
 /** 484 120 -> "484 k" ; 1 250 000 -> "1,3 M" : lisible sur un axe étroit. */
 function compact(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} M`;
-  if (n >= 1000) return `${Math.round(n / 1000).toLocaleString("fr-FR")} k`;
+  if (n >= 1000) return `${nombreFr(Math.round(n / 1000))} k`;
   return String(Math.round(n));
 }
 

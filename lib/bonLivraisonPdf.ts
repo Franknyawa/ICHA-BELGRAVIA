@@ -17,6 +17,7 @@ export type BonLivraisonLigne = { produitNom: string; quantiteCartons: number };
 
 export type BonLivraisonData = {
   numero: string;
+  nomFichier?: string;
   gammeNom?: string;
   dateLivraison: Date;
   pointVenteNom: string;
@@ -163,5 +164,5 @@ export async function genererBonLivraisonPdf(data: BonLivraisonData) {
   doc.setFont("helvetica", "italic");
   doc.text(`Merci pour votre confiance — ${NOM_APP_COMPLET}`, largeur / 2, hauteurPage - 8, { align: "center" });
 
-  doc.save(`bon-livraison-${data.pointVenteNom.replace(/\s+/g, "-").toLowerCase()}-${data.numero}.pdf`);
+  doc.save(`${data.nomFichier || `bon-livraison-${data.pointVenteNom.replace(/\s+/g, "-").toLowerCase()}-${data.numero}`}.pdf`);
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { libelleRepondant } from "@/lib/typesEtablissement";
+import { nombreFr } from "@/lib/format";
 
 const JOUR_LABEL: Record<string, string> = {
   Lundi: "Lundi", Mardi: "Mardi", Mercredi: "Mercredi", Jeudi: "Jeudi", Vendredi: "Vendredi", Samedi: "Samedi", Dimanche: "Dimanche",
@@ -91,7 +92,7 @@ export default function DetailVisite({ v }: { v: VisiteDetail }) {
                     {lignes.map((m) => (
                       <li key={m.id} className="flex items-center justify-between rounded-md bg-bg-elevated px-3 py-1.5 text-sm">
                         <span className="font-semibold text-ink">{m.marque?.nom || m.libelleLibre}</span>
-                        <span className="text-ink-muted">{m.prix !== null && m.prix !== undefined ? `${Math.round(Number(m.prix)).toLocaleString("fr-FR")} FCFA` : "Prix non relevé"}</span>
+                        <span className="text-ink-muted">{m.prix !== null && m.prix !== undefined ? `${nombreFr(Math.round(Number(m.prix)))} FCFA` : "Prix non relevé"}</span>
                       </li>
                     ))}
                   </ul>

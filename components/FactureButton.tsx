@@ -8,6 +8,8 @@ import { libelleGamme } from "@/lib/gammesClient";
 type Ligne = { produit: { nom: string } | null; quantite: number; prixUnitaire: string; sousTotal: string };
 type Commande = {
   id: string;
+  numeroFV?: string | null;
+  livreeLe?: string | null;
   createdAt: string;
   montantTotal: string;
   modePaiement: string;
@@ -26,8 +28,8 @@ export default function FactureButton({ commande }: { commande: Commande }) {
     setEnCours(true);
     try {
       await genererFacturePdf({
-        numero: commande.id.slice(0, 8).toUpperCase(),
-        date: new Date(commande.createdAt),
+        numero: commande.numeroFV ?? commande.id.slice(0, 8).toUpperCase(),
+        date: new Date(commande.livreeLe ?? commande.createdAt),
         gammeNom: commande.gamme ? libelleGamme(commande.gamme) : undefined,
         pointVenteNom: commande.pointVente.nomEtablissement,
         villeNom: commande.pointVente.ville?.nom,

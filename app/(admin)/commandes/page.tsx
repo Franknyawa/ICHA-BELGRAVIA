@@ -17,6 +17,7 @@ import {
   IconCopy,
   IconCalendar,
 } from "@/components/icons";
+import { nomFichierNumero } from "@/lib/numerotation";
 import { genererBonLivraisonPdf } from "@/lib/bonLivraisonPdf";
 import { genererFacturePdf } from "@/lib/facturePdf";
 import GammeTabs from "@/components/GammeTabs";
@@ -29,6 +30,9 @@ import { aujourdhuiISO, ajouterJours } from "@/lib/dates";
 type Ligne = { id: string; quantite: number; prixUnitaire: string; produit: { nom: string } | null; libelleLibre: string | null };
 type Commande = {
   id: string;
+  numeroBC?: string | null;
+  numeroBL?: string | null;
+  numeroFV?: string | null;
   dateCommande: string;
   dateLivraison: string | null;
   livreeLe: string | null;
@@ -189,7 +193,8 @@ export default function CommandesPage() {
   // --- Documents PDF ------------------------------------------------------
   async function telechargerBonLivraison(c: Commande) {
     await genererBonLivraisonPdf({
-      numero: c.id.slice(0, 8).toUpperCase(),
+      numero: c.numeroBL ?? c.id.slice(0, 8).toUpperCase(),
+      nomFichier: nomFichierNumero(c.numeroBL ?? c.id.slice(0, 8).toUpperCase()),
       gammeNom: c.gamme ? libelleGamme(c.gamme) : undefined,
       dateLivraison: c.livreeLe ? new Date(c.livreeLe) : c.dateLivraison ? new Date(c.dateLivraison) : new Date(),
       pointVenteNom: c.pointVente.nomEtablissement,
@@ -209,8 +214,9 @@ export default function CommandesPage() {
   async function telechargerFacture(c: Commande, titre?: string) {
     await genererFacturePdf({
       titre,
-      numero: c.id.slice(0, 8).toUpperCase(),
-      date: new Date(c.dateCommande),
+      numero: (titre ? c.numeroBC : c.numeroFV) ?? c.id.slice(0, 8).toUpperCase(),
+      nomFichier: nomFichierNumero((titre ? c.numeroBC : c.numeroFV) ?? c.id.slice(0, 8).toUpperCase()),
+      date: new Date(titre ? c.dateCommande : c.livreeLe ?? c.dateCommande),
       gammeNom: c.gamme ? libelleGamme(c.gamme) : undefined,
       pointVenteNom: c.pointVente.nomEtablissement,
       villeNom: c.pointVente.ville?.nom,
@@ -512,10 +518,12 @@ export default function CommandesPage() {
                               <IconDownload className="h-4 w-4" />
                               Bon de livraison
                             </button>
-                            <button className="btn-secondary" onClick={() => telechargerFacture(c)}>
-                              <IconDownload className="h-4 w-4" />
-                              Facture
-                            </button>
+                            {c.statut === "LIVREE" && (
+                              <button className="btn-secondary" onClick={() => telechargerFacture(c)}>
+                                <IconDownload className="h-4 w-4" />
+                                Facture
+                              </button>
+                            )}
                           </>
                         )}
                       </span>
@@ -559,7 +567,7 @@ export default function CommandesPage() {
       <ConfirmDialog
         open={!!aSupprimer}
         title="Annuler ce doublon livré ?"
-        message={`La commande de ${aSupprimer?.pointVente.nomEtablissement ?? ""} (${aSupprimer ? fcfa(aSupprimer.montantTotal) : ""} FCFA) sera supprimée et ses cartons seront remis en stock. Cette action est définitive.`}
+        message={`La commande de ${aSupprimer?.pointVente.nomEtablissement ?? ""} (${aSupprimer ? fcfa(aSupprimer.montantTotal) : ""} FCFA) sera annulée par une facture retour totale (FR) : les cartons retournent en stock. Les encaissements éventuels doivent d'abord être annulés dans la Caisse. Cette action est définitive.`}
         confirmLabel="Annuler le doublon"
         cancelLabel="Garder"
         onConfirm={annulerDoublon}

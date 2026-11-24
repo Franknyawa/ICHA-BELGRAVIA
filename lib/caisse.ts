@@ -31,7 +31,11 @@ export const CATEGORIES_DEPENSE = {
 /** Catégories réservées (jamais saisies via le formulaire « autre recette / dépense »). */
 export const CATEGORIES_ENCAISSEMENT = ["ENCAISSEMENT_COMMANDE", "ENCAISSEMENT_CREDIT"] as const;
 
+/** Remboursement au client (sortie de caisse) émis avec une facture d'avoir / retour. Jamais saisi à la main. */
+export const CATEGORIE_REMBOURSEMENT = "REMBOURSEMENT_CLIENT";
+
 export const LIBELLE_CATEGORIE: Record<string, string> = {
+  REMBOURSEMENT_CLIENT: "Remboursement client",
   ENCAISSEMENT_COMMANDE: "Encaissement de commande",
   ENCAISSEMENT_CREDIT: "Encaissement de crédit",
   TRANSFERT: "Transfert",
@@ -112,7 +116,7 @@ export type LigneJournal = {
   categorie: string;
   libelle: string;
   montant: number;
-  source: "ENCAISSEMENT" | "TRANSFERT" | "MANUEL";
+  source: "ENCAISSEMENT" | "REMBOURSEMENT" | "TRANSFERT" | "MANUEL";
   mode: ModeCaisse | null;
   details?: DetailsCommande;
   produit?: string | null;
@@ -161,15 +165,22 @@ export async function enregistrerAchatStock(
   return mouvement;
 }
 
-/** Encaissements enregistrés par commande (nouveaux encaissements et anciens « crédits »). */
+/**
+ * Encaissé NET par commande : encaissements (nouveaux et anciens « crédits »)
+ * moins les remboursements faits au client (suite à une facture d'avoir / retour).
+ */
 export async function encaisseParCommande(ids?: string[]): Promise<Map<string, number>> {
   const rows = await prisma.operationCaisse.groupBy({
-    by: ["commandeId"],
-    where: { categorie: { in: [...CATEGORIES_ENCAISSEMENT] }, commandeId: ids ? { in: ids } : { not: null } },
+    by: ["commandeId", "categorie"],
+    where: { categorie: { in: [...CATEGORIES_ENCAISSEMENT, CATEGORIE_REMBOURSEMENT] }, commandeId: ids ? { in: ids } : { not: null } },
     _sum: { montant: true },
   });
   const m = new Map<string, number>();
-  for (const r of rows) if (r.commandeId) m.set(r.commandeId, Number(r._sum.montant || 0));
+  for (const r of rows) {
+    if (!r.commandeId) continue;
+    const v = Number(r._sum.montant || 0);
+    m.set(r.commandeId, (m.get(r.commandeId) || 0) + (r.categorie === CATEGORIE_REMBOURSEMENT ? -v : v));
+  }
   return m;
 }
 

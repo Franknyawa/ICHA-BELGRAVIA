@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { aAcces } from "@/lib/permissions";
-import { CATEGORIES_ENCAISSEMENT } from "@/lib/caisse";
+import { CATEGORIES_ENCAISSEMENT, CATEGORIE_REMBOURSEMENT } from "@/lib/caisse";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +36,10 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
           dateCommande: true,
           livreeLe: true,
           statut: true,
+          numeroFV: true,
           montantTotal: true,
+          avoirsTotal: true,
+          documentsCorrectifs: { select: { id: true, type: true, numero: true, montant: true, createdAt: true }, orderBy: { createdAt: "asc" } },
           modePaiement: true,
           commercial: { select: { nom: true, prenom: true } },
           lignes: { select: { quantite: true, libelleLibre: true, produit: { select: { nom: true } } } },
@@ -48,8 +51,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   if (pv.commandes.length === 0) return NextResponse.json({ error: "Ce point de vente n'a encore passé aucune commande." }, { status: 404 });
 
   const ops = await prisma.operationCaisse.findMany({
-    where: { categorie: { in: [...CATEGORIES_ENCAISSEMENT] }, commandeId: { in: pv.commandes.map((c) => c.id) } },
-    select: { id: true, commandeId: true, montant: true, libelle: true, modePaiement: true, moyen: true, dateOperation: true },
+    where: { categorie: { in: [...CATEGORIES_ENCAISSEMENT, CATEGORIE_REMBOURSEMENT] }, commandeId: { in: pv.commandes.map((c) => c.id) } },
+    select: { id: true, commandeId: true, categorie: true, montant: true, libelle: true, modePaiement: true, moyen: true, dateOperation: true },
     orderBy: { dateOperation: "asc" },
   });
 
@@ -58,8 +61,14 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       ...pv,
       latitude: pv.latitude ? Number(pv.latitude) : null,
       longitude: pv.longitude ? Number(pv.longitude) : null,
-      commandes: pv.commandes.map((c) => ({ ...c, montantTotal: Number(c.montantTotal) })),
+      commandes: pv.commandes.map((c) => ({
+        ...c,
+        montantTotal: Number(c.montantTotal),
+        avoirsTotal: Number(c.avoirsTotal),
+        documentsCorrectifs: c.documentsCorrectifs.map((d) => ({ ...d, montant: Number(d.montant) })),
+      })),
     },
-    encaissements: ops.map((o) => ({ ...o, montant: Number(o.montant) })),
+    // Les remboursements au client sont comptés en négatif : le net encaissé reste cohérent avec la caisse.
+    encaissements: ops.map(({ categorie, ...o }) => ({ ...o, montant: categorie === CATEGORIE_REMBOURSEMENT ? -Number(o.montant) : Number(o.montant) })),
   });
 }

@@ -7,6 +7,7 @@ import { libelleGamme, type GammeInfo } from "@/lib/gammesClient";
 import { NOM_APP } from "@/lib/marque";
 import { Spinner, ChargementPage } from "@/components/Spinner";
 import ApercuRapport from "@/components/ApercuRapport";
+import { nombreFr } from "@/lib/format";
 
 type Colonne = { cle: string; label: string; droite?: boolean; montant?: boolean; pourcentage?: boolean };
 type Rapport = {
@@ -45,7 +46,7 @@ const LABEL_CATEGORIE: Record<string, string> = {
 };
 
 function formaterCellule(colonne: Colonne, valeur: string | number) {
-  if (colonne.montant) return `${Number(valeur).toLocaleString("fr-FR")} FCFA`;
+  if (colonne.montant) return `${nombreFr(Number(valeur))} FCFA`;
   if (colonne.pourcentage) return `${Number(valeur).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`;
   return valeur === "" || valeur === null || valeur === undefined ? "—" : String(valeur);
 }
@@ -59,7 +60,7 @@ function formaterCellule(colonne: Colonne, valeur: string | number) {
 function TableauHistorique({ rapport, surClic }: { rapport: Rapport; surClic: (id: string) => void }) {
   const mois = rapport.colonnes.filter((c) => c.cle.startsWith("m_"));
   const max = Math.max(0, ...rapport.lignes.flatMap((l) => mois.map((m) => Number(l[m.cle] || 0))));
-  const nombre = (n: number) => Math.round(n).toLocaleString("fr-FR");
+  const nombre = (n: number) => nombreFr(Math.round(n));
 
   return (
     <div>
@@ -409,7 +410,7 @@ export default function RapportsPage() {
             <p className="text-xs text-ink-muted">Commandes</p>
           </div>
           <div className="field-card text-center">
-            <p className="font-display text-2xl text-ink">{Number(rapport.totaux.montantTotal || 0).toLocaleString("fr-FR")}</p>
+            <p className="font-display text-2xl text-ink">{nombreFr(Number(rapport.totaux.montantTotal || 0))}</p>
             <p className="text-xs text-ink-muted">Chiffre d'affaires (FCFA)</p>
           </div>
         </div>
@@ -418,15 +419,15 @@ export default function RapportsPage() {
       {rapport && rapport.groupBy === "produit" && (
         <div className="mb-5 grid gap-3 sm:grid-cols-3">
           <div className="field-card text-center">
-            <p className="font-display text-2xl text-ink">{Number(rapport.totaux.cartons || 0).toLocaleString("fr-FR")}</p>
+            <p className="font-display text-2xl text-ink">{nombreFr(Number(rapport.totaux.cartons || 0))}</p>
             <p className="text-xs text-ink-muted">Cartons vendus</p>
           </div>
           <div className="field-card text-center">
-            <p className="font-display text-2xl text-ink">{Number(rapport.totaux.montantTotal || 0).toLocaleString("fr-FR")}</p>
+            <p className="font-display text-2xl text-ink">{nombreFr(Number(rapport.totaux.montantTotal || 0))}</p>
             <p className="text-xs text-ink-muted">Chiffre d'affaires (FCFA)</p>
           </div>
           <div className="field-card text-center">
-            <p className="font-display text-2xl text-ink">{Number(rapport.totaux.prixMoyen || 0).toLocaleString("fr-FR")}</p>
+            <p className="font-display text-2xl text-ink">{nombreFr(Number(rapport.totaux.prixMoyen || 0))}</p>
             <p className="text-xs text-ink-muted">Prix moyen / carton (FCFA)</p>
           </div>
         </div>
@@ -439,11 +440,11 @@ export default function RapportsPage() {
             <p className="text-xs text-ink-muted">Points de vente actifs</p>
           </div>
           <div className="field-card text-center">
-            <p className="font-display text-2xl text-ink">{Number(rapport.totaux.commandes || 0).toLocaleString("fr-FR")}</p>
+            <p className="font-display text-2xl text-ink">{nombreFr(Number(rapport.totaux.commandes || 0))}</p>
             <p className="text-xs text-ink-muted">Commandes sur 12 mois</p>
           </div>
           <div className="field-card text-center">
-            <p className="font-display text-2xl text-ink">{Number(rapport.totaux.total || 0).toLocaleString("fr-FR")}</p>
+            <p className="font-display text-2xl text-ink">{nombreFr(Number(rapport.totaux.total || 0))}</p>
             <p className="text-xs text-ink-muted">Chiffre d'affaires 12 mois (FCFA)</p>
           </div>
         </div>
@@ -456,11 +457,11 @@ export default function RapportsPage() {
             <p className="text-xs text-ink-muted">Ventes</p>
           </div>
           <div className="field-card text-center">
-            <p className="font-display text-2xl text-ink">{Number(rapport.totaux.montantTotal || 0).toLocaleString("fr-FR")}</p>
+            <p className="font-display text-2xl text-ink">{nombreFr(Number(rapport.totaux.montantTotal || 0))}</p>
             <p className="text-xs text-ink-muted">Montant total (FCFA)</p>
           </div>
           <div className="field-card text-center">
-            <p className="font-display text-2xl text-danger">{Number(rapport.totaux.resteAPayer || 0).toLocaleString("fr-FR")}</p>
+            <p className="font-display text-2xl text-danger">{nombreFr(Number(rapport.totaux.resteAPayer || 0))}</p>
             <p className="text-xs text-ink-muted">Reste à payer (FCFA)</p>
           </div>
         </div>

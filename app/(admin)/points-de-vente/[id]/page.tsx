@@ -215,7 +215,7 @@ export default function FichePointVentePage() {
               </p>
               {Number(c.resteAPayer) > 0 && (
                 <p className="mt-1 text-xs font-medium text-danger">
-                  Reste à payer : {Number(c.resteAPayer).toLocaleString("fr-FR")} FCFA
+                  Reste à payer : {nombreFr(Number(c.resteAPayer))} FCFA
                 </p>
               )}
             </div>

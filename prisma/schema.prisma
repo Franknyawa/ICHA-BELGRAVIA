@@ -474,10 +474,18 @@ model Commande {
   // instant que le montant entre dans « Commandes à encaisser » (caisse).
   livreeLe     DateTime? @map("livree_le")
 
+  // Numérotation continue (voir lib/numerotation.ts) : BC à la saisie, BL + FV à « Effectuer la livraison ».
+  numeroBC     String? @unique @map("numero_bc")
+  numeroBL     String? @unique @map("numero_bl")
+  numeroFV     String? @unique @map("numero_fv")
+  // Total des factures d'avoir et factures retour émises : montant net dû = montantTotal − avoirsTotal.
+  avoirsTotal  Decimal @default(0) @db.Decimal(12, 2) @map("avoirs_total")
+
   createdAt    DateTime @default(now()) @map("created_at")
   archiveeLe   DateTime? @map("archivee_le")
 
   lignes LigneCommande[]
+  documentsCorrectifs DocumentCorrectif[]
 
   @@index([archiveeLe])
   @@index([pointVenteId])
@@ -603,4 +611,52 @@ model ObjectifCommercial {
   @@unique([commercialId, mois])
   @@index([mois])
   @@map("objectifs_commerciaux")
+}
+
+/// Compteurs des numéros de documents (FV, BL, BC, FR, FA) : séquence continue, jamais remise à zéro ni réutilisée.
+model Sequence {
+  cle    String @id
+  valeur Int    @default(0)
+
+  @@map("sequences")
+}
+
+/// Facture retour (FR : marchandise rendue) ou facture d'avoir (FA : correction de montant) rattachée à une facture de vente.
+/// Un document émis est définitif : on ne le modifie ni ne le supprime.
+model DocumentCorrectif {
+  id                  String   @id @default(uuid())
+  type                String   // "FR" | "FA"
+  numero              String   @unique
+  commandeId          String   @map("commande_id")
+  commande            Commande @relation(fields: [commandeId], references: [id])
+  montant             Decimal  @db.Decimal(12, 2)
+  // Part déjà payée par le client qui lui est restituée (sortie de caisse).
+  remboursement       Decimal  @default(0) @db.Decimal(12, 2)
+  canalRemboursement  String?  @map("canal_remboursement")
+  // FR seulement : "STOCK" (retour en stock vendable) ou "AVARIES" (hors stock vendable).
+  destination         String?
+  motif               String
+  creeParId           String?  @map("cree_par_id")
+  createdAt           DateTime @default(now()) @map("created_at")
+  lignes              DocumentCorrectifLigne[]
+
+  @@index([commandeId])
+  @@index([type, createdAt])
+  @@map("documents_correctifs")
+}
+
+model DocumentCorrectifLigne {
+  id              String   @id @default(uuid())
+  documentId      String   @map("document_id")
+  document        DocumentCorrectif @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  ligneCommandeId String   @map("ligne_commande_id")
+  produitId       String?  @map("produit_id")
+  libelle         String
+  quantite        Int
+  prixUnitaire    Decimal  @db.Decimal(10, 2) @map("prix_unitaire")
+  sousTotal       Decimal  @db.Decimal(12, 2) @map("sous_total")
+
+  @@index([documentId])
+  @@index([ligneCommandeId])
+  @@map("documents_correctifs_lignes")
 }

@@ -10,6 +10,9 @@ import { exporterClientPdf, montantPdf } from "@/lib/clientPdf";
 
 type Cmd = {
   id: string;
+  numeroFV?: string | null;
+  avoirsTotal?: number;
+  documentsCorrectifs?: { id: string; type: "FR" | "FA"; numero: string; montant: number; createdAt: string }[];
   dateCommande: string;
   livreeLe: string | null;
   statut: "NON_TRAITEE" | "EN_COURS_LIVRAISON" | "LIVREE";
@@ -82,13 +85,16 @@ export default function ClientProfilPage() {
     const validees = client.commandes.filter((c) => c.statut !== "NON_TRAITEE");
     const factures = validees.map((c) => {
       const enc = encParCmd.get(c.id) || 0;
-      return { c, enc, reste: Math.max(0, c.montantTotal - enc) };
+      return { c, net: c.montantTotal - (c.avoirsTotal || 0), enc, reste: Math.max(0, c.montantTotal - (c.avoirsTotal || 0) - enc) };
     });
-    const facturation = validees.reduce((s, c) => s + c.montantTotal, 0);
+    const facturation = validees.reduce((s, c) => s + c.montantTotal - (c.avoirsTotal || 0), 0);
     const encaisse = encs.reduce((s, e) => s + e.montant, 0);
     const mouvements = [
-      ...validees.map((c) => ({ date: c.dateCommande, piece: numero(c.id), libelle: `Commande validée (${c.lignes.reduce((s, l) => s + l.quantite, 0)} cartons)`, debit: c.montantTotal, credit: 0 })),
-      ...encs.map((e) => ({ date: e.dateOperation, piece: "Caisse", libelle: e.libelle, debit: 0, credit: e.montant })),
+      ...validees.map((c) => ({ date: c.dateCommande, piece: c.numeroFV ?? numero(c.id), libelle: `Commande validée (${c.lignes.reduce((s, l) => s + l.quantite, 0)} cartons)`, debit: c.montantTotal, credit: 0 })),
+      ...validees.flatMap((c) =>
+        (c.documentsCorrectifs || []).map((d) => ({ date: d.createdAt, piece: d.numero, libelle: d.type === "FR" ? "Facture retour" : "Facture d'avoir", debit: 0, credit: d.montant }))
+      ),
+      ...encs.map((e) => ({ date: e.dateOperation, piece: "Caisse", libelle: e.libelle, debit: e.montant < 0 ? -e.montant : 0, credit: e.montant < 0 ? 0 : e.montant })),
     ].sort((a, b) => +new Date(a.date) - +new Date(b.date));
     let solde = 0;
     const releve = mouvements.map((m) => ({ ...m, solde: (solde += m.debit - m.credit) }));
@@ -120,7 +126,7 @@ export default function ClientProfilPage() {
         { label: "Encaissé", valeur: montantPdf(calc.encaisse) },
         { label: "Reste à encaisser", valeur: montantPdf(calc.reste) },
       ],
-      factures: calc.factures.map((f) => [numero(f.c.id), dateFr(f.c.dateCommande), montantPdf(f.c.montantTotal), montantPdf(f.enc), montantPdf(f.reste)]),
+      factures: calc.factures.map((f) => [f.c.numeroFV ?? numero(f.c.id), dateFr(f.c.dateCommande), montantPdf(f.net), montantPdf(f.enc), montantPdf(f.reste)]),
       releve: calc.releve.map((m) => [dateFr(m.date), m.piece, m.libelle, m.debit ? montantPdf(m.debit) : "", m.credit ? montantPdf(m.credit) : "", montantPdf(m.solde)]),
     });
   }
@@ -222,9 +228,9 @@ export default function ClientProfilPage() {
           <tbody>
             {calc.factures.map((f) => (
               <tr key={f.c.id} className="border-b border-line/60">
-                <td className="py-1.5 font-semibold text-ink">{numero(f.c.id)}</td>
+                <td className="py-1.5 font-semibold text-ink">{f.c.numeroFV ?? numero(f.c.id)}</td>
                 <td className="text-ink-muted">{dateFr(f.c.dateCommande)}</td>
-                <td className="montant text-right">{nombreFr(f.c.montantTotal)}</td>
+                <td className="montant text-right">{nombreFr(f.net)}</td>
                 <td className="montant text-right text-ok">{nombreFr(f.enc)}</td>
                 <td className={`montant text-right ${f.reste > 0 ? "text-danger" : "text-ok"}`}>{nombreFr(f.reste)}</td>
               </tr>

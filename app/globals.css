@@ -235,3 +235,16 @@ input[type="date"].field-input {
 @media print {
   .admin-main h1 { border-left-width: 3px; font-size: 1.4rem; }
 }
+
+/* Chiffres : toujours alignés sur la ligne de base (jamais « elzéviriens » comme dans Cormorant) */
+.font-display, h1, h2, h3 {
+  font-variant-numeric: lining-nums;
+  font-feature-settings: "lnum" 1;
+}
+/* Listes déroulantes : jamais tronquées (« Tous les commerci… ») */
+.admin-main select.field-input {
+  width: auto;
+  max-width: 100%;
+  min-width: 13rem;
+  text-overflow: clip;
+}

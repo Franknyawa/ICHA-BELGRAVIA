@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { aEcriture } from "@/lib/permissions";
 import { dateValide, debutJour } from "@/lib/dates";
+import { prochainNumero } from "@/lib/numerotation";
 
 const TRANSITIONS_VALIDES: Record<string, string[]> = {
   NON_TRAITEE: ["EN_COURS_LIVRAISON"],
@@ -50,7 +51,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (statut === "LIVREE") data.livreeLe = new Date();
   if (statut === "NON_TRAITEE") data.livreeLe = null;
 
-  const { count } = await prisma.commande.updateMany({ where: { id: params.id, statut: commande.statut }, data });
+  // Livraison effectuée : le BL et la FV reçoivent leur numéro dans la même transaction (jamais de trou).
+  // Une commande réactivée puis relivrée garde ses numéros d'origine.
+  const count = await prisma.$transaction(async (tx) => {
+    const r = await tx.commande.updateMany({ where: { id: params.id, statut: commande.statut }, data });
+    if (r.count === 1 && statut === "LIVREE" && (!commande.numeroBL || !commande.numeroFV)) {
+      await tx.commande.update({
+        where: { id: params.id },
+        data: {
+          ...(commande.numeroBL ? {} : { numeroBL: await prochainNumero(tx, "BL") }),
+          ...(commande.numeroFV ? {} : { numeroFV: await prochainNumero(tx, "FV") }),
+        },
+      });
+    }
+    return r.count;
+  });
   if (count === 0) {
     return NextResponse.json({ error: "Cette commande vient d'être modifiée. Rafraîchissez la page." }, { status: 409 });
   }

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { TypeAlerte } from "@prisma/client";
+import { nombreFr } from "@/lib/format";
 
 /**
  * Génération des alertes admin — même principe que le projet HYPO/HTC
@@ -93,7 +94,7 @@ async function genererAlertesCredits() {
   for (const c of commandes) {
     await creerAlerteSiAbsente({
       type: "CREDIT_RETARD",
-      message: `Crédit en retard chez ${c.pointVente.nomEtablissement} : ${Number(c.resteAPayer).toLocaleString("fr-FR")} FCFA dû depuis plus de ${JOURS_CREDIT_RETARD} jours.`,
+      message: `Crédit en retard chez ${c.pointVente.nomEtablissement} : ${nombreFr(Number(c.resteAPayer))} FCFA dû depuis plus de ${JOURS_CREDIT_RETARD} jours.`,
       entiteType: "Commande",
       entiteId: c.id,
     });

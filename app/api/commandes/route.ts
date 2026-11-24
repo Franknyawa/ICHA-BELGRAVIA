@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { peut } from "@/lib/permissions";
+import { prochainNumero } from "@/lib/numerotation";
 import { calculerCommande, calculerPaiement, type ModePaiementValue } from "@/lib/pricing";
 import { assurerGammes } from "@/lib/gammes";
 
@@ -140,6 +141,7 @@ export async function POST(req: NextRequest) {
     const c = await tx.commande.create({
       data: {
         uuidClient,
+        numeroBC: await prochainNumero(tx, "BC"),
         pointVenteId,
         commercialId: session.userId,
         gammeId,
@@ -198,7 +200,7 @@ export async function POST(req: NextRequest) {
     prixCarton,
     montantRecu,
     resteAPayer,
-    numero: commande.id.slice(0, 8).toUpperCase(),
+    numero: commande.numeroBC ?? commande.id.slice(0, 8).toUpperCase(),
   });
 }
 

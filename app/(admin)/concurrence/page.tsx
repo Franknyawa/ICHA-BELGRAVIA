@@ -7,6 +7,7 @@ import { telechargerCsv } from "@/lib/csv";
 import { NOM_APP } from "@/lib/marque";
 import { Spinner, ChargementPage } from "@/components/Spinner";
 import type { RapportConcurrence } from "@/lib/concurrence";
+import { nombreFr } from "@/lib/format";
 
 type Onglet = "TOUTES" | "RTD" | "MOUSSEUX" | "NON_CLASSEE";
 // Une couleur par catégorie pour les distinguer d'un coup d'œil (barres, pastilles, onglets).
@@ -14,7 +15,7 @@ const COULEUR: Record<string, string> = { RTD: "#2E8B7A", MOUSSEUX: "#B8892B", N
 const FILTRES_VIDES = { dateFrom: "", dateTo: "", villeId: "", quartier: "", pointVenteId: "", potentiel: "", typeMode: "inclure" as "inclure" | "exclure" };
 const LIBELLE_POTENTIEL: Record<string, string> = { FORT: "Fort", MOYEN: "Moyen", FAIBLE: "Faible", NON_EVALUE: "Non évalué" };
 type PointSuggere = { id: string; nomEtablissement: string; quartier: string | null; ville: { nom: string } | null };
-const fcfa = (n: number | null) => (n === null ? "—" : `${n.toLocaleString("fr-FR")} FCFA`);
+const fcfa = (n: number | null) => (n === null ? "—" : `${nombreFr(n)} FCFA`);
 const pct = (n: number) => `${n.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`;
 
 export default function ConcurrencePage() {

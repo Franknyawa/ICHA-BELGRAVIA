@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { IconChart, IconPlus, IconTrash } from "@/components/icons";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { GRILLE_BELGRAVIA, BOUTEILLES_PAR_CARTON_BELGRAVIA } from "@/lib/tarifs";
+import { nombreFr } from "@/lib/format";
 
 type Palier = { id: string; cartonsMin: number; cartonsMax: number | null; prixCarton: string; actif: boolean };
 
@@ -136,7 +137,7 @@ export default function PaliersPrixManager({
 
       {grilleOfficielle && (
         <button type="button" className="btn-secondary mb-3" onClick={() => setConfirmGrille(true)}>
-          Appliquer la grille tarifaire {libelle} (1–9 : {grilleOfficielle[0].prixCarton.toLocaleString("fr-FR")} … {grilleOfficielle[grilleOfficielle.length - 1].cartonsMin}+ : {grilleOfficielle[grilleOfficielle.length - 1].prixCarton.toLocaleString("fr-FR")})
+          Appliquer la grille tarifaire {libelle} (1–9 : {nombreFr(grilleOfficielle[0].prixCarton)} … {grilleOfficielle[grilleOfficielle.length - 1].cartonsMin}+ : {nombreFr(grilleOfficielle[grilleOfficielle.length - 1].prixCarton)})
         </button>
       )}
 
@@ -193,7 +194,7 @@ export default function PaliersPrixManager({
                 </td>
                 {bouteillesParCarton ? (
                   <td className="px-3 py-2 text-ink-muted">
-                    {Math.round(Number(p.prixCarton) / bouteillesParCarton).toLocaleString("fr-FR")}
+                    {nombreFr(Math.round(Number(p.prixCarton) / bouteillesParCarton))}
                   </td>
                 ) : null}
                 <td className="px-3 py-2">

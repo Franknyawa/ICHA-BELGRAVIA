@@ -23,6 +23,7 @@ import {
   type DetailsCommande,
   type LigneJournal,
   type ModeCaisse,
+  CATEGORIE_REMBOURSEMENT,
 } from "@/lib/caisse";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +35,7 @@ const SELECT_COMMANDE = {
   dateLivraison: true,
   livreeLe: true,
   montantTotal: true,
+  avoirsTotal: true,
   montantRecu: true,
   resteAPayer: true,
   modePaiement: true,
@@ -73,8 +75,9 @@ function details(c: CommandeCaisse, encaisse: number): DetailsCommande {
       c.modePaiement === "MOBILE_MONEY"
         ? `${c.operateurMobile === "ORANGE_MONEY" ? "Orange Money" : c.operateurMobile === "MTN_MOMO" ? "MTN MoMo" : "Mobile Money"}${c.mobileMoneyConfirme ? "" : " (non confirmé)"}`
         : LIBELLE_MODE_COMMANDE[c.modePaiement] || c.modePaiement,
-    montantTotal: Number(c.montantTotal),
-    reste: Math.max(0, Number(c.montantTotal) - encaisse),
+    // Montant net : facturé moins les factures d'avoir / retour émises.
+    montantTotal: Number(c.montantTotal) - Number(c.avoirsTotal),
+    reste: Math.max(0, Number(c.montantTotal) - Number(c.avoirsTotal) - encaisse),
   };
 }
 
@@ -118,12 +121,12 @@ export async function GET(req: NextRequest) {
       categorie: o.categorie,
       libelle: o.libelle,
       montant: Number(o.montant),
-      source: transfert ? "TRANSFERT" : o.commandeId ? "ENCAISSEMENT" : "MANUEL",
+      source: transfert ? "TRANSFERT" : o.categorie === CATEGORIE_REMBOURSEMENT ? "REMBOURSEMENT" : o.commandeId ? "ENCAISSEMENT" : "MANUEL",
       mode: modeOperation(o.modePaiement),
       details: c ? details(c, encaisseTout.get(c.id) ?? 0) : undefined,
       produit: o.produitId ? nomProduit.get(o.produitId) ?? null : null,
       quantiteCartons: o.quantiteCartons,
-      annulable: true,
+      annulable: o.categorie !== CATEGORIE_REMBOURSEMENT,
     };
   });
 
@@ -247,17 +250,19 @@ export async function POST(req: NextRequest) {
       await transaction(async (tx) => {
         const cmd = await tx.commande.findUnique({
           where: { id: b.commandeId },
-          select: { id: true, statut: true, montantTotal: true, operateurMobile: true, pointVente: { select: { nomEtablissement: true } } },
+          select: { id: true, statut: true, montantTotal: true, avoirsTotal: true, operateurMobile: true, pointVente: { select: { nomEtablissement: true } } },
         });
         if (!cmd) throw new Error("INTROUVABLE");
         if (cmd.statut !== "LIVREE") throw new Error("NON_LIVREE");
         const mode = modePourCanal(b.canal, cmd.operateurMobile);
         if (!mode) throw new Error("CANAL");
-        const deja = await tx.operationCaisse.aggregate({
-          where: { commandeId: cmd.id, categorie: { in: ["ENCAISSEMENT_COMMANDE", "ENCAISSEMENT_CREDIT"] } },
+        const lignesOps = await tx.operationCaisse.groupBy({
+          by: ["categorie"],
+          where: { commandeId: cmd.id, categorie: { in: ["ENCAISSEMENT_COMMANDE", "ENCAISSEMENT_CREDIT", CATEGORIE_REMBOURSEMENT] } },
           _sum: { montant: true },
         });
-        const reste = Number(cmd.montantTotal) - Number(deja._sum.montant || 0);
+        const dejaNet = lignesOps.reduce((t, r) => t + (r.categorie === CATEGORIE_REMBOURSEMENT ? -1 : 1) * Number(r._sum.montant || 0), 0);
+        const reste = Number(cmd.montantTotal) - Number(cmd.avoirsTotal) - dejaNet;
         if (reste <= 0) throw new Error("SOLDEE");
         if (montant > reste) throw new Error(`TROP:${reste}`);
         await tx.operationCaisse.create({

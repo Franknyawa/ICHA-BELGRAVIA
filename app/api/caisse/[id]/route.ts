@@ -17,6 +17,15 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   const op = await prisma.operationCaisse.findUnique({ where: { id: params.id } });
   if (!op) return NextResponse.json({ error: "Opération introuvable." }, { status: 404 });
 
+  if (op.categorie === "REMBOURSEMENT_CLIENT") {
+    return NextResponse.json({ error: "Un remboursement client est lié à une facture d'avoir / retour émise : il ne peut pas être annulé." }, { status: 409 });
+  }
+  if (op.commandeId) {
+    const n = await prisma.documentCorrectif.count({ where: { commandeId: op.commandeId } });
+    if (n > 0) {
+      return NextResponse.json({ error: "Une facture d'avoir ou retour a été émise pour cette commande : cet encaissement ne peut plus être annulé." }, { status: 409 });
+    }
+  }
   try {
     await prisma.$transaction(async (tx) => {
       if (op.mouvementStockId && op.produitId && op.quantiteCartons) {

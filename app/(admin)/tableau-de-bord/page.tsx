@@ -13,6 +13,7 @@ import {
   IconCheckCircle,
   IconCalendar,
 } from "@/components/icons";
+import { nombreFr } from "@/lib/format";
 
 type TableauDeBord = {
   visitesAujourdhui: number;
@@ -31,7 +32,7 @@ type TableauDeBord = {
 };
 
 function formatMontant(n: number) {
-  return `${n.toLocaleString("fr-FR")} FCFA`;
+  return `${nombreFr(n)} FCFA`;
 }
 
 export default function TableauDeBordPage() {

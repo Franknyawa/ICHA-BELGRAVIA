@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { aAcces, aEcriture } from "@/lib/permissions";
+import { emettreDocumentCorrectif, RefusDocument } from "@/lib/documentsCorrectifs";
 import { calculerCommande, calculerPaiement, type ModePaiementValue } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +42,14 @@ const SELECT = {
 
 function transaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>) {
   return prisma.$transaction(fn, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
+}
+
+/** Une facture retour / d'avoir émise est définitive : la commande ne peut plus être modifiée, réactivée ni supprimée. */
+async function verifierSansDocumentCorrectif(tx: Prisma.TransactionClient, commandeId: string) {
+  const n = await tx.documentCorrectif.count({ where: { commandeId } });
+  if (n > 0) {
+    throw new Refus(409, "Une facture retour ou d'avoir a été émise pour cette commande : elle ne peut plus être modifiée.");
+  }
 }
 
 async function aDesEncaissements(tx: Prisma.TransactionClient, commandeId: string) {
@@ -127,6 +136,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       await transaction(async (tx) => {
         const c = await tx.commande.findUnique({ where: { id: params.id }, select: SELECT });
         if (!c) throw new Refus(404, "Commande introuvable.");
+        await verifierSansDocumentCorrectif(tx, c.id);
         if (c.statut !== "LIVREE" && c.statut !== "EN_COURS_LIVRAISON") {
           throw new Refus(409, "Seule une commande validée ou livrée peut être réactivée.");
         }
@@ -154,6 +164,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       await transaction(async (tx) => {
         const c = await tx.commande.findUnique({ where: { id: params.id }, select: SELECT });
         if (!c) throw new Refus(404, "Commande introuvable.");
+        await verifierSansDocumentCorrectif(tx, c.id);
         if (await aDesEncaissements(tx, c.id)) {
           throw new Refus(409, "Des encaissements existent en caisse pour cette commande : annulez-les d'abord dans la Caisse.");
         }
@@ -243,13 +254,39 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if (!aEcriture(session, "commandes")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   try {
-    await transaction(async (tx) => {
-      const c = await tx.commande.findUnique({ where: { id: params.id }, select: SELECT });
+    const resultat = await transaction(async (tx) => {
+      const c = await tx.commande.findUnique({ where: { id: params.id }, select: { ...SELECT, numeroFV: true, lignes: { select: { id: true, produitId: true, quantite: true } } } });
       if (!c) throw new Refus(404, "Commande introuvable.");
       if (c.statut !== "LIVREE") throw new Refus(409, "Seule une commande livrée peut être annulée comme doublon.");
       if (await aDesEncaissements(tx, c.id)) {
         throw new Refus(409, "Des encaissements existent en caisse pour cette commande : annulez-les d'abord dans la Caisse.");
       }
+
+      // Facture de vente déjà émise : on ne supprime jamais une facture numérotée. L'annulation se fait par une
+      // facture retour totale (FR) : le stock est remis, la créance tombe à zéro, la piste d'audit reste intacte.
+      if (c.numeroFV) {
+        const deja = await tx.documentCorrectifLigne.groupBy({ by: ["ligneCommandeId"], where: { document: { commandeId: c.id } }, _sum: { quantite: true } });
+        const dejaParLigne = new Map(deja.map((r) => [r.ligneCommandeId, Number(r._sum.quantite || 0)]));
+        const restantes = c.lignes
+          .map((l) => ({ ligneId: l.id, quantite: l.quantite - (dejaParLigne.get(l.id) || 0) }))
+          .filter((l) => l.quantite > 0);
+        if (restantes.length === 0) throw new Refus(409, "Cette facture est déjà entièrement couverte par des factures retour / d'avoir.");
+        try {
+          return await emettreDocumentCorrectif(tx, {
+            type: "FR",
+            commandeId: c.id,
+            lignes: restantes,
+            motif: "Annulation d'un doublon livré",
+            destination: "STOCK",
+            creeParId: session!.userId,
+          });
+        } catch (e) {
+          if (e instanceof RefusDocument) throw new Refus(e.status, e.message);
+          throw e;
+        }
+      }
+
+      // Commande livrée avant la numérotation (jamais facturée) : suppression comme avant.
       for (const l of c.lignes) {
         if (!l.produitId) continue;
         await tx.stock.upsert({
@@ -263,8 +300,9 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
       }
       await tx.notification.deleteMany({ where: { commandeId: c.id } });
       await tx.commande.delete({ where: { id: c.id } }); // les lignes partent en cascade
+      return null;
     });
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, numero: resultat?.numero ?? null });
   } catch (e) {
     return reponseErreur(e);
   }

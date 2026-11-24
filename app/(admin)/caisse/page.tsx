@@ -51,7 +51,7 @@ type LigneJournal = {
   categorie: string;
   libelle: string;
   montant: number;
-  source: "ENCAISSEMENT" | "TRANSFERT" | "MANUEL";
+  source: "ENCAISSEMENT" | "TRANSFERT" | "MANUEL" | "REMBOURSEMENT";
   mode: Mode | null;
   details?: Details;
   produit?: string | null;
@@ -119,6 +119,7 @@ const LIBELLE_CATEGORIE: Record<string, string> = {
   ENCAISSEMENT_COMMANDE: "Encaissement de commande",
   ENCAISSEMENT_CREDIT: "Encaissement de crédit",
   TRANSFERT: "Transfert",
+  REMBOURSEMENT_CLIENT: "Remboursement client (avoir / retour)",
   ...CATEGORIES_RECETTE,
   ...CATEGORIES_DEPENSE,
 };
