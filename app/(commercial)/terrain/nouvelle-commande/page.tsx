@@ -7,7 +7,12 @@ import { IconStorefront, IconGlass, IconReceipt, IconClipboard, IconDownload, Ic
 import { soumettre as soumettreSynchro } from "@/lib/syncEngine";
 import ConfirmationEnregistrement from "@/components/ConfirmationEnregistrement";
 import { ErreurEnvoi } from "@/lib/erreurEnvoi";
-import { calculerCommande, calculerPaiement, MODES_PAIEMENT, type ModePaiementValue, type PalierPrix } from "@/lib/pricing";
+import { calculerCommande, calculerPaiement, trouverPrixCarton, montantLigne, MODES_PAIEMENT, type ModePaiementValue, type PalierPrix } from "@/lib/pricing";
+import QuantiteCartons from "@/components/QuantiteCartons";
+import PrixNegocie, { champsPrix, PRIX_VIDE, type EtatPrix } from "@/components/PrixNegocie";
+import EchantillonsSection from "@/components/EchantillonsSection";
+import { arrondirDemi, formaterCartons } from "@/lib/quantites";
+import { ID_CLIENT_DIVERS } from "@/lib/clientDivers";
 import { genererFacturePdf } from "@/lib/facturePdf";
 import GammeTabs from "@/components/GammeTabs";
 import { libelleGamme, type GammeInfo } from "@/lib/gammesClient";
@@ -61,6 +66,9 @@ function NouvelleCommandeInner() {
   // ajouter un produit hors catalogue (voir lib/pricing.ts pour le calcul
   // du prix, qui dépend du volume TOTAL de la commande, pas du produit).
   const [quantites, setQuantites] = useState<Record<string, number>>({});
+  const [echantillons, setEchantillons] = useState<Record<string, number>>({});
+  const [etatPrix, setEtatPrix] = useState<EtatPrix>(PRIX_VIDE);
+  const [prixMemo, setPrixMemo] = useState<Record<string, number>>({}); // prix enregistré du client, par gamme
   const [observations, setObservations] = useState("");
   const [dateLivraison, setDateLivraison] = useState("");
   const [modePaiement, setModePaiement] = useState<ModePaiementValue>("ESPECES");
@@ -169,8 +177,24 @@ function NouvelleCommandeInner() {
   }
 
   function modifierQuantite(produitId: string, quantite: number) {
-    setQuantites((prev) => ({ ...prev, [produitId]: Math.max(0, quantite) }));
+    setQuantites((prev) => ({ ...prev, [produitId]: Math.max(0, arrondirDemi(quantite)) }));
   }
+
+  const estDivers = client?.id === ID_CLIENT_DIVERS;
+
+  // Prix négocié déjà enregistré pour ce client : proposé d'office (modifiable) dès le choix du client et de la gamme.
+  useEffect(() => {
+    setPrixMemo({});
+    if (!client || client.id === ID_CLIENT_DIVERS) return;
+    fetch(`/api/prix-client?pointVenteId=${encodeURIComponent(client.id)}`)
+      .then((r) => (r.ok ? r.json() : { prix: [] }))
+      .then((d) => setPrixMemo(Object.fromEntries((d.prix || []).map((p: any) => [p.gammeId, Number(p.prixCarton)]))))
+      .catch(() => {});
+  }, [client]);
+  useEffect(() => {
+    const m = prixMemo[gammeId];
+    setEtatPrix({ prix: m ? String(m) : "", memoriser: false });
+  }, [prixMemo, gammeId, client]);
 
   // Une commande = une seule gamme : le catalogue affiché et le barème de
   // prix appliqué sont ceux de la gamme sélectionnée (BELGRAVIA ou VDV).
@@ -192,8 +216,8 @@ function NouvelleCommandeInner() {
   );
 
   const { totalCartons, prixCarton, montantTotal } = useMemo(
-    () => calculerCommande(lignesRetenues.map((l) => ({ quantite: l.quantite })), paliersPrix),
-    [lignesRetenues, paliersPrix]
+    () => calculerCommande(lignesRetenues.map((l) => ({ quantite: l.quantite })), paliersPrix, Math.round(Number(etatPrix.prix.replace(/\s/g, "")) || 0)),
+    [lignesRetenues, paliersPrix, etatPrix.prix]
   );
 
   const { montantRecu, resteAPayer } = useMemo(
@@ -222,7 +246,7 @@ function NouvelleCommandeInner() {
         produitNom: l.produit.nom,
         quantiteCartons: l.quantite,
         prixCarton,
-        sousTotal: l.quantite * prixCarton,
+        sousTotal: montantLigne(l.quantite, prixCarton),
       })),
       montantTotal,
       modePaiement,
@@ -251,6 +275,8 @@ function NouvelleCommandeInner() {
       mobileMoneyConfirme: modePaiement === "MOBILE_MONEY" ? mobileMoneyConfirme : undefined,
       operateurMobile: modePaiement === "MOBILE_MONEY" ? operateurMobile : undefined,
       lignes: lignesRetenues.map((l) => ({ produitId: l.produit.id, quantite: l.quantite })),
+      echantillons: Object.entries(echantillons).filter(([, q]) => q > 0).map(([produitId, quantite]) => ({ produitId, quantite })),
+      ...champsPrix(etatPrix, prixMemo[gammeId] ?? null, estDivers),
     };
 
     try {
@@ -337,12 +363,18 @@ function NouvelleCommandeInner() {
         {!chargementClient && client && (
           <div className="rounded-md border border-line bg-bg-elevated px-3.5 py-3">
             <p className="font-medium text-ink">{client.nomEtablissement}</p>
-            <p className="text-sm text-ink-muted">
-              {[client.nomVendeur, client.telVendeur].filter(Boolean).join(" · ") || "Vendeur non précisé"}
-            </p>
-            <p className="text-sm text-ink-muted">
-              {[client.quartier, client.ville].filter(Boolean).join(", ") || "Localisation non précisée"}
-            </p>
+            {estDivers ? (
+              <p className="text-sm text-ink-muted">Vente au détail : aucune fiche client n'est créée.</p>
+            ) : (
+              <>
+                <p className="text-sm text-ink-muted">
+                  {[client.nomVendeur, client.telVendeur].filter(Boolean).join(" · ") || "Vendeur non précisé"}
+                </p>
+                <p className="text-sm text-ink-muted">
+                  {[client.quartier, client.ville].filter(Boolean).join(", ") || "Localisation non précisée"}
+                </p>
+              </>
+            )}
             {!pointVenteIdInitial && (
               <button
                 type="button"
@@ -374,6 +406,14 @@ function NouvelleCommandeInner() {
                 {geolocalisationEnCours ? "…" : "Autour de moi"}
               </button>
             </div>
+            <button
+              type="button"
+              className="btn-secondary mt-2 w-full"
+              onClick={() => setClient({ id: ID_CLIENT_DIVERS, nomEtablissement: "CLIENT DIVERS", nomVendeur: null, telVendeur: null, quartier: null, ville: null })}
+            >
+              <IconStorefront className="h-4 w-4" />
+              Client divers — vente au détail, sans fiche
+            </button>
             {erreurGeolocalisation && <p className="mt-1 text-xs text-danger">{erreurGeolocalisation}</p>}
             {rechercheEnCours && <p className="mt-1 text-xs text-ink-muted">Recherche…</p>}
             {resultats.length > 0 && (
@@ -414,7 +454,7 @@ function NouvelleCommandeInner() {
       <div className="field-card space-y-3">
         <p className="section-eyebrow">
           <IconGlass className="h-4 w-4" />
-          Produits — vente au carton
+          Produits — vente au carton ou demi-carton
         </p>
 
         {gammes.length > 1 && <GammeTabs gammes={gammes} value={gammeId} onChange={changerGamme} avecToutes={false} />}
@@ -430,7 +470,7 @@ function NouvelleCommandeInner() {
             <summary className="cursor-pointer font-medium text-ink">Grille tarifaire (prix / carton)</summary>
             <div className="mt-2 space-y-1">
               {paliersPrix.map((p) => {
-                const actif = totalCartons > 0 && prixCarton === p.prixCarton && totalCartons >= p.cartonsMin && (p.cartonsMax === null || totalCartons <= p.cartonsMax);
+                const actif = totalCartons > 0 && !etatPrix.prix && totalCartons >= p.cartonsMin && (p.cartonsMax === null || totalCartons < p.cartonsMax + 1);
                 return (
                   <div key={p.cartonsMin} className={["flex justify-between rounded px-2 py-1", actif ? "bg-brass/10 text-brass font-medium" : "text-ink-muted"].join(" ")}>
                     <span>{p.cartonsMax === null ? `${p.cartonsMin} cartons et plus` : `${p.cartonsMin} à ${p.cartonsMax} cartons`}</span>
@@ -442,36 +482,20 @@ function NouvelleCommandeInner() {
           </details>
         )}
 
+        <PrixNegocie
+          etat={etatPrix}
+          onChange={setEtatPrix}
+          memo={prixMemo[gammeId] ?? null}
+          prixBase={paliersPrix.length ? trouverPrixCarton(totalCartons || 1, paliersPrix) : 0}
+          estDivers={estDivers}
+          gamme={gammeChoisie ? libelleGamme(gammeChoisie) : ""}
+        />
+
         <div className="space-y-2">
           {produitsGamme.map((p) => (
             <div key={p.id} className="flex items-center justify-between gap-3 rounded-md border border-line bg-bg-elevated px-3 py-2.5">
               <span className="text-sm font-medium text-ink">{p.nom}</span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  className="btn-secondary h-8 w-8 !p-0 text-base leading-none"
-                  onClick={() => modifierQuantite(p.id, (quantites[p.id] || 0) - 1)}
-                  aria-label={`Retirer un carton de ${p.nom}`}
-                >
-                  −
-                </button>
-                <input
-                  type="number"
-                  min={0}
-                  inputMode="numeric"
-                  className="field-input w-16 text-center"
-                  value={quantites[p.id] || 0}
-                  onChange={(e) => modifierQuantite(p.id, parseInt(e.target.value, 10) || 0)}
-                />
-                <button
-                  type="button"
-                  className="btn-secondary h-8 w-8 !p-0 text-base leading-none"
-                  onClick={() => modifierQuantite(p.id, (quantites[p.id] || 0) + 1)}
-                  aria-label={`Ajouter un carton de ${p.nom}`}
-                >
-                  +
-                </button>
-              </div>
+              <QuantiteCartons valeur={quantites[p.id] || 0} onChange={(q) => modifierQuantite(p.id, q)} libelle={p.nom} />
             </div>
           ))}
           {produits.length === 0 && (
@@ -499,6 +523,13 @@ function NouvelleCommandeInner() {
           </div>
         )}
       </div>
+
+      <EchantillonsSection
+        produits={produits.filter((p: any) => p.actif !== false)}
+        gammeLibelle={(gid) => { const g = gammes.find((x) => x.id === gid); return g ? libelleGamme(g) : ""; }}
+        quantites={echantillons}
+        onChange={(id, q) => setEchantillons((e) => ({ ...e, [id]: q }))}
+      />
 
       {/* Section Paiement */}
       <div className="field-card space-y-3">

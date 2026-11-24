@@ -1,5 +1,6 @@
 "use client";
 
+import { formaterCartons } from "@/lib/quantites";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -274,7 +275,7 @@ export default function ClientProfilPage() {
             <li key={c.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
               <span className="w-24 text-sm text-ink-muted">{dateFr(c.dateCommande)}</span>
               <span className="min-w-0 flex-1 basis-48 truncate text-sm text-ink">
-                {c.lignes.map((l) => `${l.produit?.nom || l.libelleLibre || "Produit"} × ${l.quantite}`).join(", ")}
+                {c.lignes.map((l) => `${l.produit?.nom || l.libelleLibre || "Produit"} × ${formaterCartons(l.quantite)}`).join(", ")}
               </span>
               <span className="montant text-base text-ink">{nombreFr(c.montantTotal)} <span className="montant-unite">FCFA</span></span>
               <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${STATUT[c.statut].cls}`}>{STATUT[c.statut].label}</span>

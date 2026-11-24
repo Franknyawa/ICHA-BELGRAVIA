@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     caParProduitRaw,
   ] = await Promise.all([
     prisma.visite.count({ where: { createdAt: { gte: debutJour } } }),
-    prisma.pointVente.count(),
+    prisma.pointVente.count({ where: { estDivers: false } }),
     prisma.commande.count({ where: { createdAt: { gte: debutJour }, ...whereGamme } }),
     prisma.commande.aggregate({ _sum: { montantTotal: true }, where: whereGamme }),
     prisma.commande.aggregate({ _sum: { montantTotal: true }, where: { createdAt: { gte: debutJour }, ...whereGamme } }),
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     prisma.visite.count(),
     prisma.visite.groupBy({ by: ["potentielEstime"], _count: true }),
     compterParType(),
-    prisma.pointVente.groupBy({ by: ["villeId"], _count: true }),
+    prisma.pointVente.groupBy({ by: ["villeId"], where: { estDivers: false }, _count: true }),
     prisma.visite.groupBy({ by: ["commercialId"], _count: true }),
     // Agrégation calculée par la base (SQL GROUP BY/SUM), plutôt que de
     // rapatrier CHAQUE ligne de commande jamais saisie pour les additionner

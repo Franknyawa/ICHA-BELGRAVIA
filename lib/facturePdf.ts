@@ -1,5 +1,6 @@
 "use client";
 
+import { formaterCartons } from "./quantites";
 import { libelleModePaiement } from "./pricing";
 import { ajouterLogoPdf, ajouterFiligrane } from "./logoPdf";
 import { montantEnLettres } from "./enLettres";
@@ -64,8 +65,12 @@ export type FactureData = {
   signatures?: boolean;
 };
 
-const BLEU: [number, number, number] = [31, 58, 138];
-const VERT: [number, number, number] = [52, 148, 120];
+// Charte de l'application : émeraude, or (brass) et ivoire.
+const BLEU: [number, number, number] = [15, 61, 46]; // émeraude
+const VERT: [number, number, number] = [166, 124, 35]; // or
+const IVOIRE: [number, number, number] = [250, 247, 238];
+const IVOIRE_FONCE: [number, number, number] = [245, 241, 228];
+const FILET: [number, number, number] = [226, 220, 200];
 const ENCRE: [number, number, number] = [22, 30, 46];
 const GRIS: [number, number, number] = [100, 110, 125];
 const ALERTE: [number, number, number] = [178, 58, 46];
@@ -114,7 +119,7 @@ export async function genererFacturePdf(data: FactureData) {
   if (data.gammeNom) doc.text(`Gamme ${data.gammeNom}`, 56, 31);
 
   doc.setFontSize(8);
-  doc.setTextColor(200, 212, 240);
+  doc.setTextColor(226, 214, 180);
   doc.text("Date et Heure", L - 14, 14, { align: "right" });
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
@@ -122,7 +127,7 @@ export async function genererFacturePdf(data: FactureData) {
   doc.text(data.date.toLocaleDateString("fr-FR"), L - 14, 21, { align: "right" });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
-  doc.setTextColor(200, 212, 240);
+  doc.setTextColor(226, 214, 180);
   doc.text(`à ${data.date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`, L - 14, 27, { align: "right" });
 
   // --- Blocs ---------------------------------------------------------------
@@ -130,11 +135,11 @@ export async function genererFacturePdf(data: FactureData) {
   const w = (L - 28 - 6) / 2;
   const h = 34;
   doc.setLineWidth(0.4);
-  doc.setFillColor(240, 245, 255);
+  doc.setFillColor(...IVOIRE);
   doc.setDrawColor(...VERT);
   doc.roundedRect(14, y0, w, h, 3, 3, "FD");
-  doc.setFillColor(246, 248, 251);
-  doc.setDrawColor(215, 221, 230);
+  doc.setFillColor(...IVOIRE_FONCE);
+  doc.setDrawColor(...FILET);
   doc.roundedRect(14 + w + 6, y0, w, h, 3, 3, "FD");
 
   doc.setFont("helvetica", "bold");
@@ -161,11 +166,11 @@ export async function genererFacturePdf(data: FactureData) {
   autoTable(doc, {
     startY: y0 + h + 10,
     head: [["Code /\nRéférence", "Désignation", "Quantité\n(cartons)", "Prix unitaire", "Remise", "Prix total"]],
-    body: data.lignes.map((l) => [l.code || "—", l.produitNom, String(l.quantiteCartons), fm(l.prixCarton), "—", fm(l.sousTotal)]),
+    body: data.lignes.map((l) => [l.code || "—", l.produitNom, formaterCartons(l.quantiteCartons), fm(l.prixCarton), "—", fm(l.sousTotal)]),
     theme: "grid",
     headStyles: { fillColor: BLEU, textColor: 255, fontStyle: "bold", fontSize: 8.5, valign: "middle", lineColor: [255, 255, 255] },
-    bodyStyles: { fontSize: 9, textColor: ENCRE, cellPadding: 3, lineColor: [221, 227, 236], valign: "middle" },
-    alternateRowStyles: { fillColor: [245, 248, 252] },
+    bodyStyles: { fontSize: 9, textColor: ENCRE, cellPadding: 3, lineColor: FILET, valign: "middle" },
+    alternateRowStyles: { fillColor: IVOIRE },
     columnStyles: {
       0: { fontStyle: "bold", cellWidth: 26 },
       2: { halign: "center", cellWidth: 26 },
@@ -193,7 +198,7 @@ export async function genererFacturePdf(data: FactureData) {
     doc.text(valeur, L - 14, y, { align: "right" });
     y += opts.fort ? 8 : 6.5;
   };
-  doc.setDrawColor(215, 221, 230);
+  doc.setDrawColor(...FILET);
   doc.setLineWidth(0.3);
   doc.line(xl, y - 6, L - 14, y - 6);
 
@@ -227,6 +232,19 @@ export async function genererFacturePdf(data: FactureData) {
     const lm = doc.splitTextToSize(data.motif, L - 28) as string[];
     doc.text(lm, 14, y + 5);
   }
+
+  // --- Signatures (pied de la dernière page) ----------------------------------
+  doc.setPage(doc.getNumberOfPages());
+  const ys = H - 38;
+  doc.setDrawColor(...FILET);
+  doc.setLineWidth(0.4);
+  doc.line(14, ys, 98, ys);
+  doc.line(L - 98, ys, L - 14, ys);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(...GRIS);
+  doc.text("Signature Siri Import", 56, ys + 6, { align: "center" });
+  doc.text(`Signature ${data.pointVenteNom}`, L - 56, ys + 6, { align: "center", maxWidth: 80 });
 
   // --- Filigrane sur chaque page -----------------------------------------------
   const pages = doc.getNumberOfPages();

@@ -1,5 +1,6 @@
 "use client";
 
+import { formaterCartons } from "@/lib/quantites";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -211,7 +212,7 @@ export default function FichePointVentePage() {
                 <span className="montant text-lg text-ink">{nombreFr(c.montantTotal)}</span>
               </div>
               <p className="text-xs text-ink-muted">
-                {c.lignes.map((l) => `${l.quantite}× ${l.produit?.nom}`).join(" · ")}
+                {c.lignes.map((l) => `${formaterCartons(l.quantite)}× ${l.produit?.nom}`).join(" · ")}
               </p>
               {Number(c.resteAPayer) > 0 && (
                 <p className="mt-1 text-xs font-medium text-danger">

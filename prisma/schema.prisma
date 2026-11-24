@@ -268,6 +268,9 @@ model PointVente {
   createdById String   @map("created_by")
   createdBy   User     @relation(fields: [createdById], references: [id])
   createdAt   DateTime @default(now()) @map("created_at")
+  // « CLIENT DIVERS » : vente au détail anonyme, hors recensement (exclu des listes et statistiques de points de vente).
+  estDivers   Boolean  @default(false) @map("est_divers")
+  prixClients PrixClient[]
 
   visites Visite[]
   commandes Commande[]
@@ -480,6 +483,10 @@ model Commande {
   numeroFV     String? @unique @map("numero_fv")
   // Total des factures d'avoir et factures retour émises : montant net dû = montantTotal − avoirsTotal.
   avoirsTotal  Decimal @default(0) @db.Decimal(12, 2) @map("avoirs_total")
+  // Prix du carton négocié pour cette commande (au lieu du barème par palier).
+  prixNegocie  Boolean @default(false) @map("prix_negocie")
+  // Saisie au bureau : admin / superviseur qui a saisi la commande pour le compte du commercial.
+  saisieParId  String? @map("saisie_par_id")
 
   createdAt    DateTime @default(now()) @map("created_at")
   archiveeLe   DateTime? @map("archivee_le")
@@ -508,7 +515,8 @@ model LigneCommande {
   produitId     String?   @map("produit_id")
   produit       Produit?  @relation(fields: [produitId], references: [id])
   libelleLibre  String?   @map("libelle_libre")
-  quantite      Int
+  // En cartons, par pas de 0,5 (demi-carton = moitié du prix d'un carton).
+  quantite      Float
   prixUnitaire  Decimal   @db.Decimal(10, 2) @map("prix_unitaire")
   sousTotal     Decimal   @db.Decimal(12, 2) @map("sous_total")
 
@@ -524,7 +532,7 @@ model Stock {
   id              String   @id @default(uuid())
   produitId       String   @unique @map("produit_id")
   produit         Produit  @relation(fields: [produitId], references: [id])
-  quantiteCartons Int      @default(0) @map("quantite_cartons")
+  quantiteCartons Float    @default(0) @map("quantite_cartons")
   seuilAlerte     Int      @default(0) @map("seuil_alerte")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -542,7 +550,7 @@ model MouvementStock {
   produitId       String             @map("produit_id")
   produit         Produit            @relation(fields: [produitId], references: [id])
   type            TypeMouvementStock
-  quantiteCartons Int                @map("quantite_cartons")
+  quantiteCartons Float              @map("quantite_cartons")
   referenceType   String?            @map("reference_type") // "COMMANDE" | "AJUSTEMENT"
   referenceId     String?            @map("reference_id")
   note            String?
@@ -572,7 +580,7 @@ model OperationCaisse {
   montant         Decimal  @db.Decimal(12, 2)
   libelle         String
   produitId       String?  @map("produit_id")
-  quantiteCartons Int?     @map("quantite_cartons")
+  quantiteCartons Float?   @map("quantite_cartons")
   commandeId      String?  @map("commande_id")
   // Moyen par lequel l'argent est entré/sorti : ESPECES | MOBILE_MONEY (OM/MoMo)
   moyen           String   @default("ESPECES")
@@ -652,11 +660,25 @@ model DocumentCorrectifLigne {
   ligneCommandeId String   @map("ligne_commande_id")
   produitId       String?  @map("produit_id")
   libelle         String
-  quantite        Int
+  quantite        Float
   prixUnitaire    Decimal  @db.Decimal(10, 2) @map("prix_unitaire")
   sousTotal       Decimal  @db.Decimal(12, 2) @map("sous_total")
 
   @@index([documentId])
   @@index([ligneCommandeId])
   @@map("documents_correctifs_lignes")
+}
+
+
+/// Prix du carton négocié avec un client pour une gamme : appliqué d'office à ses commandes suivantes.
+model PrixClient {
+  id           String     @id @default(uuid())
+  pointVenteId String     @map("point_vente_id")
+  pointVente   PointVente @relation(fields: [pointVenteId], references: [id], onDelete: Cascade)
+  gammeId      String     @map("gamme_id")
+  prixCarton   Decimal    @db.Decimal(10, 2) @map("prix_carton")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  @@unique([pointVenteId, gammeId])
+  @@map("prix_clients")
 }

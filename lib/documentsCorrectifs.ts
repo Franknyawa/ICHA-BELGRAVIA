@@ -1,6 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import { prochainNumero } from "@/lib/numerotation";
 import { CATEGORIE_REMBOURSEMENT, CATEGORIES_ENCAISSEMENT, modePourCanal, soldeGlobal, canalDe, LIBELLE_CANAL, type Canal } from "@/lib/caisse";
+import { quantiteCartonValide } from "@/lib/quantites";
+import { montantLigne } from "@/lib/pricing";
 
 /**
  * Facture retour (FR) et facture d'avoir (FA) — règles comptables :
@@ -73,7 +75,7 @@ export async function emettreDocumentCorrectif(tx: Prisma.TransactionClient, d: 
   for (const l of d.lignes || []) {
     const q = Number(l.quantite);
     if (!q) continue;
-    if (!Number.isInteger(q) || q < 0) throw new RefusDocument(400, "Quantités invalides : nombres entiers positifs requis.");
+    if (!quantiteCartonValide(q)) throw new RefusDocument(400, "Quantités invalides : nombres positifs, par demi-carton.");
     if (vues.has(l.ligneId)) throw new RefusDocument(400, "Ligne en double.");
     vues.add(l.ligneId);
     const lc = c.lignes.find((x) => x.id === l.ligneId);
@@ -83,7 +85,7 @@ export async function emettreDocumentCorrectif(tx: Prisma.TransactionClient, d: 
       throw new RefusDocument(400, `${lc.produit?.nom || lc.libelleLibre || "Produit"} : ${restant} carton${restant > 1 ? "s" : ""} restant${restant > 1 ? "s" : ""} (facturé ${lc.quantite}, déjà couvert ${lc.quantite - restant}).`);
     }
     const prix = Number(lc.prixUnitaire);
-    lignesDoc.push({ ligneCommandeId: lc.id, produitId: lc.produitId, libelle: lc.produit?.nom || lc.libelleLibre || "Produit", quantite: q, prixUnitaire: prix, sousTotal: q * prix });
+    lignesDoc.push({ ligneCommandeId: lc.id, produitId: lc.produitId, libelle: lc.produit?.nom || lc.libelleLibre || "Produit", quantite: q, prixUnitaire: prix, sousTotal: montantLigne(q, prix) });
   }
 
   const libre = Number(d.montantLibre || 0);

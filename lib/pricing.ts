@@ -18,14 +18,15 @@ export type PalierPrix = {
 export function trouverPrixCarton(totalCartons: number, paliers: PalierPrix[]): number {
   if (paliers.length === 0) return 0;
 
+  // Un palier « 6 à 10 » couvre tout ce qui est ≥ 6 et < 11 : un total de 10,5 cartons (demi-carton)
+  // reste donc dans ce palier au lieu de tomber dans un trou entre deux paliers.
   const applicable = paliers.find(
-    (p) => totalCartons >= p.cartonsMin && (p.cartonsMax === null || totalCartons <= p.cartonsMax)
+    (p) => totalCartons >= p.cartonsMin && (p.cartonsMax === null || totalCartons < p.cartonsMax + 1)
   );
   if (applicable) return applicable.prixCarton;
 
-  // Filet de sécurité : si aucun palier ne couvre exactement ce total
-  // (barème mal configuré depuis l'admin, ex. un trou entre deux paliers),
-  // on applique le palier le plus proche plutôt que de renvoyer 0 —
+  // Filet de sécurité : si aucun palier ne couvre ce total (barème mal configuré depuis l'admin,
+  // ex. un trou entre deux paliers), on applique le palier le plus proche plutôt que de renvoyer 0 —
   // mieux vaut un prix légèrement inexact qu'une commande gratuite.
   const tries = [...paliers].sort((a, b) => a.cartonsMin - b.cartonsMin);
   const dernier = tries[tries.length - 1];
@@ -34,11 +35,20 @@ export function trouverPrixCarton(totalCartons: number, paliers: PalierPrix[]): 
 
 export type LigneCalcul = { quantite: number };
 
-/** Calcule le prix/carton applicable et le montant total pour un ensemble de lignes. */
-export function calculerCommande(lignes: LigneCalcul[], paliers: PalierPrix[]) {
+/** Montant d'une ligne : quantité × prix du carton, arrondi au franc (0,5 carton = la moitié du prix). */
+export function montantLigne(quantite: number, prixCarton: number): number {
+  return Math.round(quantite * prixCarton);
+}
+
+/**
+ * Calcule le prix/carton applicable et le montant total pour un ensemble de lignes.
+ * `prixNegocie` (> 0) remplace le barème : le prix du carton est alors le même quel que soit le volume.
+ * Le total est la somme des lignes arrondies, pour que la facture tombe toujours juste.
+ */
+export function calculerCommande(lignes: LigneCalcul[], paliers: PalierPrix[], prixNegocie = 0) {
   const totalCartons = lignes.reduce((s, l) => s + (l.quantite || 0), 0);
-  const prixCarton = trouverPrixCarton(totalCartons, paliers);
-  const montantTotal = totalCartons * prixCarton;
+  const prixCarton = prixNegocie > 0 ? prixNegocie : trouverPrixCarton(totalCartons, paliers);
+  const montantTotal = lignes.reduce((s, l) => s + montantLigne(l.quantite || 0, prixCarton), 0);
   return { totalCartons, prixCarton, montantTotal };
 }
 

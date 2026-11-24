@@ -26,6 +26,7 @@ export async function GET(req: NextRequest) {
     RETOUR: { referenceType: "RETOUR" },
     AVARIE: { referenceType: "AVARIE" },
     ECHANTILLON: { referenceType: "ECHANTILLON" },
+    GIFT: { referenceType: "GIFT" },
     AJUSTEMENT: { type: "AJUSTEMENT" },
   };
   const filtreType = FILTRES[searchParams.get("type") || ""] ?? {};
@@ -44,7 +45,7 @@ export async function GET(req: NextRequest) {
     // Sorties hors vente de la période choisie (mêmes dates que l'historique).
     prisma.mouvementStock.groupBy({
       by: ["referenceType"],
-      where: { archiveeLe: null, referenceType: { in: ["AVARIE", "ECHANTILLON"] }, ...periode },
+      where: { archiveeLe: null, referenceType: { in: ["AVARIE", "ECHANTILLON", "GIFT"] }, ...periode },
       _sum: { quantiteCartons: true },
       _count: { _all: true },
     }),
@@ -54,5 +55,5 @@ export async function GET(req: NextRequest) {
     const g = horsVente.find((r) => r.referenceType === t);
     return { cartons: g?._sum.quantiteCartons ?? 0, operations: g?._count._all ?? 0 };
   };
-  return NextResponse.json({ items, total, page, pageSize, horsVente: { AVARIE: hv("AVARIE"), ECHANTILLON: hv("ECHANTILLON") } });
+  return NextResponse.json({ items, total, page, pageSize, horsVente: { AVARIE: hv("AVARIE"), ECHANTILLON: hv("ECHANTILLON"), GIFT: hv("GIFT") } });
 }

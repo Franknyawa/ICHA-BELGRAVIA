@@ -45,17 +45,18 @@ export async function POST(req: NextRequest) {
   if (!produitId || !type || quantiteCartons === undefined) {
     return NextResponse.json({ error: "Données incomplètes." }, { status: 400 });
   }
-  if (type !== "ENTREE" && type !== "AJUSTEMENT" && type !== "AVARIE" && type !== "ECHANTILLON") {
+  if (type !== "ENTREE" && type !== "AJUSTEMENT" && type !== "AVARIE" && type !== "ECHANTILLON" && type !== "GIFT") {
     return NextResponse.json({ error: "Type de mouvement invalide." }, { status: 400 });
   }
 
-  const quantite = parseInt(quantiteCartons, 10);
-  if (!Number.isFinite(quantite) || quantite === 0) {
-    return NextResponse.json({ error: "Quantité invalide." }, { status: 400 });
+  // Au demi-carton près (0,5 ; 1 ; 1,5…).
+  const quantite = Number(quantiteCartons);
+  if (!Number.isFinite(quantite) || quantite === 0 || !Number.isInteger(quantite * 2)) {
+    return NextResponse.json({ error: "Quantité invalide (entière ou par demi-carton)." }, { status: 400 });
   }
 
-  // Sortie hors vente (avarie / échantillon) : le stock diminue, rien n'est facturé ni encaissé.
-  if (type === "AVARIE" || type === "ECHANTILLON") {
+  // Sortie hors vente (avarie / échantillon / gift) : le stock diminue, rien n'est facturé ni encaissé.
+  if (type === "AVARIE" || type === "ECHANTILLON" || type === "GIFT") {
     if (quantite < 0) return NextResponse.json({ error: "Quantité invalide." }, { status: 400 });
     const motif = String(note || "").trim();
     if (motif.length < 3) return NextResponse.json({ error: "Indiquez le motif (3 caractères minimum)." }, { status: 400 });

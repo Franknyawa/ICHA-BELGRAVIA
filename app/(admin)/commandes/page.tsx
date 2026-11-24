@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { formaterCartons } from "@/lib/quantites";
 import { nombreFr } from "@/lib/format";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useEcriture } from "@/lib/useEcriture";
@@ -16,7 +18,9 @@ import {
   IconRefresh,
   IconCopy,
   IconCalendar,
+  IconPlus,
 } from "@/components/icons";
+import { montantLigne } from "@/lib/pricing";
 import { nomFichierNumero } from "@/lib/numerotation";
 import { genererBonLivraisonPdf } from "@/lib/bonLivraisonPdf";
 import { genererFacturePdf } from "@/lib/facturePdf";
@@ -117,6 +121,10 @@ export default function CommandesPage() {
   const [aModifier, setAModifier] = useState<Commande | null>(null);
   const [aSupprimer, setASupprimer] = useState<Commande | null>(null);
   const ecriture = useEcriture("commandes");
+  const [peutSaisir, setPeutSaisir] = useState(false);
+  useEffect(() => {
+    fetch("/api/me").then((r) => (r.ok ? r.json() : null)).then((m) => setPeutSaisir(!!m && ["ADMIN", "SUPER_ADMIN", "SUPERVISEUR"].includes(m.role))).catch(() => {});
+  }, []);
   // Filtres : recherche libre (différée), ville, commercial, période.
   const [recherche, setRecherche] = useState("");
   const [q, setQ] = useState("");
@@ -249,7 +257,7 @@ export default function CommandesPage() {
         produitNom: l.produit?.nom || l.libelleLibre || "Produit",
         quantiteCartons: l.quantite,
         prixCarton: Number(l.prixUnitaire),
-        sousTotal: l.quantite * Number(l.prixUnitaire),
+        sousTotal: montantLigne(l.quantite, Number(l.prixUnitaire)),
       })),
       montantTotal: Number(c.montantTotal),
       modePaiement: c.modePaiement,
@@ -308,6 +316,12 @@ export default function CommandesPage() {
             <span className="montant text-base text-ink">{total}</span> commande{total > 1 ? "s" : ""} au total
           </p>
         </div>
+        {peutSaisir && (
+          <Link href="/commandes/nouvelle" className="btn-primary">
+            <IconPlus className="h-4 w-4" />
+            Nouvelle commande
+          </Link>
+        )}
         {nouvelles > 0 && (
           <button onClick={rafraichir} className="btn-primary animate-pulse">
             {nouvelles} nouvelle{nouvelles > 1 ? "s" : ""} commande{nouvelles > 1 ? "s" : ""} — actualiser
@@ -482,7 +496,7 @@ export default function CommandesPage() {
                     <div className="mt-2 flex flex-wrap gap-1">
                       {c.lignes.map((l) => (
                         <span key={l.id} className="inline-flex items-center rounded-md bg-bg-card/80 px-2 py-0.5 text-xs font-semibold text-ink ring-1 ring-line">
-                          {l.produit?.nom || l.libelleLibre} <span className="montant ml-1.5 text-sm text-brass">× {l.quantite}</span>
+                          {l.produit?.nom || l.libelleLibre} <span className="montant ml-1.5 text-sm text-brass">× {formaterCartons(l.quantite)}</span>
                         </span>
                       ))}
                     </div>

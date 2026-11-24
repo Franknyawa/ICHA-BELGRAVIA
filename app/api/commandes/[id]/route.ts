@@ -4,7 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { aAcces, aEcriture } from "@/lib/permissions";
 import { emettreDocumentCorrectif, RefusDocument } from "@/lib/documentsCorrectifs";
-import { calculerCommande, calculerPaiement, type ModePaiementValue } from "@/lib/pricing";
+import { calculerCommande, calculerPaiement, montantLigne, type ModePaiementValue } from "@/lib/pricing";
+import { quantiteCartonValide } from "@/lib/quantites";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,8 @@ const SELECT = {
   modePaiement: true,
   operateurMobile: true,
   mobileMoneyConfirme: true,
-  lignes: { select: { produitId: true, quantite: true } },
+  prixNegocie: true,
+  lignes: { select: { produitId: true, quantite: true, prixUnitaire: true } },
 } as const;
 
 function transaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>) {
@@ -154,8 +156,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       const quantites = new Map<string, number>();
       for (const l of brutes) {
         const q = Number(l?.quantite);
-        if (typeof l?.produitId !== "string" || !Number.isInteger(q) || q <= 0 || q > 100000) {
-          return NextResponse.json({ error: "Lignes invalides : produit et quantité entière positive requis." }, { status: 400 });
+        if (typeof l?.produitId !== "string" || !quantiteCartonValide(q)) {
+          return NextResponse.json({ error: "Lignes invalides : produit et quantité positive (par demi-carton) requis." }, { status: 400 });
         }
         quantites.set(l.produitId, (quantites.get(l.produitId) || 0) + q);
       }
@@ -177,10 +179,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         }
 
         const paliers = await tx.palierPrixCarton.findMany({ where: { actif: true, gammeId: c.gammeId }, orderBy: { cartonsMin: "asc" } });
-        if (paliers.length === 0) throw new Refus(500, "Aucun barème de prix pour cette gamme.");
+        // (le barème n'est requis que sans prix négocié — vérifié plus bas)
+        // Prix négocié : conservé tel quel à la modification (ou changé / retiré explicitement).
+        let prixNegocie = c.prixNegocie && c.lignes[0] ? Math.round(Number(c.lignes[0].prixUnitaire)) : 0;
+        if (typeof b.prixCartonNegocie === "number" && Number.isFinite(b.prixCartonNegocie)) {
+          if (b.prixCartonNegocie < 0 || b.prixCartonNegocie > 10_000_000) throw new Refus(400, "Prix négocié invalide.");
+          prixNegocie = Math.round(b.prixCartonNegocie);
+        }
+        if (paliers.length === 0 && prixNegocie <= 0) throw new Refus(500, "Aucun barème de prix pour cette gamme.");
         const { prixCarton, montantTotal } = calculerCommande(
           ids.map((id) => ({ quantite: quantites.get(id)! })),
-          paliers.map((p) => ({ cartonsMin: p.cartonsMin, cartonsMax: p.cartonsMax, prixCarton: Number(p.prixCarton) }))
+          paliers.map((p) => ({ cartonsMin: p.cartonsMin, cartonsMax: p.cartonsMax, prixCarton: Number(p.prixCarton) })),
+          prixNegocie
         );
 
         // Paiement : le mode choisi décide, jamais un montant libre (sauf crédit partiel).
@@ -222,7 +232,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             produitId: id,
             quantite: quantites.get(id)!,
             prixUnitaire: prixCarton,
-            sousTotal: quantites.get(id)! * prixCarton,
+            sousTotal: montantLigne(quantites.get(id)!, prixCarton),
           })),
         });
 
@@ -231,6 +241,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
           where: { id: c.id },
           data: {
             montantTotal,
+            prixNegocie: prixNegocie > 0,
             modePaiement: mode,
             operateurMobile: operateur,
             ...paiement,

@@ -37,6 +37,7 @@ export async function GET(req: NextRequest) {
   // Deux conditions "OU" indépendantes (type, recherche texte) : on les
   // combine avec AND pour qu'elles ne s'écrasent pas.
   const where = {
+    estDivers: false,
     ...(villeId ? { villeId } : {}),
     ...(intervalle
       ? parVisite

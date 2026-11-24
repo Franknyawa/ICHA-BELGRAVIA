@@ -9,7 +9,7 @@ import { prisma } from "./prisma";
 export async function compterParType(): Promise<{ typeId: string | null; count: number }[]> {
   const [lies, anciens] = await Promise.all([
     prisma.pointVenteType.groupBy({ by: ["typeId"], _count: true }),
-    prisma.pointVente.groupBy({ by: ["typeId"], where: { typesLies: { none: {} } }, _count: true }),
+    prisma.pointVente.groupBy({ by: ["typeId"], where: { estDivers: false, typesLies: { none: {} } }, _count: true }),
   ]);
   const total = new Map<string | null, number>();
   for (const l of lies) total.set(l.typeId, (total.get(l.typeId) || 0) + l._count);

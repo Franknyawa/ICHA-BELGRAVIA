@@ -95,7 +95,6 @@ export async function telechargerDocumentCorrectif(d: DocumentCorrectifListe) {
     montantRecu: 0,
     resteAPayer: 0,
     motif: d.motif,
-    signatures: false,
     totaux: [
       { label: estFR ? "Valeur des retours" : "Montant de l'avoir", valeur: fcfa(d.montant) },
       ...(estFR && d.destination ? [{ label: "Destination", valeur: d.destination === "AVARIES" ? "Avaries" : "Stock vendable" }] : []),

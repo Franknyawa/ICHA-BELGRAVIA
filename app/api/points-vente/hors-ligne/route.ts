@@ -14,6 +14,7 @@ export async function GET() {
   }
 
   const points = await prisma.pointVente.findMany({
+    where: { estDivers: false },
     orderBy: { createdAt: "desc" },
     take: 600,
     include: { ville: true },

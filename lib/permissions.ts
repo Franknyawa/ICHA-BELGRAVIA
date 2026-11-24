@@ -77,6 +77,14 @@ export function peutEcrire(role: string | null | undefined, module: Module): boo
   return (role === "ADMIN" || role === "SUPER_ADMIN") && peut(role, module);
 }
 
+/**
+ * Saisir une commande au bureau pour le compte d'un commercial : admin, super admin et superviseur.
+ * (Le superviseur ne peut pas pour autant valider ni livrer : ces actions restent à l'admin.)
+ */
+export function peutSaisirCommande(role: string | null | undefined): boolean {
+  return (role === "ADMIN" || role === "SUPER_ADMIN" || role === "SUPERVISEUR") && peut(role, "commandes");
+}
+
 /** Garde pour les actions qui modifient des données (POST/PATCH/PUT/DELETE). */
 export function aEcriture<S extends { role: string } | null | undefined>(session: S, module: Module): session is NonNullable<S> {
   return !!session && peutEcrire(session.role, module);

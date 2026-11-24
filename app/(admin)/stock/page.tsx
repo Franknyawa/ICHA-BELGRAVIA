@@ -1,5 +1,6 @@
 "use client";
 
+import { formaterCartons } from "@/lib/quantites";
 import { useEffect, useState } from "react";
 import { peut } from "@/lib/permissions";
 import { useEcriture } from "@/lib/useEcriture";
@@ -29,13 +30,15 @@ type Mouvement = {
   produit: { nom: string };
 };
 
-type HorsVente = { AVARIE: { cartons: number; operations: number }; ECHANTILLON: { cartons: number; operations: number } };
-const VIDE_HV: HorsVente = { AVARIE: { cartons: 0, operations: 0 }, ECHANTILLON: { cartons: 0, operations: 0 } };
+type SommeHV = { cartons: number; operations: number };
+type HorsVente = { AVARIE: SommeHV; ECHANTILLON: SommeHV; GIFT: SommeHV };
+const VIDE_HV: HorsVente = { AVARIE: { cartons: 0, operations: 0 }, ECHANTILLON: { cartons: 0, operations: 0 }, GIFT: { cartons: 0, operations: 0 } };
 
 /** Libellé et couleur d'un mouvement : la nature (vente, avarie, échantillon, retour…) prime sur le type brut. */
 function natureMouvement(m: Pick<Mouvement, "type" | "referenceType">): { label: string; style: string; signe: "+" | "-" | "" } {
   if (m.referenceType === "AVARIE") return { label: "Avarie", style: "text-danger", signe: "-" };
   if (m.referenceType === "ECHANTILLON") return { label: "Échantillon", style: "text-[rgb(126,34,206)]", signe: "-" };
+  if (m.referenceType === "GIFT") return { label: "Gift", style: "text-brass", signe: "-" };
   if (m.referenceType === "RETOUR") return { label: "Retour client", style: "text-ok", signe: "+" };
   if (m.type === "SORTIE") return { label: m.referenceType === "COMMANDE" ? "Vente" : "Sortie", style: "text-ink-muted", signe: "-" };
   if (m.type === "ENTREE") return { label: "Entrée", style: "text-ok", signe: "+" };
@@ -48,6 +51,7 @@ const TYPES_HISTORIQUE = [
   ["RETOUR", "Retours clients"],
   ["AVARIE", "Avaries"],
   ["ECHANTILLON", "Échantillons"],
+  ["GIFT", "Gifts"],
   ["AJUSTEMENT", "Ajustements"],
 ] as const;
 
@@ -68,7 +72,7 @@ export default function StockPage() {
   const [erreur, setErreur] = useState<string | null>(null);
   // Sorties hors vente (avaries / échantillons)
   const [hvProduit, setHvProduit] = useState("");
-  const [hvType, setHvType] = useState<"AVARIE" | "ECHANTILLON">("AVARIE");
+  const [hvType, setHvType] = useState<"AVARIE" | "ECHANTILLON" | "GIFT">("AVARIE");
   const [hvQuantite, setHvQuantite] = useState("");
   const [hvMotif, setHvMotif] = useState("");
   const [hvErreur, setHvErreur] = useState<string | null>(null);
@@ -123,7 +127,7 @@ export default function StockPage() {
       const res = await fetch("/api/stock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ produitId: hvProduit, type: hvType, quantiteCartons: parseInt(hvQuantite, 10), note: hvMotif }),
+        body: JSON.stringify({ produitId: hvProduit, type: hvType, quantiteCartons: parseFloat(hvQuantite.replace(",", ".")), note: hvMotif }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -157,7 +161,7 @@ export default function StockPage() {
         body: JSON.stringify({
           produitId,
           type,
-          quantiteCartons: parseInt(quantite, 10),
+          quantiteCartons: parseFloat(quantite.replace(",", ".")),
           note,
           ...(voitCout && type === "ENTREE" && cout ? { coutTotal: Number(cout) } : {}),
         }),
@@ -215,7 +219,7 @@ export default function StockPage() {
             <IconCheckCircle className="h-5 w-5" />
           </span>
           <div>
-            <p className="font-display text-2xl text-ink">{totalCartons}</p>
+            <p className="font-display text-2xl text-ink">{formaterCartons(totalCartons)}</p>
             <p className="text-xs text-ink-muted">Cartons en stock</p>
           </div>
         </div>
@@ -263,7 +267,7 @@ export default function StockPage() {
                 </td>
                 <td className="px-4 py-3 text-ink-muted">{i.volumeMl} ml</td>
                 <td className={`px-4 py-3 font-semibold ${i.enAlerte ? "text-danger" : "text-ink"}`}>
-                  {i.quantiteCartons} carton{i.quantiteCartons !== 1 ? "s" : ""}
+                  {formaterCartons(i.quantiteCartons)} carton{i.quantiteCartons !== 1 ? "s" : ""}
                 </td>
                 <td className="px-4 py-3 text-ink-muted">{i.seuilAlerte}</td>
                 <td className="px-4 py-3">
@@ -319,6 +323,7 @@ export default function StockPage() {
           <input
             className="field-input"
             type="number"
+            step={0.5}
             placeholder={type === "ENTREE" ? "Quantité" : "Nouvelle quantité"}
             value={quantite}
             onChange={(e) => setQuantite(e.target.value)}
@@ -354,9 +359,9 @@ export default function StockPage() {
           Sorties hors vente
         </p>
         <p className="mb-3 text-xs font-medium text-ink-muted">
-          Le stock diminue mais rien n'est facturé. Les totaux suivent la période choisie dans l'historique.
+          Le stock diminue mais rien n'est facturé (par demi-carton possible). Les totaux suivent la période choisie dans l'historique.
         </p>
-        <div className="mb-3 grid gap-3 sm:grid-cols-2">
+        <div className="mb-3 grid gap-3 sm:grid-cols-3">
           <div className="field-card !border-danger/30 !bg-danger/[0.04]">
             <span className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-danger/10 text-danger"><IconAlert className="h-5 w-5" /></span>
             <p className="text-base font-extrabold text-ink">Avaries</p>
@@ -371,21 +376,29 @@ export default function StockPage() {
             <p className="mt-2 text-2xl font-extrabold text-ink"><span className="montant">{nombreFr(horsVente.ECHANTILLON.cartons)}</span> <span className="text-xs font-bold text-ink-muted">cartons</span></p>
             <p className="text-xs font-medium text-ink-muted"><span className="montant">{horsVente.ECHANTILLON.operations}</span> opération{horsVente.ECHANTILLON.operations > 1 ? "s" : ""}</p>
           </div>
+          <div className="field-card !border-brass/30 !bg-brass/[0.05]">
+            <span className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-brass/10 text-brass"><IconPlus className="h-5 w-5" /></span>
+            <p className="text-base font-extrabold text-ink">Gifts</p>
+            <p className="text-xs font-medium text-ink-muted">Cadeaux et gestes commerciaux</p>
+            <p className="mt-2 text-2xl font-extrabold text-ink"><span className="montant">{nombreFr(horsVente.GIFT.cartons)}</span> <span className="text-xs font-bold text-ink-muted">cartons</span></p>
+            <p className="text-xs font-medium text-ink-muted"><span className="montant">{horsVente.GIFT.operations}</span> opération{horsVente.GIFT.operations > 1 ? "s" : ""}</p>
+          </div>
         </div>
         {ecriture && (
           <form onSubmit={retirerDuStock} className="field-card grid gap-2 md:grid-cols-[minmax(0,2.2fr)_minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,2.2fr)_auto]">
             <select className="field-input !min-w-0" value={hvProduit} onChange={(e) => setHvProduit(e.target.value)} required aria-label="Produit">
               <option value="">Produit…</option>
               {itemsAffiches.map((i) => (
-                <option key={i.produitId} value={i.produitId}>{i.nom} — {i.quantiteCartons} carton{i.quantiteCartons !== 1 ? "s" : ""} en stock</option>
+                <option key={i.produitId} value={i.produitId}>{i.nom} — {formaterCartons(i.quantiteCartons)} carton{i.quantiteCartons !== 1 ? "s" : ""} en stock</option>
               ))}
             </select>
-            <select className="field-input !min-w-0" value={hvType} onChange={(e) => setHvType(e.target.value as "AVARIE" | "ECHANTILLON")} aria-label="Nature de la sortie">
+            <select className="field-input !min-w-0" value={hvType} onChange={(e) => setHvType(e.target.value as "AVARIE" | "ECHANTILLON" | "GIFT")} aria-label="Nature de la sortie">
               <option value="AVARIE">Avarie</option>
               <option value="ECHANTILLON">Échantillon</option>
+              <option value="GIFT">Gift</option>
             </select>
-            <input className="field-input" type="number" min={1} placeholder="Cartons" value={hvQuantite} onChange={(e) => setHvQuantite(e.target.value)} required aria-label="Quantité en cartons" />
-            <input className="field-input" placeholder={hvType === "AVARIE" ? "Motif (ex : cartons mouillés)" : "Motif (ex : dégustation chez un client)"} value={hvMotif} onChange={(e) => setHvMotif(e.target.value)} required minLength={3} aria-label="Motif" />
+            <input className="field-input" type="number" min={0.5} step={0.5} placeholder="Cartons" value={hvQuantite} onChange={(e) => setHvQuantite(e.target.value)} required aria-label="Quantité en cartons" />
+            <input className="field-input" placeholder={hvType === "AVARIE" ? "Motif (ex : cartons mouillés)" : hvType === "GIFT" ? "Motif (ex : cadeau à un partenaire)" : "Motif (ex : dégustation chez un client)"} value={hvMotif} onChange={(e) => setHvMotif(e.target.value)} required minLength={3} aria-label="Motif" />
             <button className="btn-primary" type="submit" disabled={hvEnCours}>{hvEnCours ? "…" : "Retirer du stock"}</button>
           </form>
         )}
@@ -431,7 +444,7 @@ export default function StockPage() {
                     <td className={`px-4 py-3 font-medium ${nat.style}`}>{nat.label}</td>
                     <td className="montant px-4 py-3 text-ink-muted">
                       {nat.signe || (m.quantiteCartons >= 0 ? "+" : "")}
-                      {nat.signe ? Math.abs(m.quantiteCartons) : m.quantiteCartons}
+                      {nat.signe ? formaterCartons(Math.abs(m.quantiteCartons)) : formaterCartons(m.quantiteCartons)}
                     </td>
                     <td className="px-4 py-3 text-ink-muted">{m.note || (m.referenceType === "COMMANDE" ? "Commande" : "—")}</td>
                   </tr>

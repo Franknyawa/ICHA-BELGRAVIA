@@ -1,5 +1,7 @@
 "use client";
 
+import { arrondirDemi, formaterCartons } from "@/lib/quantites";
+import QuantiteCartons from "@/components/QuantiteCartons";
 import { nombreFr } from "@/lib/format";
 import { useEffect, useMemo, useState } from "react";
 import { IconClose, IconPlus, IconAlert } from "@/components/icons";
@@ -79,6 +81,12 @@ export default function ModaleCommande({ commandeId, nom, onFermer, onEnregistre
   const prixCarton = useMemo(() => (d && totalCartons > 0 ? trouverPrixCarton(totalCartons, d.paliers) : 0), [d, totalCartons]);
   const disponibles = d?.produits.filter((p) => !(p.id in quantites)) ?? [];
 
+  function fixer(id: string, n: number) {
+    setQuantites((q) => {
+      const { [id]: _, ...reste } = q;
+      return n <= 0 ? reste : { ...reste, [id]: Math.min(arrondirDemi(n), 100000) };
+    });
+  }
   function changer(id: string, delta: number) {
     setQuantites((q) => {
       const n = (q[id] || 0) + delta;
@@ -149,20 +157,7 @@ export default function ModaleCommande({ commandeId, nom, onFermer, onEnregistre
                   {ids.map((id) => (
                     <li key={id} className="flex items-center justify-between gap-3 px-3 py-2.5">
                       <span className="min-w-0 truncate font-semibold text-ink">{nomProduit(id)}</span>
-                      <span className="flex items-center gap-2">
-                        <button type="button" aria-label="Retirer un carton" className="h-8 w-8 rounded-lg border border-line font-menu text-lg font-bold text-ink hover:border-brass" onClick={() => changer(id, -1)}>−</button>
-                        <input
-                          aria-label={`Quantité ${nomProduit(id)}`}
-                          className="montant w-14 rounded-lg border border-line bg-bg px-1 py-1.5 text-center text-base text-ink"
-                          inputMode="numeric"
-                          value={quantites[id]}
-                          onChange={(e) => {
-                            const n = parseInt(e.target.value.replace(/\D/g, ""), 10);
-                            setQuantites((q) => (Number.isFinite(n) && n > 0 ? { ...q, [id]: Math.min(n, 100000) } : q));
-                          }}
-                        />
-                        <button type="button" aria-label="Ajouter un carton" className="h-8 w-8 rounded-lg border border-line font-menu text-lg font-bold text-ink hover:border-brass" onClick={() => changer(id, 1)}>+</button>
-                      </span>
+                      <QuantiteCartons valeur={quantites[id]} onChange={(n) => fixer(id, n)} libelle={nomProduit(id)} compact />
                     </li>
                   ))}
                   {ids.length === 0 && <li className="px-3 py-4 text-center text-sm text-ink-muted">Aucun produit.</li>}
@@ -210,7 +205,7 @@ export default function ModaleCommande({ commandeId, nom, onFermer, onEnregistre
                 <div className="flex items-end justify-between gap-3">
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">Nouveau total (aperçu)</p>
-                    <p className="text-xs text-ink-muted">{totalCartons} carton{totalCartons > 1 ? "s" : ""} × {fcfa(prixCarton)} FCFA</p>
+                    <p className="text-xs text-ink-muted">{formaterCartons(totalCartons)} carton{totalCartons > 1 ? "s" : ""} × {fcfa(prixCarton)} FCFA</p>
                   </div>
                   <p className="montant text-3xl text-ink">{fcfa(totalCartons * prixCarton)}<span className="montant-unite">FCFA</span></p>
                 </div>

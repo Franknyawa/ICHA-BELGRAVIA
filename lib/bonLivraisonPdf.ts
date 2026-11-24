@@ -1,5 +1,6 @@
 "use client";
 
+import { formaterCartons } from "./quantites";
 import { formaterMontant } from "./facturePdf";
 import { libelleModePaiement } from "./pricing";
 import { NOM_APP, NOM_APP_COMPLET, SIGNATURE_APP } from "./marque";
@@ -102,7 +103,7 @@ export async function genererBonLivraisonPdf(data: BonLivraisonData) {
   autoTable(doc, {
     startY: yInfos + 36,
     head: [["Produit", "Cartons à livrer"]],
-    body: data.lignes.map((l) => [l.produitNom, String(l.quantiteCartons)]),
+    body: data.lignes.map((l) => [l.produitNom, formaterCartons(l.quantiteCartons)]),
     theme: "striped",
     headStyles: { fillColor: COULEUR_EMERAUDE, textColor: 255, fontStyle: "bold", fontSize: 9 },
     alternateRowStyles: { fillColor: [250, 247, 238] },

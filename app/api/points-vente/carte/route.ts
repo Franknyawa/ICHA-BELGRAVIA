@@ -8,7 +8,7 @@ export async function GET() {
   if (!aAcces(session, "carte")) return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
 
   const points = await prisma.pointVente.findMany({
-    where: { latitude: { not: null }, longitude: { not: null } },
+    where: { estDivers: false, latitude: { not: null }, longitude: { not: null } },
     select: {
       id: true,
       nomEtablissement: true,

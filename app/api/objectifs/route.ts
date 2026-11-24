@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
       where: { statut: { not: "NON_TRAITEE" }, dateCommande: { gte: debut, lt: fin } },
       select: { commercialId: true, montantTotal: true, lignes: { select: { quantite: true } } },
     }),
-    prisma.pointVente.groupBy({ by: ["createdById"], where: { createdAt: { gte: debut, lt: fin } }, _count: { _all: true } }),
+    prisma.pointVente.groupBy({ by: ["createdById"], where: { estDivers: false, createdAt: { gte: debut, lt: fin } }, _count: { _all: true } }),
     prisma.visite.groupBy({ by: ["commercialId"], where: { dateVisite: { gte: debut, lt: fin } }, _count: { _all: true } }),
   ]);
 

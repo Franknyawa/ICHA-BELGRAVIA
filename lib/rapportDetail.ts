@@ -269,7 +269,7 @@ export async function detailRapport(groupBy: GroupBy, id: string, f: FiltresRapp
     soustitre = "Commercial";
     const [visites, recenses] = await Promise.all([
       prisma.visite.count({ where: { commercialId: id, ...(dateFilter(f) ? { createdAt: dateFilter(f)! } : {}) } }),
-      prisma.pointVente.count({ where: { createdById: id, ...(dateFilter(f) ? { createdAt: dateFilter(f)! } : {}) } }),
+      prisma.pointVente.count({ where: { estDivers: false, createdById: id, ...(dateFilter(f) ? { createdAt: dateFilter(f)! } : {}) } }),
     ]);
     kpis.push({ label: "Visites", valeur: visites }, { label: "Points de vente recensés", valeur: recenses });
   } else if (groupBy === "ville") {

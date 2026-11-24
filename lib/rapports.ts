@@ -98,6 +98,7 @@ export async function genererRapport(groupBy: GroupBy, f: FiltresRapport): Promi
     ...(pv ? { pointVente: pv } : {}),
   };
   const whereRecensement = {
+    estDivers: false,
     ...(df ? { createdAt: df } : {}),
     ...(f.commercialId ? { createdById: f.commercialId } : {}),
     ...(pv || {}),

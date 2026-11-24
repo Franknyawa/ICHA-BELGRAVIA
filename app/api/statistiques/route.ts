@@ -12,7 +12,7 @@ export async function GET() {
     prisma.visite.count(),
     prisma.visite.groupBy({ by: ["potentielEstime"], _count: true }),
     compterParType(),
-    prisma.pointVente.groupBy({ by: ["villeId"], _count: true }),
+    prisma.pointVente.groupBy({ by: ["villeId"], where: { estDivers: false }, _count: true }),
     prisma.visite.groupBy({ by: ["commercialId"], _count: true }),
     prisma.visite.count({ where: { interesseVisiteCommerciale: true } }),
     prisma.visite.count({ where: { veutCommander: true } }),

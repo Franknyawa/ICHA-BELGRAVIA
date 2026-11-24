@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { peutSaisirCommande } from "@/lib/permissions";
 
 /** Distance approximative en km entre deux points (formule de Haversine). */
 function distanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -22,7 +23,7 @@ function distanceKm(lat1: number, lng1: number, lat2: number, lng2: number): num
  */
 export async function GET(req: NextRequest) {
   const session = await getSession();
-  if (!session || session.role !== "COMMERCIAL") {
+  if (!session || (session.role !== "COMMERCIAL" && !peutSaisirCommande(session.role))) {
     return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
   }
 
@@ -37,6 +38,7 @@ export async function GET(req: NextRequest) {
 
   const points = await prisma.pointVente.findMany({
     where: {
+      estDivers: false,
       ...(q.length >= 2
         ? {
             OR: [
