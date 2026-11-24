@@ -28,6 +28,8 @@ type Lien = {
   module: Module;
   Icone: (p: { className?: string }) => JSX.Element;
   badge?: string; // URL renvoyant { count }
+  /** Compteur « depuis ma dernière visite » : href de la page qui le remet à zéro. */
+  badgeVu?: string;
 };
 
 const SECTIONS: { titre: string; liens: Lien[] }[] = [
@@ -59,8 +61,8 @@ const SECTIONS: { titre: string; liens: Lien[] }[] = [
   {
     titre: "Stock et finances",
     liens: [
-      { href: "/stock", libelle: "Stock", module: "stock", Icone: IconList },
-      { href: "/caisse", libelle: "Caisse", module: "caisse", Icone: IconWallet },
+      { href: "/stock", libelle: "Stock", module: "stock", Icone: IconList, badge: "/api/stock/count" },
+      { href: "/caisse", libelle: "Caisse", module: "caisse", Icone: IconWallet, badge: "/api/caisse/count", badgeVu: "/caisse" },
       { href: "/produits", libelle: "Produits", module: "produits", Icone: IconGlass },
     ],
   },
@@ -126,7 +128,7 @@ export default function MenuLateral({ role }: { role: string }) {
                     >
                       <l.Icone className="h-[18px] w-[18px] shrink-0" />
                       <span>{l.libelle}</span>
-                      {l.badge && <BadgeCompteur url={l.badge} />}
+                      {l.badge && <BadgeCompteur url={l.badge} vuePage={l.badgeVu} />}
                     </Link>
                   </li>
                 );

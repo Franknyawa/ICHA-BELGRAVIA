@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import BarreGraphique from "@/components/BarreGraphique";
 import GammeTabs from "@/components/GammeTabs";
+import ActiviteDuJour from "@/components/ActiviteDuJour";
 import VentesProduits from "@/components/VentesProduits";
 import type { GammeInfo } from "@/lib/gammesClient";
 import {
@@ -51,20 +52,20 @@ export default function TableauDeBordPage() {
 
   return (
     <div>
-      <h1 className="mb-4 flex items-center gap-2 font-display text-2xl text-ink">
-        <IconChart className="h-5 w-5 text-brass" />
-        Tableau de bord
-      </h1>
+      <ActiviteDuJour
+        gammeId={gammeId}
+        filtre={
+          <>
+            <GammeTabs gammes={gammes} value={gammeId} onChange={setGammeId} />
+            {gammeId && (
+              <p className="mt-2 text-xs text-ink-muted">
+                La gamme choisie s'applique aux commandes et au chiffre d'affaires ; visites et caisse restent globales.
+              </p>
+            )}
+          </>
+        }
+      />
 
-      <div className="mb-2">
-        <GammeTabs gammes={gammes} value={gammeId} onChange={setGammeId} />
-      </div>
-      {gammeId && (
-        <p className="mb-5 text-xs text-ink-muted">
-          La gamme choisie s'applique aux commandes et au chiffre d'affaires ; visites et points de vente restent globaux.
-        </p>
-      )}
-      {!gammeId && <div className="mb-4" />}
 
       {!data && (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -76,15 +77,6 @@ export default function TableauDeBordPage() {
 
       {data && (
         <>
-          {/* Activité du jour — les 3 chiffres qui comptent le plus au quotidien,
-              mis en avant avant le reste des indicateurs. */}
-          <p className="section-eyebrow mb-3">Aujourd'hui</p>
-          <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <KpiHero icon={IconReceipt} label="Chiffre d'affaires du jour" valeur={formatMontant(data.caDuJour)} accent="brass" />
-            <KpiHero icon={IconReceipt} label="Commandes aujourd'hui" valeur={data.commandesAujourdhui} accent="ok" />
-            <KpiHero icon={IconStorefront} label="Visites aujourd'hui" valeur={data.visitesAujourdhui} accent="warn" />
-          </div>
-
           <p className="section-eyebrow mb-3">Vue d'ensemble</p>
           <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
             <Kpi icon={IconStorefront} label="Points de vente recensés" valeur={data.pointVenteTotal} />

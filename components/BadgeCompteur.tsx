@@ -8,15 +8,50 @@ import { usePolling } from "@/lib/usePolling";
  * Pastille rouge de compteur dans le menu. Lit `{ count }` sur l'URL donnée,
  * se met à jour à chaque navigation et toutes les 60 s tant que l'onglet est visible.
  */
-export default function BadgeCompteur({ url }: { url: string }) {
+export default function BadgeCompteur({ url, vuePage }: { url: string; vuePage?: string }) {
   const pathname = usePathname();
   const [count, setCount] = useState(0);
 
-  const rafraichir = () =>
-    fetch(url)
+  const cle = vuePage ? `badge-vu:${vuePage}` : null;
+  const lire = () => {
+    try {
+      return cle ? window.localStorage.getItem(cle) : null;
+    } catch {
+      return null;
+    }
+  };
+  const ecrire = () => {
+    try {
+      if (cle) window.localStorage.setItem(cle, new Date().toISOString());
+    } catch {}
+  };
+
+  // Compteur « depuis ma dernière visite » : la page concernée remet le compteur à zéro.
+  const surPage = !!vuePage && (pathname === vuePage || pathname.startsWith(vuePage + "/"));
+
+  const rafraichir = () => {
+    if (cle) {
+      if (surPage) {
+        ecrire();
+        return setCount(0);
+      }
+      let depuis = lire();
+      if (!depuis) {
+        // Première fois sur cet appareil : on part de maintenant, sans afficher tout l'historique.
+        ecrire();
+        depuis = lire();
+      }
+      if (!depuis) return setCount(0);
+      return fetch(`${url}?depuis=${encodeURIComponent(depuis)}`)
+        .then((r) => (r.ok ? r.json() : { count: 0 }))
+        .then((d) => setCount(d.count || 0))
+        .catch(() => {});
+    }
+    return fetch(url)
       .then((r) => (r.ok ? r.json() : { count: 0 }))
       .then((d) => setCount(d.count || 0))
       .catch(() => {});
+  };
 
   useEffect(() => {
     rafraichir();
