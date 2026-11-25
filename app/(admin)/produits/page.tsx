@@ -162,10 +162,10 @@ export default function ProduitsPage() {
       )}
 
       <div className="overflow-x-auto rounded-lg border border-line">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[920px] text-sm">
           <thead className="bg-bg-elevated text-left text-ink-muted">
             <tr>
-              <th className="px-4 py-3 font-medium">Produit</th>
+              <th className="min-w-[17rem] px-4 py-3 font-medium">Produit</th>
               <th className="px-4 py-3 font-medium">Gamme</th>
               <th className="px-4 py-3 font-medium">Volume</th>
               <th className="px-4 py-3 font-medium">Prix de référence</th>
@@ -176,9 +176,10 @@ export default function ProduitsPage() {
           <tbody>
             {produitsAffiches.map((p) => (
               <tr key={p.id} className="border-t border-line">
-                <td className="px-4 py-3">
+                <td className="min-w-[17rem] px-4 py-3">
                   <input
                     defaultValue={p.nom}
+                    title={p.nom}
                     onBlur={(e) => e.target.value !== p.nom && modifierChamp(p, "nom", e.target.value)}
                     className="w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-ink hover:border-line focus:border-brass focus:outline-none"
                   />

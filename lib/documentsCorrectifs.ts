@@ -75,7 +75,7 @@ export async function emettreDocumentCorrectif(tx: Prisma.TransactionClient, d: 
   for (const l of d.lignes || []) {
     const q = Number(l.quantite);
     if (!q) continue;
-    if (!quantiteCartonValide(q)) throw new RefusDocument(400, "Quantités invalides : nombres positifs, par demi-carton.");
+    if (!quantiteCartonValide(q)) throw new RefusDocument(400, "Quantités invalides : nombres positifs, par quart de carton.");
     if (vues.has(l.ligneId)) throw new RefusDocument(400, "Ligne en double.");
     vues.add(l.ligneId);
     const lc = c.lignes.find((x) => x.id === l.ligneId);

@@ -157,7 +157,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       for (const l of brutes) {
         const q = Number(l?.quantite);
         if (typeof l?.produitId !== "string" || !quantiteCartonValide(q)) {
-          return NextResponse.json({ error: "Lignes invalides : produit et quantité positive (par demi-carton) requis." }, { status: 400 });
+          return NextResponse.json({ error: "Lignes invalides : produit et quantité positive (par quart de carton) requis." }, { status: 400 });
         }
         quantites.set(l.produitId, (quantites.get(l.produitId) || 0) + q);
       }

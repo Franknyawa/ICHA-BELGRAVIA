@@ -181,7 +181,7 @@ export default function ActiviteDuJour({ gammeId, filtre }: { gammeId: string; f
           </p>
 
           <Titre>Ventes par jour : cartons</Titre>
-          <p className="-mt-2 mb-3 text-xs text-ink-muted">Commandes enregistrées chaque jour sur les 14 derniers jours, en cartons (demi-cartons compris).</p>
+          <p className="-mt-2 mb-3 text-xs text-ink-muted">Commandes enregistrées chaque jour sur les 14 derniers jours, en cartons (fractions de carton comprises).</p>
           <div className="mb-3 grid grid-cols-2 gap-3 xl:grid-cols-4">
             <Carte petit icone={IconBox} ton="brass" titre="Total 14 jours" valeur={ct(synthese.total)} note={`${synthese.cmd} commandes · ${fcfa(synthese.facture)}`} />
             <Carte petit icone={IconTrend} ton="ok" titre="Moyenne par jour" valeur={ct(Math.round((synthese.total / 14) * 10) / 10)} note="sur 14 jours" />

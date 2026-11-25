@@ -323,7 +323,7 @@ export default function StockPage() {
           <input
             className="field-input"
             type="number"
-            step={0.5}
+            step={0.25}
             placeholder={type === "ENTREE" ? "Quantité" : "Nouvelle quantité"}
             value={quantite}
             onChange={(e) => setQuantite(e.target.value)}
@@ -359,7 +359,7 @@ export default function StockPage() {
           Sorties hors vente
         </p>
         <p className="mb-3 text-xs font-medium text-ink-muted">
-          Le stock diminue mais rien n'est facturé (par demi-carton possible). Les totaux suivent la période choisie dans l'historique.
+          Le stock diminue mais rien n'est facturé (par quart de carton possible : 6 bouteilles). Les totaux suivent la période choisie dans l'historique.
         </p>
         <div className="mb-3 grid gap-3 sm:grid-cols-3">
           <div className="field-card !border-danger/30 !bg-danger/[0.04]">
@@ -397,7 +397,7 @@ export default function StockPage() {
               <option value="ECHANTILLON">Échantillon</option>
               <option value="GIFT">Gift</option>
             </select>
-            <input className="field-input" type="number" min={0.5} step={0.5} placeholder="Cartons" value={hvQuantite} onChange={(e) => setHvQuantite(e.target.value)} required aria-label="Quantité en cartons" />
+            <input className="field-input" type="number" min={0.25} step={0.25} placeholder="Cartons" value={hvQuantite} onChange={(e) => setHvQuantite(e.target.value)} required aria-label="Quantité en cartons" />
             <input className="field-input" placeholder={hvType === "AVARIE" ? "Motif (ex : cartons mouillés)" : hvType === "GIFT" ? "Motif (ex : cadeau à un partenaire)" : "Motif (ex : dégustation chez un client)"} value={hvMotif} onChange={(e) => setHvMotif(e.target.value)} required minLength={3} aria-label="Motif" />
             <button className="btn-primary" type="submit" disabled={hvEnCours}>{hvEnCours ? "…" : "Retirer du stock"}</button>
           </form>

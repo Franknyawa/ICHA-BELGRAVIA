@@ -41,7 +41,7 @@ function regrouper(lignes: unknown): Map<string, number> | null {
  * Le prix appliqué N'EST JAMAIS un montant libre : chaque ligne doit référencer un produit actif
  * du référentiel, et le prix/carton est soit le prix négocié avec le client (envoyé par la saisie ou
  * mémorisé sur sa fiche — PrixClient), soit le barème PalierPrixCarton selon le volume total
- * (voir lib/pricing.ts). Les quantités vont au demi-carton, payé la moitié d'un carton. Le stock
+ * (voir lib/pricing.ts). Les quantités vont au quart de carton, payé au prorata du prix d'un carton. Le stock
  * de chaque produit est décrémenté dans la même transaction (voir MouvementStock), ainsi que les
  * échantillons, qui sortent du stock sans être facturés.
  *
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
 
   const quantitesParProduit = regrouper(body.lignes);
   if (!quantitesParProduit || quantitesParProduit.size === 0) {
-    return NextResponse.json({ error: "Au moins une ligne de produit valide est requise (quantité par demi-carton)." }, { status: 400 });
+    return NextResponse.json({ error: "Au moins une ligne de produit valide est requise (quantité par quart de carton)." }, { status: 400 });
   }
   const echantillons = regrouper(body.echantillons ?? []) ?? new Map<string, number>();
   const produitIds = [...quantitesParProduit.keys()];

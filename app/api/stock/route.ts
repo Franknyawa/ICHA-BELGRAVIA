@@ -49,10 +49,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Type de mouvement invalide." }, { status: 400 });
   }
 
-  // Au demi-carton près (0,5 ; 1 ; 1,5…).
+  // Au quart de carton près (0,25 ; 0,5 ; 1 ; 1,25…) : 1/4 de carton = 6 bouteilles.
   const quantite = Number(quantiteCartons);
-  if (!Number.isFinite(quantite) || quantite === 0 || !Number.isInteger(quantite * 2)) {
-    return NextResponse.json({ error: "Quantité invalide (entière ou par demi-carton)." }, { status: 400 });
+  if (!Number.isFinite(quantite) || quantite === 0 || !Number.isInteger(quantite * 4)) {
+    return NextResponse.json({ error: "Quantité invalide (entière ou par quart de carton)." }, { status: 400 });
   }
 
   // Sortie hors vente (avarie / échantillon / gift) : le stock diminue, rien n'est facturé ni encaissé.

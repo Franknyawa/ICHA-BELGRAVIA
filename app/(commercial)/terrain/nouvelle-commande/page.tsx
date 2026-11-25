@@ -454,7 +454,7 @@ function NouvelleCommandeInner() {
       <div className="field-card space-y-3">
         <p className="section-eyebrow">
           <IconGlass className="h-4 w-4" />
-          Produits — vente au carton ou demi-carton
+          Produits — vente au carton, demi-carton ou pack de 6 bouteilles
         </p>
 
         {gammes.length > 1 && <GammeTabs gammes={gammes} value={gammeId} onChange={changerGamme} avecToutes={false} />}
