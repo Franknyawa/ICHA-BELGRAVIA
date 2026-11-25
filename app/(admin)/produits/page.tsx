@@ -21,6 +21,8 @@ export default function ProduitsPage() {
   const [produits, setProduits] = useState<Produit[]>([]);
   const [gammes, setGammes] = useState<GammeInfo[]>([]);
   const [filtreGamme, setFiltreGamme] = useState("");
+  const [filtreStatut, setFiltreStatut] = useState<"tous" | "actifs" | "desactives">("tous");
+  const [recherche, setRecherche] = useState("");
   const [gammeId, setGammeId] = useState("");
   const [formulaireOuvert, setFormulaireOuvert] = useState(false);
   const [nom, setNom] = useState("");
@@ -48,7 +50,18 @@ export default function ProduitsPage() {
       });
   }, []);
 
-  const produitsAffiches = filtreGamme ? produits.filter((p) => p.gammeId === filtreGamme) : produits;
+  const q = recherche.trim().toLowerCase();
+  const produitsAffiches = produits.filter(
+    (p) =>
+      (!filtreGamme || p.gammeId === filtreGamme) &&
+      (filtreStatut === "tous" || (filtreStatut === "actifs" ? p.actif : !p.actif)) &&
+      (!q || p.nom.toLowerCase().includes(q))
+  );
+  const nbActifs = produits.filter((p) => p.actif).length;
+  // Regroupement par gamme : une section par gamme (puis « Sans gamme »), produits actifs d'abord.
+  const sections = [...gammes.map((g) => ({ cle: g.id, titre: libelleGamme(g), gamme: g as GammeInfo | null })), { cle: "", titre: "Sans gamme", gamme: null as GammeInfo | null }]
+    .map((sec) => ({ ...sec, produits: produitsAffiches.filter((p) => (p.gammeId || "") === sec.cle).sort((a, b) => Number(b.actif) - Number(a.actif)) }))
+    .filter((sec) => sec.produits.length > 0);
 
   // Volume par défaut selon la gamme choisie : 275 ml pour les canettes RTD,
   // 750 ml pour les bouteilles de vin mousseux.
@@ -122,9 +135,12 @@ export default function ProduitsPage() {
     }
   }
 
+  const chip = (actif: boolean) =>
+    `rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${actif ? "border-brass bg-brass text-white" : "border-line bg-bg-card text-ink hover:border-brass"}`;
+
   return (
-    <div className="max-w-3xl">
-      <div className="mb-2 flex items-center justify-between">
+    <div className="mx-auto max-w-6xl">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
         <h1 className="flex items-center gap-2 font-display text-2xl text-ink">
           <IconGlass className="h-5 w-5 text-brass" />
           Produits
@@ -134,14 +150,33 @@ export default function ProduitsPage() {
           {formulaireOuvert ? "Annuler" : "Nouveau produit"}
         </button>
       </div>
-      <p className="mb-4 text-sm text-ink-muted">
-        Catalogue vendu au terrain, par gamme (Belgravia, VDV) — le commercial choisit uniquement parmi les produits
-        actifs ici, il ne peut pas en créer. Le prix indiqué est une référence d'affichage ; le prix réellement
-        facturé dépend du barème par palier de cartons de la gamme (onglet Paramètres).
+      <p className="mb-5 max-w-3xl text-sm text-ink-muted">
+        Catalogue vendu au terrain. Le commercial choisit uniquement parmi les produits <b className="text-ink">actifs</b> ; il ne peut pas en créer.
+        Le prix indiqué est une référence d'affichage : le prix facturé dépend du barème par palier de la gamme (onglet Paramètres).
       </p>
 
-      <div className="mb-5">
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[
+          { l: "Produits", v: produits.length, c: "text-ink" },
+          { l: "Actifs", v: nbActifs, c: "text-ok" },
+          { l: "Désactivés", v: produits.length - nbActifs, c: "text-ink-muted" },
+          { l: "Gammes", v: gammes.length, c: "text-brass" },
+        ].map((k) => (
+          <div key={k.l} className="field-card !py-3">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-ink-muted">{k.l}</p>
+            <p className={`montant mt-0.5 text-2xl ${k.c}`}>{k.v}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-3">
         <GammeTabs gammes={gammes} value={filtreGamme} onChange={setFiltreGamme} />
+        <div className="flex gap-2" role="group" aria-label="Statut">
+          {([["tous", "Tous"], ["actifs", "Actifs"], ["desactives", "Désactivés"]] as const).map(([v, l]) => (
+            <button key={v} type="button" onClick={() => setFiltreStatut(v)} className={chip(filtreStatut === v)}>{l}</button>
+          ))}
+        </div>
+        <input className="field-input !w-56" type="search" placeholder="Rechercher un produit…" value={recherche} onChange={(e) => setRecherche(e.target.value)} aria-label="Rechercher un produit" />
       </div>
 
       {formulaireOuvert && (
@@ -161,32 +196,63 @@ export default function ProduitsPage() {
         </form>
       )}
 
-      <div className="overflow-x-auto rounded-lg border border-line">
-        <table className="w-full min-w-[920px] text-sm">
-          <thead className="bg-bg-elevated text-left text-ink-muted">
-            <tr>
-              <th className="min-w-[17rem] px-4 py-3 font-medium">Produit</th>
-              <th className="px-4 py-3 font-medium">Gamme</th>
-              <th className="px-4 py-3 font-medium">Volume</th>
-              <th className="px-4 py-3 font-medium">Prix de référence</th>
-              <th className="px-4 py-3 font-medium">Statut</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
-          <tbody>
-            {produitsAffiches.map((p) => (
-              <tr key={p.id} className="border-t border-line">
-                <td className="min-w-[17rem] px-4 py-3">
+      {sections.map((sec) => (
+        <section key={sec.cle || "sans"} className="mb-8">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-ink">
+            <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${styleBadgeGamme(sec.gamme?.code)}`}>{sec.titre}</span>
+            <span className="text-xs font-medium normal-case tracking-normal text-ink-muted">
+              {sec.produits.length} produit{sec.produits.length > 1 ? "s" : ""} · {sec.produits.filter((p) => p.actif).length} actif{sec.produits.filter((p) => p.actif).length > 1 ? "s" : ""}
+            </span>
+          </h2>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {sec.produits.map((p) => (
+              <article key={p.id} className={`field-card relative !p-4 transition ${p.actif ? "" : "bg-bg-elevated/60"}`}>
+                <span className={`absolute inset-y-3 left-0 w-1 rounded-r ${p.actif ? "bg-ok" : "bg-line"}`} aria-hidden />
+                <div className="flex items-start justify-between gap-3">
                   <input
                     defaultValue={p.nom}
                     title={p.nom}
+                    aria-label="Nom du produit"
                     onBlur={(e) => e.target.value !== p.nom && modifierChamp(p, "nom", e.target.value)}
-                    className="w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-ink hover:border-line focus:border-brass focus:outline-none"
+                    className={`min-w-0 flex-1 rounded-md border border-transparent bg-transparent px-1.5 py-1 text-base font-bold hover:border-line focus:border-brass focus:outline-none ${p.actif ? "text-ink" : "text-ink-muted"}`}
                   />
-                </td>
-                <td className="px-4 py-3">
+                  <button className="shrink-0 rounded p-1 text-ink-muted hover:text-danger" onClick={() => setProduitASupprimer(p)} title="Supprimer" aria-label={`Supprimer ${p.nom}`}>
+                    <IconTrash className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <label className="block">
+                    <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-ink-muted">Volume</span>
+                    <span className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        defaultValue={p.volumeMl}
+                        onBlur={(e) => e.target.value !== String(p.volumeMl) && modifierChamp(p, "volumeMl", e.target.value)}
+                        className="field-input !min-w-0 !w-full"
+                      />
+                      <span className="text-sm text-ink-muted">ml</span>
+                    </span>
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-ink-muted">Prix de référence</span>
+                    <span className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        step="0.01"
+                        defaultValue={p.prixUnitaire}
+                        onBlur={(e) => e.target.value !== p.prixUnitaire && modifierChamp(p, "prixUnitaire", e.target.value)}
+                        className="field-input !min-w-0 !w-full"
+                      />
+                      <span className="text-sm text-ink-muted">F</span>
+                    </span>
+                  </label>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between gap-3 border-t border-line pt-3">
                   <select
                     value={p.gammeId || ""}
+                    aria-label="Gamme"
                     onChange={(e) => {
                       fetch(`/api/produits/${p.id}`, {
                         method: "PATCH",
@@ -194,63 +260,35 @@ export default function ProduitsPage() {
                         body: JSON.stringify({ gammeId: e.target.value || null }),
                       }).then(charger);
                     }}
-                    className={`rounded-full border-0 px-2.5 py-1 text-[11px] font-semibold ${styleBadgeGamme(p.gamme?.code)}`}
+                    className={`!w-auto !min-w-0 rounded-full border-0 px-2.5 py-1 text-[11px] font-semibold ${styleBadgeGamme(p.gamme?.code)}`}
                   >
                     <option value="">Sans gamme</option>
                     {gammes.map((g) => (
                       <option key={g.id} value={g.id}>{libelleGamme(g)}</option>
                     ))}
                   </select>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      defaultValue={p.volumeMl}
-                      onBlur={(e) => e.target.value !== String(p.volumeMl) && modifierChamp(p, "volumeMl", e.target.value)}
-                      className="w-16 rounded-md border border-line bg-bg-elevated px-2 py-1 text-ink"
-                    />
-                    <span className="text-ink-muted">ml</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <input
-                    type="number"
-                    step="0.01"
-                    defaultValue={p.prixUnitaire}
-                    onBlur={(e) => e.target.value !== p.prixUnitaire && modifierChamp(p, "prixUnitaire", e.target.value)}
-                    className="w-28 rounded-md border border-line bg-bg-elevated px-2 py-1 text-ink"
-                  />
-                </td>
-                <td className="px-4 py-3">
-                  <span className={p.actif ? "text-ok" : "text-ink-muted"}>{p.actif ? "Actif" : "Désactivé"}</span>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <div className="flex justify-end gap-2">
-                    <button className="text-xs text-brass hover:underline" onClick={() => toggleActif(p)}>
-                      {p.actif ? "Désactiver" : "Réactiver"}
-                    </button>
-                    <button
-                      className="rounded p-1 text-ink-muted hover:text-danger"
-                      onClick={() => setProduitASupprimer(p)}
-                      title="Supprimer"
-                    >
-                      <IconTrash className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={p.actif}
+                    onClick={() => toggleActif(p)}
+                    className="flex items-center gap-2 text-sm font-semibold"
+                    title={p.actif ? "Désactiver ce produit" : "Réactiver ce produit"}
+                  >
+                    <span className={p.actif ? "text-ok" : "text-ink-muted"}>{p.actif ? "Actif" : "Désactivé"}</span>
+                    <span className={`relative h-6 w-11 rounded-full transition-colors ${p.actif ? "bg-ok" : "bg-line"}`}>
+                      <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${p.actif ? "left-[1.375rem]" : "left-0.5"}`} />
+                    </span>
+                  </button>
+                </div>
+              </article>
             ))}
-            {produitsAffiches.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-ink-muted">
-                  Aucun produit dans cette gamme pour le moment.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+          </div>
+        </section>
+      ))}
+      {sections.length === 0 && (
+        <p className="field-card py-10 text-center text-ink-muted">Aucun produit ne correspond à ces filtres.</p>
+      )}
 
       <ConfirmDialog
         open={!!produitASupprimer}
